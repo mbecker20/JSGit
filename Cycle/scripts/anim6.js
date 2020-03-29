@@ -22,38 +22,40 @@ class Anim6 {
         this.dt = .002;
         this.stepsPerFrame = 10;
 
-        // initialize meshes+
+        // initialize meshes
         this.sphere = BF.MakeSphere('sphere6', scene, 1); // the anchor of the double pend
         this.sphere.position.y = 15;
-        this.sphere.material = myMats.moon;
-        this.sphere.parent = this.node;
 
         this.m1 = BF.MakeCylinder('cylinder61', scene, .5, Math.sqrt(this.pConst.m1));
-        this.m1.material = myMats.moon;
         this.m1.rotation.x = Math.PI/2;
-        this.m1.bakeCurrentTransformIntoVertices();
 
         this.m2 = BF.MakeCylinder('cylinder61', scene, .5, Math.sqrt(this.pConst.m2));
-        this.m2.material = myMats.moon;
         this.m2.rotation.x = Math.PI/2;
-        this.m2.bakeCurrentTransformIntoVertices();
 
         this.l1 = BF.MakeTube('l1', scene, .25);
-        this.l1.material = myMats.sun;
         this.l1.scaling.x = this.pConst.l1;
         this.l1.rotation.z = -Math.PI/2;
-        this.l1.bakeCurrentTransformIntoVertices();
 
         this.l2 = BF.MakeTube('l2', scene, .25);
-        this.l2.material = myMats.sun;
         this.l2.scaling.x = this.pConst.l2;
         this.l2.rotation.z = -Math.PI/2; // orients tube along -y axis;
-        this.l2.bakeCurrentTransformIntoVertices();
+
+        BF.BakeMeshs([this.m1, this.m2, this.l1, this.l2]);
+
+        // set materials
+        this.sphere.material = myMats.darkMoon;
+        this.m1.material = myMats.darkMoon;
+        this.m2.material = myMats.darkMoon;
+        this.l1.material = myMats.wArrow;
+        this.l2.material = myMats.wArrow;
 
         // use sphere as origin for rest of objects, force compile materials, connect meshs to shadows
+        BF.SetChildren(this.node, [this.sphere]);
         BF.SetChildren(this.sphere, [this.m1, this.m2, this.l1, this.l2]);
         BF.ForceCompileMaterials([this.sphere, this.m1, this.m2, this.l1, this.l2]);
         BF.ConnectMeshsToShadows([this.sphere, this.m1, this.m2, this.l1, this.l2], shadows);
+
+        this.setPos();
     }
 
     step() {

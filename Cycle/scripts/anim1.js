@@ -5,12 +5,12 @@ class Anim1 {
         this.r=2;
         this.sphere = BABYLON.MeshBuilder.CreateSphere('sphere1', {segments:16, diameter:2}, scene);
         this.sphere.position = BF.Vec3([0, 2, 0]);
-        this.sphere.material = myMats.jupiter;
+        this.sphere.material = myMats.darkMoon;
         this.sphere.receiveShadows = true;
 
         this.ground = BABYLON.MeshBuilder.CreateGround('ground1', {width:10,height:10}, scene);
         this.ground.position = BF.ZeroVec3();
-        this.ground.material = myMats.blue;
+        this.ground.material = myMats.wArrow;
         this.ground.receiveShadows = true;
 
         BF.SetChildren(this.node, [this.sphere, this.ground]);

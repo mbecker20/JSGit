@@ -65,11 +65,11 @@ window.addEventListener('DOMContentLoaded', function(){
         var sun = BABYLON.MeshBuilder.CreateSphere('moon', {diameter:8, segments:16}, scene);
         sun.material = myMats.sun;
 
-        var worldAxes = BF.MakeAxes('worldAxes', scene, 4);
+        //var worldAxes = BF.MakeAxes('worldAxes', scene, 4);
 
         var underBlock = BABYLON.MeshBuilder.CreateBox('underBlock', {width:40,height:1,depth:40}, scene);
         underBlock.position = BF.Vec3([0,-2,0]);
-        underBlock.material = myMats.underBlock;
+        underBlock.material = myMats.darkMoon;
         underBlock.receiveShadows = true;
 
         BF.ConnectToShadows(underBlock, shadows);

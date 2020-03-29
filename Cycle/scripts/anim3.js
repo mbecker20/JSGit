@@ -1,10 +1,20 @@
 class Anim3 {
     constructor(scene, myMats, shadows) {
+        // make local origin of anim
         this.node = new BABYLON.TransformNode('anim3Node', scene);
 
+        // set initial parameters
+        this.theta = 0.2; // mass position around ring
+        this.thetaDot = 4;
+        this.phi = 0; // total ring rotation
+        this.omega = 2; // ring rotation speed, omega = d(phi)/dt, is constant
+        this.damping = 0.05;
+
+        this.dt = .03;
+        this.stepsPerFrame = 1;
+
+        // setup objects
         this.ground = BABYLON.MeshBuilder.CreateGround('ground4', {width:10,height:10}, scene);
-        this.ground.position = BF.Vec3([0, 0, 0]);
-        this.ground.material = myMats.blue;
         this.ground.receiveShadows = true;
 
         this.ringRad = 4;
@@ -12,29 +22,20 @@ class Anim3 {
         this.ring.rotation.x = Math.PI/2;
         this.ring.bakeCurrentTransformIntoVertices();
         this.ring.position = BF.Vec3([0,5,0]);
-        this.ring.material = myMats.wArrow;
         this.ring.receiveShadows = true;
 
         this.mass = BABYLON.MeshBuilder.CreateSphere('ringMass', {segments:16, diameter:1.5}, scene);
         this.mass.parent = this.ring;
         this.mass.position = BF.Vec3([0,-this.ringRad,0]);
-        this.mass.material = myMats.chill;
         this.mass.receiveShadows = true;
+
+        // set object materials
+        this.ground.material = myMats.wArrow;
+        this.ring.material = myMats.wArrow;
+        this.mass.material = myMats.darkMoon;
 
         BF.SetChildren(this.node, [this.ground, this.ring]);
         BF.ConnectMeshsToShadows([this.ring, this.mass, this.ground], shadows);
-
-        this.theta = 0.2; // mass position on ring
-        this.thetaDot = 4;
-        this.omega = 2; //ring rotation speed
-        this.damping = 0.05;
-
-        this.phi = 0;
-
-        this.stepsPerFrame = 1;
-
-        this.dt = .03;
-
         BF.ForceCompileMaterials([this.ring, this.mass, this.ground]);
     }
 
