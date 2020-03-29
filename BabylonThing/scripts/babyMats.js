@@ -1,4 +1,5 @@
 class MyMats {
+    // a collection of initialized Babylon Materials used in various anims
     constructor(scene) {
         //
         this.blue = new BABYLON.StandardMaterial('blue', scene);
