@@ -35,8 +35,10 @@ window.addEventListener('DOMContentLoaded', function(){
         function moonPos(t, r, w) {
             return BF.Vec3([0, -Math.sin(w*t), Math.cos(w*t)]).scale(r);
         }
+ 
+        var shadowQual = 1024 // 512 or 1024 for laptop, 2048 for desktop
 
-        var moonShadows = new BABYLON.ShadowGenerator(2048, moonLight);
+        var moonShadows = new BABYLON.ShadowGenerator(shadowQual, moonLight);
         moonShadows.usePoissonSampling = true;
         //moonShadows.useExponentialShadowMap = true;
         //moonShadows.useBlurExponentialShadowMap = true;
@@ -49,7 +51,7 @@ window.addEventListener('DOMContentLoaded', function(){
             return BF.Vec3([Math.cos(w*t), Math.sin(w*t), 0]).scale(r);
         }
         
-        var sunShadows = new BABYLON.ShadowGenerator(2048, sunLight);
+        var sunShadows = new BABYLON.ShadowGenerator(shadowQual, sunLight);
         sunShadows.usePoissonSampling = true;
         //sunShadows.useExponentialShadowMap = true;
 

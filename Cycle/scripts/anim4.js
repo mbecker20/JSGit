@@ -16,7 +16,7 @@ class Anim4 {
 
         BF.ConnectMeshsToShadows([this.tHandle, this.ground], shadows);
 
-        this.dt = .002;
+        this.dt = .008;
         this.g = 0;
 
         this.tHandle = makePhysBody(scene, this.tHandle, BF.ZeroVec3(), [10,10,700], .1, this.dt, showWArrow, showAxes);
@@ -27,7 +27,7 @@ class Anim4 {
 
         BF.SetChildren(this.node, [this.ground, this.tHandle, this.tHandle.wArrow]);
         
-        this.stepsPerFrame = 4;
+        this.stepsPerFrame = 1;
 
         BF.ForceCompileMaterials([this.tHandle, this.tHandle.wArrow.pointer, this.ground]);
     }

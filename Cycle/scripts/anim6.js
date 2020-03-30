@@ -19,8 +19,8 @@ class Anim6 {
         this.damping = {thetaDot: .01, phiDot: .01};
         this.lagrangian = new Lagrangian(lFunc, this.params, this.pConst, this.damping, .01);
 
-        this.dt = .002;
-        this.stepsPerFrame = 10;
+        this.dt = .008;
+        this.stepsPerFrame = 2;
 
         // initialize meshes
         this.sphere = BF.MakeSphere('sphere6', scene, 1); // the anchor of the double pend
