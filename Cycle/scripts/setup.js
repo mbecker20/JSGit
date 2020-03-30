@@ -64,7 +64,6 @@ window.addEventListener('DOMContentLoaded', function(){
 
         //make skybox
         var skyBox = new BABYLON.MeshBuilder.CreateBox('skybox', {size: 1000}, scene);
-        //var skyBox = new BABYLON.MeshBuilder.CreateSphere('skybox', {diameter: 1000}, scene);
         skyBox.material = myMats.skyBox;
 
         //create sun and moon meshs
