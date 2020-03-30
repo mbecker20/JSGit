@@ -26,7 +26,6 @@ class Anim3 {
 
         this.mass = BABYLON.MeshBuilder.CreateSphere('ringMass', {segments:16, diameter:1.5}, scene);
         this.mass.parent = this.ring;
-        this.mass.position = BF.Vec3([0,-this.ringRad,0]);
         this.mass.receiveShadows = true;
 
         // set object materials
@@ -37,6 +36,8 @@ class Anim3 {
         BF.SetChildren(this.node, [this.ground, this.ring]);
         BF.ConnectMeshsToShadows([this.ring, this.mass, this.ground], shadows);
         BF.ForceCompileMaterials([this.ring, this.mass, this.ground]);
+
+        this.updateMesh();
     }
 
     step() {
@@ -55,7 +56,7 @@ class Anim3 {
     }
 
     updateMesh() {
-        this.mass.position = BF.Vec3(math.multiply([Math.sin(this.theta),-Math.cos(this.theta),0],this.ringRad));
+        BF.SetVec3(math.multiply([Math.sin(this.theta),-Math.cos(this.theta),0],this.ringRad), this.mass.position);
         this.ring.rotation.y = this.phi;
     }
 

@@ -16,7 +16,7 @@ class Anim6 {
         //setup parameters used by Lagrangian system;
         this.params = {theta: 4, thetaDot: -1, phi: 5, phiDot: 0};
         this.pConst = {m1: 2, m2: 2, l1: 5, l2: 4, g:10};
-        this.damping = {thetaDot: .01, phiDot: .01};
+        this.damping = {thetaDot: .03, phiDot: .03};
         this.lagrangian = new Lagrangian(lFunc, this.params, this.pConst, this.damping, .01);
 
         this.dt = .008;

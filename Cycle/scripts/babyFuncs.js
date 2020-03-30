@@ -10,7 +10,7 @@ class BF {
         return [[ar[0],ar[1],ar[2]],[ar[4],ar[5],ar[6]],[ar[8],ar[9],ar[10]]];
     }
 
-    static makeWorldMat(oTens,position) {
+    static MakeWorldMat(oTens,position) {
         //oTens is ar3x3, position is babylon vec3
         let mat = BABYLON.Matrix.Identity();
         mat.setRow(0,BF.Vec4_2(oTens[0],0));
@@ -20,7 +20,7 @@ class BF {
         return mat;
     }
 
-    static setWorldMat(oTens,position,target,rows) {
+    static SetWorldMat(oTens,position,target,rows) {
         //oTens is ar3x3, position is babylon vec3
         //target is the initialized matrix to become worldMat
         //rows is initialized ar4[BABYLON.Vector4];
@@ -51,6 +51,7 @@ class BF {
 
     static SetVec3(ar3, target) {
         target.set(ar3[0],ar3[1],ar3[2]);
+        return target;
     }
 
     static Vec4(ar4) {

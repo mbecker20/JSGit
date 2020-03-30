@@ -28,12 +28,13 @@ window.addEventListener('DOMContentLoaded', function(){
             return .4*(1+.8*Math.sin(w*t)) //sun rising at t = 0;
         }
         
-        var moonLight = new BABYLON.PointLight('moonLight', BF.Vec3([0,30,0]), scene);
+        var moonPos = BF.ZeroVec3();
+        var moonLight = new BABYLON.PointLight('moonLight', moonPos, scene);
         moonLight.intensity = .5
         moonLight.diffuse = Colors.RGB(100,100,100);
 
-        function moonPos(t, r, w) {
-            return BF.Vec3([0, -Math.sin(w*t), Math.cos(w*t)]).scale(r);
+        function moonPosition(t, r, w, moonPos) {
+            return BF.SetVec3([0, -Math.sin(w*t), Math.cos(w*t)], moonPos).scale(r);
         }
  
         var shadowQual = 1024 // 512 or 1024 for laptop, 2048 for desktop
@@ -43,12 +44,13 @@ window.addEventListener('DOMContentLoaded', function(){
         //moonShadows.useExponentialShadowMap = true;
         //moonShadows.useBlurExponentialShadowMap = true;
 
+        var sunPos = BF.ZeroVec3()
         var sunLight = new BABYLON.PointLight('sunLight', BF.ZeroVec3(), scene);
         sunLight.intensity = .7;
         sunLight.diffuse = Colors.RGB(255,255,153);
 
-        function sunPos(t, r, w) {
-            return BF.Vec3([Math.cos(w*t), Math.sin(w*t), 0]).scale(r);
+        function sunPosition(t, r, w, sunPos) {
+            return BF.SetVec3([Math.cos(w*t), Math.sin(w*t), 0], sunPos).scale(r);
         }
         
         var sunShadows = new BABYLON.ShadowGenerator(shadowQual, sunLight);
@@ -104,13 +106,13 @@ window.addEventListener('DOMContentLoaded', function(){
 
         var anims = [anim1, anim3, anim4, anim5, anim6];
 
-        function updateCycle(time, orbitR, orbitW, moonW) {
+        function updateCycle(time, orbitR, orbitW) {
             ambLight.intensity = ambientIntensity(time, orbitW);
 
-            moon.position = moonPos(time, orbitR, orbitW);
+            moon.position = moonPosition(time, orbitR, orbitW, moonPos);
             moonLight.position = moon.position
 
-            sun.position = sunPos(time, orbitR, orbitW);
+            sun.position = sunPosition(time, orbitR, orbitW, sunPos);
             sunLight.position = sun.position;
         }
 

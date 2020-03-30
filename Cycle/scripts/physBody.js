@@ -8,6 +8,7 @@ function makePhysBody(scene,mesh,v,angMom,density,dt,showWArrow,showAxes) {
     mesh.momTens = PF.GetMomentTensor(mesh,density);
     mesh.oTens = BF.GetOTens(mesh);
     mesh.w = PF.getCorrW(mesh.oTens,mesh.momTens,mesh.angMom,dt);
+    mesh.wVec3 = BF.Vec3([mesh.w])
 
     mesh.arrowScale = .25;
     mesh.wArrow = BF.MakeArrow(mesh.name.concat(' wArrow'), scene, math.multiply(mesh.w, mesh.arrowScale), .3, .7);
@@ -23,7 +24,7 @@ function makePhysBody(scene,mesh,v,angMom,density,dt,showWArrow,showAxes) {
         mesh.p.add(mesh.v.scale(dt));
         mesh.v.y += g*dt;
         mesh.w = PF.getCorrW(mesh.oTens, mesh.momTens, mesh.angMom, dt);
-        mesh.rotate(BF.Vec3(mesh.w), VF.Mag(mesh.w)*dt, BABYLON.Space.WORLD);
+        mesh.rotate(BF.SetVec3(mesh.w, mesh.wVec3), VF.Mag(mesh.w)*dt, BABYLON.Space.WORLD);
         mesh.wArrow.addRot(VF.Mag(mesh.w) * dt);
     }
 
