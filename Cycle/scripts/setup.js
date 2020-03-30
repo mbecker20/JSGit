@@ -80,31 +80,31 @@ window.addEventListener('DOMContentLoaded', function(){
 
         BF.ForceCompileMaterials([moon, sun, underBlock]);
 
-        var grid = [BF.Vec3([-10, 0, 10]),
-                    BF.Vec3([-10, 0, -10]),
-                    BF.Vec3([10, 0, 10]),
-                    BF.Vec3([10, 0, -10])];
+        var grid = BF.MakeGridXZ([-10,0,-10], 20, 2, 2);
 
         //initialize animation classes
         var anim1 = new Anim1(scene, myMats, shadows);
-        anim1.node.position = grid[0]; 
+        anim1.node.position = grid[0][1]; 
 
         //var anim2 = new Anim2(scene, myMats, shadows);
         //anim2.node.position = grid[1];
 
         var anim3 = new Anim3(scene, myMats, shadows);
-        anim3.node.position = grid[2];
+        anim3.node.position = grid[0][0];
 
         var anim4 = new Anim4(scene, myMats, shadows);
-        anim4.node.position = grid[1];
+        anim4.node.position = grid[1][1];
 
-        var anim5 = new Anim5(scene, myMats, shadows);
-        anim5.node.position = grid[3];
+        //var anim5 = new Anim5(scene, myMats, shadows);
+        //anim5.node.position = grid[1][0];
 
         var anim6 = new Anim6(scene, myMats, shadows);
         anim6.node.position = BF.Vec3([0,0,20]);
 
-        var anims = [anim1, anim3, anim4, anim5, anim6];
+        var anim7 = new Anim7(scene, myMats, shadows);
+        anim7.node.position = grid[1][0];
+
+        var anims = [anim1, anim3, anim4, anim7, anim6];
 
         function updateCycle(time, orbitR, orbitW) {
             ambLight.intensity = ambientIntensity(time, orbitW);

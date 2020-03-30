@@ -103,11 +103,11 @@ function makeKBRotateInput(canvas) {
             for (var index = 0; index < this._keys.length; index++) {
                 var keyCode = this._keys[index];
                 if (this.keysLeft.indexOf(keyCode) !== -1) {
-                    camera.cameraRotation.y -= this.deltaTheta;
+                    camera.cameraRotation.y -= this.deltaTheta; // done in world space
                 } else if (this.keysRight.indexOf(keyCode) !== -1) {
                     camera.cameraRotation.y += this.deltaTheta;
                 } if (this.keysUp.indexOf(keyCode) !== -1) {
-                    camera.cameraRotation.x -= this.deltaTheta;
+                    camera.cameraRotation.x -= this.deltaTheta; // done in local space
                 } else if (this.keysDown.indexOf(keyCode) !== -1) {
                     camera.cameraRotation.x += this.deltaTheta;
                 } if (this.keysZoomIn.indexOf(keyCode) !== -1) {

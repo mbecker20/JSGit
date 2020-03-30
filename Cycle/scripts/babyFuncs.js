@@ -228,39 +228,6 @@ class BF {
         return axes;
     }
 
-    static MakeAxes2(name, scene, length, mats = window.axesMats) {
-        // mats is ar3[materials] for x y and z axes
-        // for when parenting doesn't work because updating worldMat with freezeWorldMatrix
-        var diameter = .25;
-        var arrowDiameter = .5;
-        var axes = {}
-        axes.xAxis = BF.MakeArrow(name.concat(' xAxis'), scene, [length,0,0], diameter, arrowDiameter);
-        axes.xAxis.bakeCurrentTransformIntoVertices();
-        axes.xAxis.material = mats[0];
-        axes.yAxis = BF.MakeArrow(name.concat(' yAxis'), scene, [0,length,0], diameter, arrowDiameter);
-        axes.yAxis.bakeCurrentTransformIntoVertices();
-        axes.yAxis.material = mats[1];
-        axes.zAxis = BF.MakeArrow(name.concat(' zAxis'), scene, [0,0,length], diameter, arrowDiameter);
-        axes.zAxis.bakeCurrentTransformIntoVertices();
-        axes.zAxis.material = mats[2];
-
-        BF.ForceCompileMaterials([axes.xAxis, axes.yAxis, axes.zAxis]);
-
-        axes.setWorldMat = function(worldMat) {
-            axes.xAxis.freezeWorldMatrix(worldMat);
-            axes.yAxis.freezeWorldMatrix(worldMat);
-            axes.zAxis.freezeWorldMatrix(worldMat);
-        }
-
-        axes.setEnabled = function(bool) {
-            axes.xAxis.setEnabled(bool);
-            axes.yAxis.setEnabled(bool);
-            axes.zAxis.setEnabled(bool);
-        }
-
-        return axes;
-    }
-
     static MakeTHandle(name, scene, mainLength, mainDiameter, crossLength, crossDiameter) {
         // main oriented along x axis
         // cross oriented along y axis shifted to positive z
@@ -323,38 +290,18 @@ class BF {
         return tube;
     }
 
-    static MakeTube2(name, scene, direction, diameter) {
-        //name is string
-        //pointing [1,0,0];
-        //tail at origin;
-        //direction is ar3
-        var tube = BABYLON.MeshBuilder.CreateCylinder(name, {height: 1, diameter: diameter, tessellation: 24}, scene);
-        tube.locallyTranslate(BF.Vec3([0,.5,0]));
-        tube.bakeCurrentTransformIntoVertices();
-        tube.rotation.z = -Math.PI/2;
-        tube.bakeCurrentTransformIntoVertices();
-        tube.zRotater = BF.MakeTransformNode(name.concat(' zRot'), scene);
-        tube.parent = tube.zRotater;
-
-        tube.setDirLength = function(ar3) {
-            const length = VF.Mag(ar3);
-            const unit = VF.Unit2(ar3, length);
-            if(Math.abs(unit[1]) < .6) { // xz ground altitude and azimuth if unit not close to +/- y axis
-                const altAzim = VF.GetAltAzimXZ(unit);
-                tube.zRotater.rotation.z = 0;
-                tube.scaling.x = length;
-                tube.rotation.z = altAzim[0];
-                tube.rotation.y = altAzim[1];
-            } else { // xy ground altitude and azimuth
-                const altAzim = VF.GetAltAzimXY(unit);
-                tube.scaling.x = length;
-                tube.rotation.y = altAzim[0];
-                tube.zRotater.rotation.z = altAzim[1];
+    static MakeGridXZ(corner, distance, numX, numZ) {
+        // corner is the -x, -z corner of grid (ar3)
+        // distance is distance between the gridpoints
+        // numX/Z is number of x/z gridpoints
+        let grid = [];
+        for(var i = 0; i < numX; i++) {
+            let row = [];
+            for(var j = 0; j < numZ; j++) {
+                row.push(BF.Vec3(math.add(corner, [i*distance, 0, j*distance])));
             }
+            grid.push(row);
         }
-
-        tube.setDirLength(direction);
-
-        return tube;
+        return grid;
     }
 }
