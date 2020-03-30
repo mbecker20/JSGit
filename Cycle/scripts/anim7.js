@@ -16,12 +16,13 @@ class Anim7 {
 
         this.dt = .01;
         this.stepsPerFrame = 2;
-        this.params = {l: 6, lDot: 3, theta: 1, thetaDot: 2, phi: 0, phiDot: 3};
-        this.pConst = {mSphere: 1, mCube: 1, g: 10, lTot: 10, rSphere: 1, sCube: 2};
+        this.params = {l: 6, lDot: 3, theta: 1, thetaDot: 2, phi: 0, phiDot: 10};
+        this.pConst = {mSphere: 1, mCube: 1.1, g: 10, lTot: 10, rSphere: 1, sCube: 2};
         this.pConst.sphereIcm = this.pConst.mSphere * (2/5) * MF.Square(this.pConst.rSphere);
         this.pConst.cubeIcm = this.pConst.mCube * (1/6) * MF.Square(this.pConst.sCube);
-        this.damping = {lDot: .01, thetaDot: .01, phiDot: .01};
+        this.damping = {lDot: .001, thetaDot: .001, phiDot: .001};
         this.lagrangian = new Lagrangian(lFunc, this.params, this.pConst, this.damping);
+        this.collisionVelocityMult = .6; // multiplied by -velocity on collision with pivot;
 
         // setup meshes
         this.ground = BABYLON.MeshBuilder.CreateGround('ground4', {width:10,height:10}, scene);
@@ -107,10 +108,10 @@ class Anim7 {
         // updates params based on boundary conditions
         if(this.params.l > this.lMax) {
             this.params.l = this.lMax;
-            this.params.lDot = this.lagrangian.pDD.l * this.dt;
+            this.params.lDot = -this.collisionVelocityMult * this.params.lDot + this.lagrangian.pDD.l * this.dt;
         } else if(this.params.l < this.lMin) {
             this.params.l = this.lMin;
-            this.params.lDot = this.lagrangian.pDD.l * this.dt;
+            this.params.lDot = -this.collisionVelocityMult * this.params.lDot + this.lagrangian.pDD.l * this.dt;
         }
     }
 }

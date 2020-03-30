@@ -18,14 +18,14 @@ window.addEventListener('DOMContentLoaded', function(){
         //window.camera.setTarget(BF.Vec3([0,7,20]));
 
         //setup scene environment
-        scene.ambientColor = new BABYLON.Color3(1,1,1);
-        scene.clearColor = new BABYLON.Color3(.1,0,.15);
+        scene.ambientColor = Colors.RGB(255,255,255);
+        scene.clearColor = Colors.RGB(0,0,0);
 
         //setup lights/shadows
         var ambLight = new BABYLON.HemisphericLight('ambLight', new BABYLON.Vector3(0,1,0), scene);
 
         function ambientIntensity(t, w) {
-            return .4*(1+.8*Math.sin(w*t)) //sun rising at t = 0;
+            return .4*(1+.6*Math.sin(w*t)) //sun rising at t = 0;
         }
         
         var moonPos = BF.ZeroVec3();
@@ -62,13 +62,19 @@ window.addEventListener('DOMContentLoaded', function(){
         //initialize materials object
         var myMats = new MyMats(scene);
 
-        //create some scene objects
+        //make skybox
+        var skyBox = new BABYLON.MeshBuilder.CreateBox('skybox', {size: 1000}, scene);
+        //var skyBox = new BABYLON.MeshBuilder.CreateSphere('skybox', {diameter: 1000}, scene);
+        skyBox.material = myMats.skyBox;
+
+        //create sun and moon meshs
         var moon = BABYLON.MeshBuilder.CreateSphere('moon', {diameter:8, segments:16}, scene);
         moon.material = myMats.moon;
         
         var sun = BABYLON.MeshBuilder.CreateSphere('moon', {diameter:8, segments:16}, scene);
         sun.material = myMats.sun;
 
+        //place axes at origin for reference during development
         //var worldAxes = BF.MakeAxes('worldAxes', scene, 4);
 
         var underBlock = BABYLON.MeshBuilder.CreateBox('underBlock', {width:40,height:1,depth:40}, scene);
@@ -78,7 +84,7 @@ window.addEventListener('DOMContentLoaded', function(){
 
         BF.ConnectToShadows(underBlock, shadows);
 
-        BF.ForceCompileMaterials([moon, sun, underBlock]);
+        BF.ForceCompileMaterials([moon, sun, underBlock, skyBox]);
 
         var grid = BF.MakeGridXZ([-10,0,-10], 20, 2, 2);
 
@@ -119,8 +125,9 @@ window.addEventListener('DOMContentLoaded', function(){
         var time = 0;
         var dt = .01;
         var orbitR = 35;
-        var orbitW = .3;
+        var orbitW = .2;
         var moonW = 2;
+        var skyW = .02;
 
         updateCycle(time, orbitR, orbitW);
 
@@ -131,6 +138,7 @@ window.addEventListener('DOMContentLoaded', function(){
             time += dt;
             updateCycle(time, orbitR, orbitW);
             moon.rotation.y += moonW * dt;
+            skyBox.rotation.y += skyW *dt;
         });
 
         // return the created scene

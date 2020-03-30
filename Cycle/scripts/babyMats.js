@@ -54,6 +54,13 @@ class MyMats {
         this.underBlock = new BABYLON.StandardMaterial('underBlock', scene);
         this.underBlock.diffuseTexture = new BABYLON.Texture("https://i.imgur.com/B2vjChP.png", scene);
 
+        this.skyBox = new BABYLON.StandardMaterial("skyBox", scene);
+        this.skyBox.backFaceCulling = false;
+        this.skyBox.reflectionTexture = new BABYLON.CubeTexture("https://i.imgur.com/0XiOCjt.png", scene);
+        this.skyBox.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+        this.skyBox.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        this.skyBox.specularColor = new BABYLON.Color3(0, 0, 0);
+
         window.axesMats = [this.xAxis, this.yAxis, this.zAxis, this.axesSphere];
     }
 }
