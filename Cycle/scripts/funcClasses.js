@@ -449,7 +449,7 @@ class MF {
         return deriv;
     }
 
-    static MakePartialDerivFunc(func, prop, pConst, dx = .01) {
+    static MakePartialDerivFunc(func, prop, dx = .01) {
         // func is func of p (parameter object)
         // prop is parameter property derivative is respect to
         // returns func of p
@@ -461,6 +461,35 @@ class MF {
             pClone[prop] -= dx; // now p[prop] is x - dx/2
             var bottom = func(pClone, pConst);
             return (1/dx) * (top - bottom);
+        }
+        return partDeriv;
+    }
+
+    static MakePartialDerivFuncMult(funcs, prop, dx = .01) {
+        // funcs is ar(funcs
+        // prop is parameter property derivative is respect to
+        // returns func of p
+        // pConst is param object of any needed constants
+        if(funcs.length === 0) {
+            var partDeriv = function(p, pConst) {
+                return 0;
+            }
+        } else {
+            var multiplier = (1/dx);
+            var partDeriv = function(p, pConst) {
+                var pClone = Object.assign({}, p);
+                pClone[prop] += dx/2;
+                var top = 0;
+                for(var i = 0; i < funcs.length; i++){
+                    top += funcs[i](pClone, pConst);
+                }
+                pClone[prop] -= dx;
+                var bottom = 0;
+                for(var i = 0; i < funcs.length; i++){
+                    bottom += funcs[i](pClone, pConst);
+                }
+                return multiplier * (top - bottom);
+            }
         }
         return partDeriv;
     }

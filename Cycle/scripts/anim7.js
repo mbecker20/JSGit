@@ -19,14 +19,7 @@ class Anim7 {
         this.setupMeshs(scene);
         
         // set materials
-        this.ground.material = myMats.wArrow;
-        this.sphere.material = myMats.darkMoon;
-        this.cube.material = myMats.darkMoon;
-        this.spherePiv.material = myMats.darkMoon;
-        this.cubePiv.material = myMats.darkMoon;
-        this.topRope.material = myMats.wArrow;
-        this.sphereRope.material = myMats.wArrow;
-        this.cubeRope.material = myMats.wArrow;
+        this.setMaterials();
 
         // connect meshs to shadows and force pre-compile materials
         BF.ConnectMeshsToShadows([this.ground, this.sphere, this.cube, this.spherePiv, this.cubePiv, this.topRope, this.sphereRope, this.cubeRope], shadows);
@@ -38,6 +31,17 @@ class Anim7 {
 
         // set initial position of everything
         this.setPos();
+    }
+
+    setMaterials() {
+        this.ground.material = myMats.wArrow;
+        this.sphere.material = myMats.darkMoon;
+        this.cube.material = myMats.darkMoon;
+        this.spherePiv.material = myMats.darkMoon;
+        this.cubePiv.material = myMats.darkMoon;
+        this.topRope.material = myMats.wArrow;
+        this.sphereRope.material = myMats.wArrow;
+        this.cubeRope.material = myMats.wArrow;
     }
 
     lFunc(p, pConst) {
