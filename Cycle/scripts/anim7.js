@@ -45,35 +45,35 @@ class Anim7 {
     }
 
     getLFuncs() {
-        function l1(p, pConst) {
+        function l0(p, pConst) {
             return .5 * (pConst.mSphere + pConst.mCube) * MF.Square(p.lDot);
         }
-        l1.paramKeys = ['lDot'];
+        l0.paramKeys = ['lDot'];
         
-        function l2 (p, pConst) {
+        function l1 (p, pConst) {
             var sphereI = pConst.sphereIcm + pConst.mSphere * MF.Square(p.l);
             return .5 * sphereI * MF.Square(p.thetaDot);
         }
-        l2.paramKeys = ['l', 'thetaDot']
+        l1.paramKeys = ['l', 'thetaDot'];
 
-        function l3 (p, pConst) {
+        function l2 (p, pConst) {
             var cubeI = pConst.cubeIcm + pConst.mCube * MF.Square(pConst.lTot - p.l);
             return .5 * cubeI * MF.Square(p.phiDot);
         }
-        l3.paramKeys = ['l', 'phiDot'];
+        l2.paramKeys = ['l', 'phiDot'];
 
-        function l4 (p, pConst) {
+        function l3 (p, pConst) {
             return pConst.mSphere * pConst.g * p.l * Math.cos(p.theta);
         }
-        l4.paramKeys = ['l', 'theta'];
+        l3.paramKeys = ['l', 'theta'];
 
-        function l5 (p, pConst) {
+        function l4 (p, pConst) {
             return pConst.mCube * pConst.g * (pConst.lTot - p.l) * Math.cos(p.phi);
         }
-        l5.paramKeys = ['l', 'phi'];
+        l4.paramKeys = ['l', 'phi'];
         
 
-        return [l1, l2, l3, l4, l5];
+        return [l0, l1, l2, l3, l4];
     }
 
     setupMeshs(scene) {
@@ -130,7 +130,7 @@ class Anim7 {
     }
 
     step() {
-        this.lagrangian.step(this.dt, this.stepsPerFrame);
+        this.lagrangian.stepCorrected(this.dt, this.stepsPerFrame);
         this.imposeBC();
         this.setPos();
     }

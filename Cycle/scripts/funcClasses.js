@@ -443,8 +443,7 @@ class MF {
         // func is func of 1 number variable
         // dx defines accuracy
         var deriv = function(x) {
-            var d = (1/dx) * (func(x+dx/2) - func(x-dx/2));
-            return d;
+            return (1/dx) * (func(x+dx/2) - func(x-dx/2));
         }
         return deriv;
     }
@@ -454,13 +453,14 @@ class MF {
         // prop is parameter property derivative is respect to
         // returns func of p
         // pConst is param object of any needed constants
+        var multiplier = (1/dx);
         var partDeriv = function(p, pConst) {
             var pClone = Object.assign({}, p);
             pClone[prop] += dx/2;
             var top = func(pClone, pConst);
             pClone[prop] -= dx; // now p[prop] is x - dx/2
             var bottom = func(pClone, pConst);
-            return (1/dx) * (top - bottom);
+            return multiplier * (top - bottom);
         }
         return partDeriv;
     }
@@ -471,12 +471,15 @@ class MF {
         // returns func of p
         // pConst is param object of any needed constants
         if(funcs.length === 0) {
-            var partDeriv = function(p, pConst) {
+            var zeroFunc = function(p, pConst) {
                 return 0;
             }
+            return zeroFunc;
+        } else if(funcs.length === 1) {
+            return MF.MakePartialDerivFunc(funcs[0], prop, dx);
         } else {
             var multiplier = (1/dx);
-            var partDeriv = function(p, pConst) {
+            var partDerivMult = function(p, pConst) {
                 var pClone = Object.assign({}, p);
                 pClone[prop] += dx/2;
                 var top = 0;
@@ -490,8 +493,8 @@ class MF {
                 }
                 return multiplier * (top - bottom);
             }
+            return partDerivMult;
         }
-        return partDeriv;
     }
 
     static Square(n) {

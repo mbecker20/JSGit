@@ -149,8 +149,6 @@ class SplitLagrangian {
             m.push(row);
             mDot.push(rowDot);
         }
-        console.log(b);
-        console.log(m);
         var c = math.add(b, math.multiply(math.multiply(m, this.makeQDot()), -1));
         var qDD = math.transpose(math.lusolve(mDot, c))[0];
         GF.SetObjWithKeyVal(this.pDD, this.paramKeys, qDD);
@@ -178,7 +176,7 @@ class SplitLagrangian {
             var funcsWithParamKey = [];
             for(var j = 0; j < this.funcs.length; j++) {
                 if(GF.StringIn(this.paramKeys[i], this.funcs[j].paramKeys)) {
-                    funcsWithParamKey.push(this.funcs[j])
+                    funcsWithParamKey.push(this.funcs[j]);
                 }
                 if(GF.StringIn(this.paramDotKeys[i], this.funcs[j].paramKeys)) {
                     this.funcs[j][this.paramDotKeys[i]] = MF.MakePartialDerivFunc(this.funcs[j], this.paramDotKeys[i], dx);
@@ -196,14 +194,14 @@ class SplitLagrangian {
                 var funcsWithDotAndDotKey = [];
                 for(var k = 0; k < this.funcs.length; k++) {
                     if(GF.BothStringsIn(this.paramDotKeys[i], this.paramKeys[j], this.funcs[k].paramKeys)) {
-                        funcsWithDotAndStandardKey.push(this.funcs[k][this.paramDotKeys[i]])
+                        funcsWithDotAndStandardKey.push(this.funcs[k][this.paramDotKeys[i]]);
                     }
                     if(GF.BothStringsIn(this.paramDotKeys[i], this.paramDotKeys[j], this.funcs[k].paramKeys)) {
                         funcsWithDotAndDotKey.push(this.funcs[k][this.paramDotKeys[i]]);
                     }
                 }
                 this.pdfs[this.paramDotKeys[i]][this.paramKeys[j]] = MF.MakePartialDerivFuncMult(funcsWithDotAndStandardKey, this.paramKeys[j], dx);
-                this.pdfs[this.paramDotKeys[i]][this.paramDotKeys[j]] = MF.MakePartialDerivFuncMult(funcsWithDotAndStandardKey, this.paramDotKeys[j], dx);
+                this.pdfs[this.paramDotKeys[i]][this.paramDotKeys[j]] = MF.MakePartialDerivFuncMult(funcsWithDotAndDotKey, this.paramDotKeys[j], dx);
             }
         }
     }
