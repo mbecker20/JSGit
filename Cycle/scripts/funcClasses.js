@@ -527,6 +527,21 @@ class GF {
             obj[keys[i]] = vals[i];
         }
     }
+
+    static StringIn(str, ar) {
+        // returns true if string is an element of array
+        // false otherwise
+        for(var i = 0; i < ar.length; i++) {
+            if(ar[i] === str) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static BothStringsIn(str1, str2, ar) {
+        return (GF.StringIn(str1, ar) && GF.StringIn(str2, ar));
+    }
 }
 
 class FuncBuffer {

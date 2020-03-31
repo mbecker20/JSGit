@@ -12,14 +12,14 @@ class Anim7 {
         this.pConst.sphereIcm = this.pConst.mSphere * (2/5) * MF.Square(this.pConst.rSphere);
         this.pConst.cubeIcm = this.pConst.mCube * (1/6) * MF.Square(this.pConst.sCube);
 
-        this.lagrangian = new Lagrangian(this.lFunc, this.params, this.pConst, this.damping);
+        this.lagrangian = new SplitLagrangian(this.getLFuncs(), this.params, this.pConst, this.damping);
         this.collisionVelocityMult = .6; // multiplied by -velocity on collision with pivot;
 
         // setup meshes
         this.setupMeshs(scene);
         
         // set materials
-        this.setMaterials();
+        this.setMaterials(myMats);
 
         // connect meshs to shadows and force pre-compile materials
         BF.ConnectMeshsToShadows([this.ground, this.sphere, this.cube, this.spherePiv, this.cubePiv, this.topRope, this.sphereRope, this.cubeRope], shadows);
@@ -33,7 +33,7 @@ class Anim7 {
         this.setPos();
     }
 
-    setMaterials() {
+    setMaterials(myMats) {
         this.ground.material = myMats.wArrow;
         this.sphere.material = myMats.darkMoon;
         this.cube.material = myMats.darkMoon;
@@ -44,14 +44,36 @@ class Anim7 {
         this.cubeRope.material = myMats.wArrow;
     }
 
-    lFunc(p, pConst) {
-        var sphereI = pConst.sphereIcm + pConst.mSphere * MF.Square(p.l);
-        var cubeI = pConst.cubeIcm + pConst.mCube * MF.Square(pConst.lTot - p.l);
-        var t1 = .5 * (pConst.mSphere + pConst.mCube) * MF.Square(p.lDot);
-        var t2 = .5 * (sphereI * MF.Square(p.thetaDot) + cubeI * MF.Square(p.phiDot));
-        var t3 = pConst.mSphere * pConst.g * p.l * Math.cos(p.theta);
-        var t4 = pConst.mCube * pConst.g * (pConst.lTot - p.l) * Math.cos(p.phi);
-        return t1 + t2 + t3 + t4;
+    getLFuncs() {
+        function l1(p, pConst) {
+            return .5 * (pConst.mSphere + pConst.mCube) * MF.Square(p.lDot);
+        }
+        l1.paramKeys = ['lDot'];
+        
+        function l2 (p, pConst) {
+            var sphereI = pConst.sphereIcm + pConst.mSphere * MF.Square(p.l);
+            return .5 * sphereI * MF.Square(p.thetaDot);
+        }
+        l2.paramKeys = ['l', 'thetaDot']
+
+        function l3 (p, pConst) {
+            var cubeI = pConst.cubeIcm + pConst.mCube * MF.Square(pConst.lTot - p.l);
+            return .5 * cubeI * MF.Square(p.phiDot);
+        }
+        l3.paramKeys = ['l', 'phiDot'];
+
+        function l4 (p, pConst) {
+            return pConst.mSphere * pConst.g * p.l * Math.cos(p.theta);
+        }
+        l4.paramKeys = ['l', 'theta'];
+
+        function l5 (p, pConst) {
+            return pConst.mCube * pConst.g * (pConst.lTot - p.l) * Math.cos(p.phi);
+        }
+        l5.paramKeys = ['l', 'phi'];
+        
+
+        return [l1, l2, l3, l4, l5];
     }
 
     setupMeshs(scene) {
