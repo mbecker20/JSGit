@@ -125,7 +125,7 @@ window.addEventListener('DOMContentLoaded', function(){
         var dt = .01;
         var orbitR = 35;
         var orbitW = .2;
-        var moonW = 2;
+        var moonW = .5;
         var skyW = .02;
 
         updateCycle(time, orbitR, orbitW);

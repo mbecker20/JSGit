@@ -51,7 +51,7 @@ class Anim7 {
     }
 
     setupMeshs(scene) {
-        this.ground = BABYLON.MeshBuilder.CreateGround('ground4', {width:10,height:10}, scene);
+        this.ground = BABYLON.MeshBuilder.CreateGround('ground4', {width:20,height:20}, scene);
         this.ground.receiveShadows = true;
 
         this.sphere = BF.MakeSphere('sphere5', scene, 2 * this.pConst.rSphere);
