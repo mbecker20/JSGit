@@ -149,6 +149,8 @@ class SplitLagrangian {
             m.push(row);
             mDot.push(rowDot);
         }
+        console.log(b);
+        console.log(m);
         var c = math.add(b, math.multiply(math.multiply(m, this.makeQDot()), -1));
         var qDD = math.transpose(math.lusolve(mDot, c))[0];
         GF.SetObjWithKeyVal(this.pDD, this.paramKeys, qDD);
@@ -179,7 +181,7 @@ class SplitLagrangian {
                     funcsWithParamKey.push(this.funcs[j])
                 }
                 if(GF.StringIn(this.paramDotKeys[i], this.funcs[j].paramKeys)) {
-                    this.funcs[j][this.paramDotKeys[i]] = MF.MakePartialDerivFunc(this.funcs[j], this.paramDotKeys[j], dx)
+                    this.funcs[j][this.paramDotKeys[i]] = MF.MakePartialDerivFunc(this.funcs[j], this.paramDotKeys[i], dx);
                 }
             }
             this.pdfs[this.paramKeys[i]] = MF.MakePartialDerivFuncMult(funcsWithParamKey, this.paramKeys[i], dx);
