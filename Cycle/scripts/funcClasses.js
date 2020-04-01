@@ -1,8 +1,3 @@
-const quad1=Math.PI/2
-const quad2=Math.PI
-const quad3=(3/2)*Math.PI
-const quad4=2*Math.PI
-
 class VF {
     // Vector Functions
     static Mag(vec) {
@@ -168,14 +163,6 @@ class VF {
         return out;
     }
 
-    static Abs(number) {
-        if(number<0) {
-            return (-1)*number;
-        } else {
-            return number;
-        }
-    }
-
     static GetAvgPoint(pointsMat) {
         let avg=[0,0,0];
         pointsMat.forEach(function(point) {
@@ -200,31 +187,6 @@ class VF {
 
     static GetAvgNum(arrayOfNums) {
         return VF.arrSum(arrayOfNums)/arrayOfNums.length;
-    }
-
-    static GetSortedIndices(lov) {
-        // [1,4,53,14,20,5] returns [2,4,3,5,1,0]. descending
-        let numGreaterInd=[];
-        for(var i=0;i<lov.length;i++) {
-            let numGreater=0;
-            for(var j=0;j<lov.length;j++) {
-                if(i!=j) {
-                    if(lov[i]<lov[j]) {
-                        numGreater+=1;
-                    }
-                }
-            }
-            numGreaterInd.push(numGreater);
-        }
-        let sortedInd=[];
-        for(var i=0;i<lov.length;i++) {
-            for(var j=0;j<lov.length;j++) {
-                if(numGreaterInd[j]==i) {
-                    sortedInd.push(j);
-                }
-            }
-        }
-        return sortedInd;
     }
 
     static toPolar(x,y) {
@@ -298,26 +260,6 @@ class VF {
         const k=math.multiply(math.add(k1[0],math.multiply(k2[0],2),math.multiply(k3[0],2),k4[0]),(1/6));
         const l=math.multiply(math.add(k1[1],math.multiply(k2[1],2),math.multiply(k3[1],2),k4[1]),(1/6));
         return [math.add(x0,math.multiply(k,dt)),math.add(y0,math.multiply(l,dt))];
-    }
-
-    static screenToAct(sxy,xRange,yRange,screenX,screenY) {
-        const sx=sxy[0];
-        const sy=sxy[1];
-        const x=xRange[0]+sx*(xRange[1]-xRange[0])/screenX;
-        const y=yRange[1]-sy*(yRange[1]-yRange[0])/screenY;
-        return [x,y];
-    }
-
-    static actToScreen(xy,xRange,yRange,screenX,screenY) {
-        const x=xy[0];
-        const y=xy[1];
-        const sx=(x-xRange[0])*screenX/(xRange[1]-xRange[0]);
-        const sy=(yRange[1]-y)*screenY/(yRange[1]-yRange[0]);
-        return [sx,sy];
-    }
-
-    static intPath(x,v,aFunc) {
-
     }
 }
 
@@ -438,7 +380,7 @@ class PF {
 }
 
 class MF {
-    // Math Funcs
+    // math Funcs
     static MakeDerivFunc(func, dx = .01) {
         // func is func of 1 number variable
         // dx defines accuracy

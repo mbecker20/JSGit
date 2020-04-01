@@ -92,7 +92,7 @@ class SplitLagrangian {
         // funcs is array of functions for terms in lagrangian
         // each func has property paramKeys
         // paramKeys is ar(string) for all parameters in the term;
-        // params is array of param obj properties (strings)
+        // params is array of param obj properties (strings) eg. {x: 1, xDot:2, ...}
         // params should have one key for variable, one key for variableDot
         // ie has params.x and params.xDot;
         // works by creating m, mDot (matrices) based on the partial derivs evaluated at current params
@@ -100,7 +100,7 @@ class SplitLagrangian {
         // b = [dL/dq1, dL/dq2, ...], qDot = [q1Dot, q2Dot, ...], qDD = [q1DoubleDot, q2DoubleDot, ...]
         // params ordered {x: x0, xDot: xDot0, y: y0, yDot: yDot0, ...}
         // damping is parameter object with keys xDot, yDot, etc.
-        // damping is velocity based to counter the energy addition inherent to the method
+        // damping is velocity based
         // vf = vi + (vDot - damping*vi)*dt
         this.funcs = funcs;
         this.params = params;
@@ -122,7 +122,7 @@ class SplitLagrangian {
     }
 
     stepCorrected(dt, numTimes = 1) {
-        // slight correction by averaging this and next step velocity
+        // slight correction by averaging current and next step velocity
         for(var j = 0; j < numTimes; j++) {
             this.setPDD();
             for(var i = 0; i < this.paramKeys.length; i++) {
