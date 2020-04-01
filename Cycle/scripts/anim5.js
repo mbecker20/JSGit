@@ -17,9 +17,75 @@ class Anim5 {
         this.pConst = {mSphere: 1.3, mCube: 1.5, g: 10};
         this.lTot = 10;
         this.damping = {lDot: .01, thetaDot: .01};
-        this.lagrangian = new Lagrangian(lFunc, this.params, this.pConst, this.damping);
+        this.lagrangian = new SplitLagrangian(this.getLFuncs(), this.params, this.pConst, this.damping);
 
         // setup meshes
+        this.setupMeshs(scene);
+
+        // set materials
+        this.setMaterials(myMats);
+
+        // connect meshs to shadows and force pre-compile materials
+        BF.ConnectMeshsToShadows([this.ground, this.sphere, this.cube, this.spherePiv, this.cubePiv, this.topRope, this.sphereRope, this.cubeRope], shadows);
+        BF.ForceCompileMaterials([this.topRope, this.ground, this.sphere, this.cube, this.spherePiv, this.cubePiv]);
+
+        // set BC
+        this.lMin = this.spherePivR + this.sphereR;
+        this.lMax = this.lTot - this.cubePivR - this.cubeR;
+
+        // set initial position of everything
+        this.setPos();
+    }
+
+    getLFuncs() {
+        function t0(p, pConst) {
+            this.paramKeys = ['lDot'];
+            return .5*(pConst.mSphere + pConst.mCube)*MF.Square(p.lDot);
+        }
+
+        function t1(p, pConst) {
+            this.paramKeys = ['l', 'thetaDot'];
+            return .5*pConst.mSphere*MF.Square(p.l*p.thetaDot);
+        }
+
+        function t2(p, pConst) {
+            this.paramKeys = ['l', 'theta'];
+            return pConst.g*p.l*(pConst.mSphere*Math.cos(p.theta) - pConst.mCube);
+        }
+
+        return [t0, t1, t2];
+    }
+
+    setPos() {
+        var cubeSideLength = (this.lTot - this.params.l)
+        var spherePos = math.multiply([Math.sin(this.params.theta), -Math.cos(this.params.theta), 0], this.params.l);
+        this.cube.position.y = -cubeSideLength;
+        this.cubeRope.scaling.y = cubeSideLength;
+
+        this.sphere.position = BF.Vec3(spherePos);
+        this.sphere.rotation.z = this.params.theta;
+        this.sphereRope.scaling.y = this.params.l;
+        this.sphereRope.rotation.z = this.params.theta;
+    }
+
+    step() {
+        this.lagrangian.step(this.dt, this.stepsPerFrame);
+        this.imposeBC();
+        this.setPos();
+    }
+
+    imposeBC() {
+        // updates params based on boundary conditions
+        if(this.params.l > this.lMax) {
+            this.params.l = this.lMax;
+            this.params.lDot = this.lagrangian.pDD.l * this.dt;
+        } else if(this.params.l < this.lMin) {
+            this.params.l = this.lMin;
+            this.params.lDot = this.lagrangian.pDD.l * this.dt;
+        }
+    }
+
+    setupMeshs(scene) {
         this.ground = BABYLON.MeshBuilder.CreateGround('ground4', {width:10,height:10}, scene);
         this.ground.receiveShadows = true;
 
@@ -59,8 +125,9 @@ class Anim5 {
         BF.SetChildren(this.node, [this.ground, this.spherePiv, this.cubePiv, this.topRope]);
         BF.SetChildren(this.spherePiv, [this.sphere, this.topRope, this.sphereRope]);
         BF.SetChildren(this.cubePiv, [this.cube, this.cubeRope]);
+    }
 
-        // set materials
+    setMaterials(myMats) {
         this.ground.material = myMats.wArrow;
         this.sphere.material = myMats.darkMoon;
         this.cube.material = myMats.darkMoon;
@@ -69,45 +136,5 @@ class Anim5 {
         this.topRope.material = myMats.wArrow;
         this.sphereRope.material = myMats.wArrow;
         this.cubeRope.material = myMats.wArrow;
-
-        // connect meshs to shadows and force pre-compile materials
-        BF.ConnectMeshsToShadows([this.ground, this.sphere, this.cube, this.spherePiv, this.cubePiv, this.topRope, this.sphereRope, this.cubeRope], shadows);
-        BF.ForceCompileMaterials([this.topRope, this.ground, this.sphere, this.cube, this.spherePiv, this.cubePiv]);
-
-        // set BC
-        this.lMin = this.spherePivR + this.sphereR;
-        this.lMax = this.lTot - this.cubePivR - this.cubeR;
-
-        // set initial position of everything
-        this.setPos();
-    }
-
-    setPos() {
-        var cubeSideLength = (this.lTot - this.params.l)
-        var spherePos = math.multiply([Math.sin(this.params.theta), -Math.cos(this.params.theta), 0], this.params.l);
-        this.cube.position.y = -cubeSideLength;
-        this.cubeRope.scaling.y = cubeSideLength;
-
-        this.sphere.position = BF.Vec3(spherePos);
-        this.sphere.rotation.z = this.params.theta;
-        this.sphereRope.scaling.y = this.params.l;
-        this.sphereRope.rotation.z = this.params.theta;
-    }
-
-    step() {
-        this.lagrangian.step(this.dt, this.stepsPerFrame);
-        this.imposeBC();
-        this.setPos();
-    }
-
-    imposeBC() {
-        // updates params based on boundary conditions
-        if(this.params.l > this.lMax) {
-            this.params.l = this.lMax;
-            this.params.lDot = this.lagrangian.pDD.l * this.dt;
-        } else if(this.params.l < this.lMin) {
-            this.params.l = this.lMin;
-            this.params.lDot = this.lagrangian.pDD.l * this.dt;
-        }
     }
 }

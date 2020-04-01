@@ -7,13 +7,13 @@ class Anim7 {
         this.dt = .01;
         this.stepsPerFrame = 2;
         this.params = {l: 6, lDot: 3, theta: 1, thetaDot: 2, phi: 0, phiDot: 10};
-        this.pConst = {mSphere: 1, mCube: 1.1, g: 10, lTot: 10, rSphere: 1, sCube: 2};
-        this.damping = {lDot: .001, thetaDot: .001, phiDot: .001};
+        this.pConst = {mSphere: 1.1, mCube: 1, g: 10, lTot: 10, rSphere: 1, sCube: 2};
+        this.damping = {lDot: 0, thetaDot: 0, phiDot: 0};
         this.pConst.sphereIcm = this.pConst.mSphere * (2/5) * MF.Square(this.pConst.rSphere);
         this.pConst.cubeIcm = this.pConst.mCube * (1/6) * MF.Square(this.pConst.sCube);
 
         this.lagrangian = new SplitLagrangian(this.getLFuncs(), this.params, this.pConst, this.damping);
-        this.collisionVelocityMult = .6; // multiplied by -velocity on collision with pivot;
+        this.collisionVelocityMult = .95; // multiplied by -velocity on collision with pivot;
 
         // setup meshes
         this.setupMeshs(scene);
@@ -130,6 +130,7 @@ class Anim7 {
     }
 
     step() {
+        //this.lagrangian.step(this.dt, this.stepsPerFrame);
         this.lagrangian.stepCorrected(this.dt, this.stepsPerFrame);
         this.imposeBC();
         this.setPos();
