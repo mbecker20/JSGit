@@ -307,7 +307,18 @@ class BF {
 }
 
 class UI {
-    
+    static AddControlsToTarget(controls, target) {
+        // controls is ar(control)
+        // root is the gui texture
+        for(var i = 0; i < controls.length; i++) {
+            target.addControl(controls[i]);
+        }
+    }
+
+    static MakePanel() {
+        return new BABYLON.GUI.StackPanel();
+    }
+
 }
 
 class MyMats {

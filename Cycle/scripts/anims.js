@@ -547,6 +547,7 @@ class Anim7 {
 
         // set initial position of everything
         this.setPos();
+        this.setupGUIPanel();
     }
 
     setMaterials(myMats) {
@@ -661,5 +662,18 @@ class Anim7 {
             this.params.l = this.lMin;
             this.params.lDot = -this.collisionVelocityMult * this.params.lDot + this.lagrangian.pDD.l * this.dt;
         }
+    }
+
+    setupGUIPanel() {
+        this.guiPanel = UI.MakePanel();
+
+        // make gSlider (with header)
+        var gHeader = new BABYLON.GUI.TextBlock();
+        gHeader.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+        gHeader.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+
+        var gSlider = new BABYLON.GUI.Slider();
+
+        UI.AddControlsToTarget([gHeader, gSlider], this.guiPanel);
     }
 }
