@@ -515,7 +515,7 @@ class Anim6 {
 }
 
 class Anim7 {
-    constructor(scene, myMats, shadows) {
+    constructor(scene, myMats, shadows, gui) {
         // sphere swings, cube up and down
         this.node = BF.MakeTransformNode('anim4Node', scene);
 
@@ -547,7 +547,7 @@ class Anim7 {
 
         // set initial position of everything
         this.setPos();
-        this.setupGUIPanel();
+        this.setupGUIPanel(gui);
     }
 
     setMaterials(myMats) {
@@ -664,15 +664,15 @@ class Anim7 {
         }
     }
 
-    setupGUIPanel() {
+    setupGUIPanel(gui) {
         this.guiPanel = UI.MakePanel();
 
         // make gSlider (with header)
         var gHeader = new BABYLON.GUI.TextBlock();
-        gHeader.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-        gHeader.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
         var gSlider = new BABYLON.GUI.Slider();
+
+        UI.MoveControlsToTopLeft([gHeader, gSlider]);
 
         UI.AddControlsToTarget([gHeader, gSlider], this.guiPanel);
     }
