@@ -103,13 +103,13 @@ window.addEventListener('DOMContentLoaded', function(){
         //var anim5 = new Anim5(scene, myMats, shadows);
         //anim5.node.position = grid[1][0];
 
-        var anim6 = new Anim6(scene, myMats, shadows);
-        anim6.node.position = BF.Vec3([0,0,20]);
+        //var anim6 = new Anim6(scene, myMats, shadows);
+        //anim6.node.position = BF.Vec3([0,0,20]);
 
         var anim7 = new Anim7(scene, myMats, shadows);
         //anim7.node.position = grid[1][0];
 
-        var anims = [anim7, anim6];
+        var anims = [anim7];
 
         function updateCycle(time, orbitR, orbitW) {
             ambLight.intensity = ambientIntensity(time, orbitW);
