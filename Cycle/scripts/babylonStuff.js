@@ -306,53 +306,6 @@ class BF {
     }
 }
 
-class UI {
-    static AddControlsToTarget(controls, target) {
-        // controls is ar(control)
-        // root is the gui texture
-        for(var i = 0; i < controls.length; i++) {
-            target.addControl(controls[i]);
-        }
-    }
-
-    static MakePanel() {
-        return new BABYLON.GUI.StackPanel();
-    }
-
-    static MoveControlsToTopLeft(controls) {
-        for(var i = 0; i < controls.length; i++) {
-            controls[i].horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-            controls[i].verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-        }
-    }
-
-    static MakeMainMenu() {
-        //name is string
-        let mainMenu = {};
-        mainMenu.name = 'mainMenu';
-        mainMenu.panel = UI.MakePanel();
-
-        mainMenu.addControls = function(controls) {
-            UI.AddControlsToTarget(controls, mainMenu.panel);
-        }
-
-        return mainMenu;
-    }
-
-    static MakeSubMenu(name, controls) {
-        // includes back button
-        let menu = {};
-        menu.name = name;
-        menu.panel = UI.MakePanel();
-
-        var backButton = UI.MakeButton();
-        UI.AddControlsToTarget(controls, menu.panel);
-
-        return menu;
-    }
-
-}
-
 class MyMats {
     // a collection of initialized Babylon Materials used in various anims
     constructor(scene) {

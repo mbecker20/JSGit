@@ -547,7 +547,7 @@ class Anim7 {
 
         // set initial position of everything
         this.setPos();
-        this.setupGUIPanel(gui);
+        //this.setupGUIPanel(gui);
     }
 
     setMaterials(myMats) {
@@ -664,6 +664,7 @@ class Anim7 {
         }
     }
 
+    /*
     setupGUIPanel(gui) {
         this.guiPanel = UI.MakePanel();
 
@@ -676,4 +677,5 @@ class Anim7 {
 
         UI.AddControlsToTarget([gHeader, gSlider], this.guiPanel);
     }
+    */
 }
