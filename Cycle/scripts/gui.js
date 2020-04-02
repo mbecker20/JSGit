@@ -139,8 +139,14 @@ class UI {
         });
         sliderPanel.slider.height = '30px';
         sliderPanel.slider.width = '250px';
+        sliderPanel.slider.color = 'grey'
+        sliderPanel.slider.background = 'black'
+        sliderPanel.slider.borderColor = 'white'
+        sliderPanel.slider.isThumbCircle = true;
+        sliderPanel.slider.thumbWidth = 30;
 
-        UI.SetControlsPadding([sliderPanel.header, sliderPanel.slider], 1);
+
+        UI.SetControlsPadding([sliderPanel.header, sliderPanel.slider], 2);
 
         UI.AddControlsToTarget([sliderPanel.header, sliderPanel.slider], sliderPanel.panel);
 
@@ -159,7 +165,7 @@ class UI {
         });
         UI.AlignControlsTopLeft([shButton.button]);
         shButton.button.color = 'white'
-        shButton.button.width = '80px';
+        shButton.button.width = '60px';
         shButton.button.height = '30px';
         gui.texture.addControl(shButton.button);
 
