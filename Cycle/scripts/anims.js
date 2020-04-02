@@ -524,7 +524,7 @@ class Anim7 {
         this.stepsPerFrame = 2;
         this.params = {l: 6, lDot: 3, theta: 1, thetaDot: 2, phi: 0, phiDot: 10};
         this.pConst = {mSphere: 1.1, mCube: 1, g: 10, lTot: 10, rSphere: 1, sCube: 2};
-        this.damping = {lDot: 0, thetaDot: 0, phiDot: 0};
+        this.damping = {lDot: .1, thetaDot: .1, phiDot: .1};
         this.pConst.sphereIcm = this.pConst.mSphere * (2/5) * MF.Square(this.pConst.rSphere);
         this.pConst.cubeIcm = this.pConst.mCube * (1/6) * MF.Square(this.pConst.sCube);
 
@@ -547,7 +547,7 @@ class Anim7 {
 
         // set initial position of everything
         this.setPos();
-        this.setupGUIPanel(gui);
+        this.setupGUIPanel(gui, this.pConst);
     }
 
     setMaterials(myMats) {
@@ -664,8 +664,15 @@ class Anim7 {
         }
     }
 
-    setupGUIPanel(gui) {
-        this.guiMenu = UI.MakeSubMenu('anim7menu', gui.mainMenu, gui);
+    setupGUIPanel(gui, pConst) {
+        this.guiMenu = UI.MakeSubMenu('anim7 settings', gui.mainMenu, gui);
+
+        var gSliderPanel = UI.MakeSliderPanel('gravity', '', 0, 40, pConst.g, function(value) {
+            pConst.g = value;
+        });
+
+        this.guiMenu.addControls([gSliderPanel.panel]);
+
         gui.mainMenu.addSubMenu(this.guiMenu);
     }
 }

@@ -1,6 +1,7 @@
 class UI {
     static PADDING = 2;
 
+    // makes the main gui object
     static MakeGUI() {
         var gui = {}
         gui.texture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI('gui');
@@ -26,79 +27,7 @@ class UI {
         return gui;
     }
 
-    static AddControlsToTarget(controls, target) {
-        // controls is ar(control)
-        // root is the gui texture
-        for(var i = 0; i < controls.length; i++) {
-            target.addControl(controls[i]);
-        }
-    }
-
-    static MakePanel(isVertical = true, topLeft = false, adaptSize = false) {
-        // isVertical false means horizontal stackpanel
-        var panel = new BABYLON.GUI.StackPanel();
-        panel.isVertical = isVertical;
-        if(topLeft) {
-            UI.AlignControlsTopLeft([panel]);
-        }
-        if(adaptSize) {
-            if(isVertical) {
-                UI.AdaptContainerWidth(panel);
-            } else {
-                UI.AdaptContainerHeight(panel);
-            }
-        }
-        return panel;
-    }
-
-    static SetControlsPadding(controls, padding) {
-        for(var i = 0; i < controls.length; i++) {
-            controls[i].paddingTop = padding;
-            controls[i].paddingBottom = padding;
-            controls[i].paddingLeft = padding;
-            controls[i].paddingRight = padding;
-        }
-    }
-
-    static AlignControlsTop(controls) {
-        for(var i = 0; i < controls.length; i++) {
-            controls[i].verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-        }
-    }
-
-    static AlignControlsLeft(controls) {
-        for(var i = 0; i < controls.length; i++) {
-            controls[i].horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-        }
-    }
-
-    static AlignControlsTopLeft(controls) {
-        for(var i = 0; i < controls.length; i++) {
-            controls[i].horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-            controls[i].verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-        }
-    }
-
-    static AdaptContainerWidth(container) {
-        container.adaptWidthToChildren = true;
-    }
-
-    static AdaptContainerHeight(container) {
-        container.adaptHeightToChildren = true;
-    }
-
-    static AdaptContainerWidthHeight(container) {
-        container.adaptWidthToChildren = true;
-        container.adaptHeightToChildren = true;
-    }
-
-    static SetControlsWidthHeight(controls, width, height) {
-        for(var i = 0; i < controls.length; i++) {
-            controls[i].width = width;
-            controls[i].height = height;
-        }
-    }
-
+    // other constructors
     static MakeMainMenu(gui) {
         //name is string
         let mainMenu = {};
@@ -171,10 +100,70 @@ class UI {
         return menu;
     }
 
-    static MakeButton(name, text, onPressedFn) {
-        var button = BABYLON.GUI.Button.CreateSimpleButton(name, text);
-        button.onPointerClickObservable.add(onPressedFn);
-        return button;
+    static MakeSubMenuHeaderPanel(menuName, parent, gui) {
+        // returns subMenu header panel obj
+        // has backbutton and headertext in a panel horizontally
+        var headerPanel = {};
+        headerPanel.panel = UI.MakePanel(false);
+        UI.AdaptContainerHeight(headerPanel.panel);
+        headerPanel.backButton = UI.MakeBackButton(menuName.concat('BackButton'), parent, gui);
+        headerPanel.headerText = UI.MakeTextBlock(menuName, 28, 'white');
+        headerPanel.headerText.height = '50px';
+        headerPanel.headerText.width = '200px';
+        UI.AddControlsToTarget([headerPanel.backButton, headerPanel.headerText], headerPanel.panel);
+        return headerPanel;
+    }
+
+    static MakeSliderPanel(headerText, unit, minVal, maxVal, initVal, valChangeFn) {
+        // makes slider panel. header above slider.
+        // header becomes 'headerText: val unit'
+        // unit is string representing units ('degrees' or 'radians')
+        // valChangeFn is function(value) that updates whatever the slider updates
+        // valChangeFn does not need to change header as this is done here
+        var sliderPanel = {};
+        sliderPanel.panel = UI.MakePanel();
+        UI.AdaptContainerWidth(sliderPanel.panel);
+
+        sliderPanel.header = UI.MakeTextBlock(headerText + ': ' + initVal + ' ' + unit, 20);
+        sliderPanel.header.height = '30px';
+        sliderPanel.header.width = '250px';
+
+
+        sliderPanel.slider = new BABYLON.GUI.Slider();
+        sliderPanel.slider.minimum = minVal;
+        sliderPanel.slider.maximum = maxVal;
+        sliderPanel.slider.value = initVal;
+        sliderPanel.slider.onValueChangedObservable.add(function(value) {
+            sliderPanel.header.text = headerText + ': ' + math.round(10*value)/10 + ' ' + unit;
+            valChangeFn(value);
+        });
+        sliderPanel.slider.height = '30px';
+        sliderPanel.slider.width = '250px';
+
+        UI.SetControlsPadding([sliderPanel.header, sliderPanel.slider], 1);
+
+        UI.AddControlsToTarget([sliderPanel.header, sliderPanel.slider], sliderPanel.panel);
+
+        return sliderPanel
+    }
+
+    static MakeShowHideButton(gui) {
+        var shButton = {};
+        //shButton.gui = gui;
+        shButton.texts = ['show', 'hide'];
+        shButton.state = 0;
+        shButton.button = UI.MakeButton('shButton', 'show', function() {
+            shButton.state = (shButton.state + 1) % 2;
+            shButton.button.children[0].text = shButton.texts[shButton.state];
+            gui.activeMenu.panel.isVisible = !gui.activeMenu.panel.isVisible;
+        });
+        UI.AlignControlsTopLeft([shButton.button]);
+        shButton.button.color = 'white'
+        shButton.button.width = '80px';
+        shButton.button.height = '30px';
+        gui.texture.addControl(shButton.button);
+
+        return shButton;
     }
 
     static MakeDualButton(gui, text0, text1, onPressedFn0, onPressedFn1) {
@@ -203,25 +192,6 @@ class UI {
         return dualButton;
     }
 
-    static MakeShowHideButton(gui) {
-        var shButton = {};
-        //shButton.gui = gui;
-        shButton.texts = ['show', 'hide'];
-        shButton.state = 0;
-        shButton.button = UI.MakeButton('shButton', 'show', function() {
-            shButton.state = (shButton.state + 1) % 2;
-            shButton.button.children[0].text = shButton.texts[shButton.state];
-            gui.activeMenu.panel.isVisible = !gui.activeMenu.panel.isVisible;
-        });
-        UI.AlignControlsTopLeft([shButton.button]);
-        shButton.button.color = 'white'
-        shButton.button.width = '80px';
-        shButton.button.height = '30px';
-        gui.texture.addControl(shButton.button);
-
-        return shButton;
-    }
-
     static MakeParentButton(name, text, subMenu, gui) {
         var parentButton = UI.MakeButton(name, text, function() {
             gui.setActiveMenu(subMenu);
@@ -243,18 +213,10 @@ class UI {
         return backButton;
     }
 
-    static MakeSubMenuHeaderPanel(menuName, parent, gui) {
-        // returns subMenu header panel obj
-        // has backbutton and headertext in a panel horizontally
-        var headerPanel = {};
-        headerPanel.panel = UI.MakePanel(false);
-        UI.AdaptContainerHeight(headerPanel.panel);
-        headerPanel.backButton = UI.MakeBackButton(menuName.concat('BackButton'), parent, gui);
-        headerPanel.headerText = UI.MakeTextBlock(menuName, 30, 'white');
-        headerPanel.headerText.height = '50px';
-        headerPanel.headerText.width = '200px';
-        UI.AddControlsToTarget([headerPanel.backButton, headerPanel.headerText], headerPanel.panel);
-        return headerPanel;
+    static MakeButton(name, text, onPressedFn) {
+        var button = BABYLON.GUI.Button.CreateSimpleButton(name, text);
+        button.onPointerClickObservable.add(onPressedFn);
+        return button;
     }
 
     static MakeTextBlock(text, fontSize, color = 'white') {
@@ -266,36 +228,77 @@ class UI {
         return textBlock;
     }
 
-    static MakeSliderPanel(headerText, unit, minVal, maxVal, initVal, valChangeFn) {
-        // makes slider panel. header above slider.
-        // header becomes 'headerText: val unit'
-        // unit is string representing units ('degrees' or 'radians')
-        // valChangeFn is function(value) that updates whatever the slider updates
-        // valChangeFn does not need to change header as this is done here
-        var sliderPanel = {};
-        sliderPanel.panel = UI.MakePanel();
-        UI.AdaptContainerWidth(sliderPanel.panel);
-        sliderPanel.panel.background = 'black'
-        sliderPanel.panel.alpha = .5;
+    static MakePanel(isVertical = true, topLeft = false, adaptSize = false) {
+        // isVertical false means horizontal stackpanel
+        var panel = new BABYLON.GUI.StackPanel();
+        panel.isVertical = isVertical;
+        if(topLeft) {
+            UI.AlignControlsTopLeft([panel]);
+        }
+        if(adaptSize) {
+            if(isVertical) {
+                UI.AdaptContainerWidth(panel);
+            } else {
+                UI.AdaptContainerHeight(panel);
+            }
+        }
+        return panel;
+    }
 
-        sliderPanel.header = UI.MakeTextBlock(headerText + ': ' + initVal + ' ' + unit, 20);
-        sliderPanel.header.height = '30px';
-        sliderPanel.header.width = '150px';
+    // helpers
+    static AddControlsToTarget(controls, target) {
+        // controls is ar(control)
+        // root is the gui texture
+        for(var i = 0; i < controls.length; i++) {
+            target.addControl(controls[i]);
+        }
+    }
 
+    static SetControlsPadding(controls, padding) {
+        for(var i = 0; i < controls.length; i++) {
+            controls[i].paddingTop = padding;
+            controls[i].paddingBottom = padding;
+            controls[i].paddingLeft = padding;
+            controls[i].paddingRight = padding;
+        }
+    }
 
-        sliderPanel.slider = BABYLON.GUI.Slider();
-        sliderPanel.slider.minimum = minVal;
-        sliderPanel.slider.maximum = maxVal;
-        sliderPanel.slider.value = initVal;
-        sliderPanel.slider.onValueChangedObservable.add(function(value) {
-            sliderPanel.header.text = headerText + ': ' + value + ' ' + unit;
-            sliderPanel.valChangeFn(value);
-        });
-        sliderPanel.slider.height = '30px';
-        sliderPanel.slider.width = '150px';
+    static AlignControlsTop(controls) {
+        for(var i = 0; i < controls.length; i++) {
+            controls[i].verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+        }
+    }
 
-        UI.AddControlsToTarget([sliderPanel.header, sliderPanel.slider], sliderPanel.panel);
+    static AlignControlsLeft(controls) {
+        for(var i = 0; i < controls.length; i++) {
+            controls[i].horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+        }
+    }
 
-        return sliderPanel
+    static AlignControlsTopLeft(controls) {
+        for(var i = 0; i < controls.length; i++) {
+            controls[i].horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+            controls[i].verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+        }
+    }
+
+    static AdaptContainerWidth(container) {
+        container.adaptWidthToChildren = true;
+    }
+
+    static AdaptContainerHeight(container) {
+        container.adaptHeightToChildren = true;
+    }
+
+    static AdaptContainerWidthHeight(container) {
+        container.adaptWidthToChildren = true;
+        container.adaptHeightToChildren = true;
+    }
+
+    static SetControlsWidthHeight(controls, width, height) {
+        for(var i = 0; i < controls.length; i++) {
+            controls[i].width = width;
+            controls[i].height = height;
+        }
     }
 }
