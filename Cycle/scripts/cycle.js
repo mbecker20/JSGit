@@ -9,8 +9,7 @@ class Cycle {
 
         this.setupLightsShadows(scene, shadowQual);
 
-        this.setupMeshs(scene, myMats, this.shadows);
-        
+        this.setupMeshs(scene, myMats, this.shadows);   
     }
 
     step() {

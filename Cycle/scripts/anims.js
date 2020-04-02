@@ -547,7 +547,7 @@ class Anim7 {
 
         // set initial position of everything
         this.setPos();
-        //this.setupGUIPanel(gui);
+        this.setupGUIPanel(gui);
     }
 
     setMaterials(myMats) {
@@ -664,18 +664,8 @@ class Anim7 {
         }
     }
 
-    /*
     setupGUIPanel(gui) {
-        this.guiPanel = UI.MakePanel();
-
-        // make gSlider (with header)
-        var gHeader = new BABYLON.GUI.TextBlock();
-
-        var gSlider = new BABYLON.GUI.Slider();
-
-        UI.MoveControlsToTopLeft([gHeader, gSlider]);
-
-        UI.AddControlsToTarget([gHeader, gSlider], this.guiPanel);
+        this.guiMenu = UI.MakeSubMenu('anim7menu', gui.mainMenu, gui);
+        gui.mainMenu.addSubMenu(this.guiMenu);
     }
-    */
 }

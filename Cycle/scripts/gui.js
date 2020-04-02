@@ -1,26 +1,30 @@
-function makeGUI() {
-    gui = {}
-
-    gui.texture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI('gui');
-
-    gui.mainMenu = UI.MakeMainMenu(gui);
-
-    gui.activeMenu = gui.mainMenu;
-
-    // make show/hide button
-    gui.shButton = UI.MakeShowHideButton(gui);
-
-    gui.setActiveMenu = function(menu) {
-        gui.activeMenu.hide(); // hide current active menu
-        gui.activeMenu = menu;
-        gui.activeMenu.show(); // show new active menu
-    }
-
-    return gui;
-}
-
 class UI {
     static PADDING = 2;
+
+    static MakeGUI() {
+        var gui = {}
+        gui.texture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI('gui');
+    
+        // make show/hide button
+        gui.shButton = UI.MakeShowHideButton(gui);
+
+        // make main menu (can add submenus to main menu afterwords)
+        gui.mainMenu = UI.MakeMainMenu(gui);
+        gui.activeMenu = gui.mainMenu;
+        gui.activeMenu.hide();
+    
+        gui.setActiveMenu = function(menu) {
+            gui.activeMenu.hide(); // hide current active menu
+            gui.activeMenu = menu;
+            gui.activeMenu.show(); // show new active menu
+        }
+
+        gui.addControl = function(control) {
+            gui.texture.addControl(control);
+        }
+    
+        return gui;
+    }
 
     static AddControlsToTarget(controls, target) {
         // controls is ar(control)
@@ -30,11 +34,42 @@ class UI {
         }
     }
 
-    static MakePanel(isVertical = true) {
+    static MakePanel(isVertical = true, topLeft = false, adaptSize = false) {
         // isVertical false means horizontal stackpanel
         var panel = new BABYLON.GUI.StackPanel();
         panel.isVertical = isVertical;
+        if(topLeft) {
+            UI.AlignControlsTopLeft([panel]);
+        }
+        if(adaptSize) {
+            if(isVertical) {
+                UI.AdaptContainerWidth(panel);
+            } else {
+                UI.AdaptContainerHeight(panel);
+            }
+        }
         return panel;
+    }
+
+    static SetControlsPadding(controls, padding) {
+        for(var i = 0; i < controls.length; i++) {
+            controls[i].paddingTop = padding;
+            controls[i].paddingBottom = padding;
+            controls[i].paddingLeft = padding;
+            controls[i].paddingRight = padding;
+        }
+    }
+
+    static AlignControlsTop(controls) {
+        for(var i = 0; i < controls.length; i++) {
+            controls[i].verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+        }
+    }
+
+    static AlignControlsLeft(controls) {
+        for(var i = 0; i < controls.length; i++) {
+            controls[i].horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+        }
     }
 
     static AlignControlsTopLeft(controls) {
@@ -44,7 +79,15 @@ class UI {
         }
     }
 
-    static AdaptContainerSize(container) {
+    static AdaptContainerWidth(container) {
+        container.adaptWidthToChildren = true;
+    }
+
+    static AdaptContainerHeight(container) {
+        container.adaptHeightToChildren = true;
+    }
+
+    static AdaptContainerWidthHeight(container) {
         container.adaptWidthToChildren = true;
         container.adaptHeightToChildren = true;
     }
@@ -60,13 +103,10 @@ class UI {
         //name is string
         let mainMenu = {};
         mainMenu.name = 'Main Menu';
-        mainMenu.subs = {};
-        mainMenu.controls = {};
-        mainMenu.controlKeys = [];
         mainMenu.panel = UI.MakePanel();
         gui.texture.addControl(mainMenu.panel);
 
-        UI.AdaptContainerSize(mainMenu.panel);
+        UI.AdaptContainerWidth(mainMenu.panel);
         UI.AlignControlsTopLeft([mainMenu.panel]);
 
         mainMenu.panel.top = 30;
@@ -81,12 +121,7 @@ class UI {
         }
         
         mainMenu.addSubMenu = function(subMenu) {
-            mainMenu.subs[subMenu.name] = subMenu;
-            mainMenu.controls[subMenu.name] = UI.MakeButton(subMenu.name, subMenu.name, function() {
-                gui.setActiveMenu(submenu);
-            });
-            mainMenu.controlKeys.push(subMenu.name);
-            UI.AddControlsToTarget([subMenu.panel], mainMenu.panel);
+            mainMenu.panel.addControl(UI.MakeParentButton(subMenu.name.concat('ParentButton'), subMenu.name, subMenu, gui));
         }
 
         mainMenu.show = function() {
@@ -100,25 +135,26 @@ class UI {
         return mainMenu;
     }
 
-    static MakeSubMenu(name, parent, gui) {
+    static MakeSubMenu(name, parentMenu, gui) {
         // basically same as main menu, but includes back button
         // parent is menu that the back button goes back to
         let menu = {};
         menu.name = name;
-        menu.subs = {};
-        menu.controls = {};
-        menu.controlKeys = [];
-        menu.parent = parent;
 
         menu.panel = UI.MakePanel();
-        UI.AdaptContainerSize(menu.panel);
+        UI.AdaptContainerWidth(menu.panel);
+        UI.AlignControlsTopLeft([menu.panel]);
+        menu.panel.top = 30;
 
-        menu.headerPanel = UI.MakeSubMenuHeaderPanel(gui);
+        menu.headerPanel = UI.MakeSubMenuHeaderPanel(name, parentMenu, gui);
+        menu.panel.addControl(menu.headerPanel.panel);
 
-        menu.addControl = function(name, control) {
-            menu.controls[name] = control;
-            menu.controlKeys.push(name);
-            menu.panel.addControl(control);
+        menu.addControls = function(controls) {
+            UI.AddControlsToTarget(controls, menu.panel);
+        }
+
+        menu.addSubMenu = function(subMenu) {
+            menu.panel.addControl(UI.MakeParentButton(subMenu.name.concat('ParentButton'), subMenu.name, subMenu, gui));
         }
 
         menu.show = function() {
@@ -129,6 +165,9 @@ class UI {
             menu.panel.isVisible = false;
         }
 
+        menu.hide();
+        gui.addControl(menu.panel);
+
         return menu;
     }
 
@@ -138,7 +177,7 @@ class UI {
         return button;
     }
 
-    static MakeDualButton(text0, text1, onPressedFn0, onPressedFn1) {
+    static MakeDualButton(gui, text0, text1, onPressedFn0, onPressedFn1) {
         // button acts like a checkbox (hide/show settings button)
         // text0 is initial (true) state;
         // onPressedFn0 is run when state switches to true
@@ -183,12 +222,39 @@ class UI {
         return shButton;
     }
 
-    static MakeBackButton() {
-        
+    static MakeParentButton(name, text, subMenu, gui) {
+        var parentButton = UI.MakeButton(name, text, function() {
+            gui.setActiveMenu(subMenu);
+        });
+        parentButton.color = 'white'
+        parentButton.width = '200px'
+        parentButton.height = '50px'
+        return parentButton;
     }
 
-    static MakeSubMenuHeaderPanel(gui) {
-        
+    static MakeBackButton(name, parent, gui) {
+        // parent is menu that back button returns to
+        var backButton = UI.MakeButton(name, '<', function() {
+            gui.setActiveMenu(parent);
+        });
+        backButton.color = 'white'
+        backButton.width = '30px'
+        backButton.height = '30px'
+        return backButton;
+    }
+
+    static MakeSubMenuHeaderPanel(menuName, parent, gui) {
+        // returns subMenu header panel obj
+        // has backbutton and headertext in a panel horizontally
+        var headerPanel = {};
+        headerPanel.panel = UI.MakePanel(false);
+        UI.AdaptContainerHeight(headerPanel.panel);
+        headerPanel.backButton = UI.MakeBackButton(menuName.concat('BackButton'), parent, gui);
+        headerPanel.headerText = UI.MakeTextBlock(menuName, 30, 'white');
+        headerPanel.headerText.height = '50px';
+        headerPanel.headerText.width = '200px';
+        UI.AddControlsToTarget([headerPanel.backButton, headerPanel.headerText], headerPanel.panel);
+        return headerPanel;
     }
 
     static MakeTextBlock(text, fontSize, color = 'white') {
@@ -202,25 +268,31 @@ class UI {
 
     static MakeSliderPanel(headerText, unit, minVal, maxVal, initVal, valChangeFn) {
         // makes slider panel. header above slider.
+        // header becomes 'headerText: val unit'
         // unit is string representing units ('degrees' or 'radians')
         // valChangeFn is function(value) that updates whatever the slider updates
         // valChangeFn does not need to change header as this is done here
-        var sliderPanel = {headerText: headerText, unit: unit, valChangeFn: valChangeFn};
+        var sliderPanel = {};
         sliderPanel.panel = UI.MakePanel();
-        UI.AdaptContainerSize(sliderPanel.panel);
+        UI.AdaptContainerWidth(sliderPanel.panel);
         sliderPanel.panel.background = 'black'
         sliderPanel.panel.alpha = .5;
 
         sliderPanel.header = UI.MakeTextBlock(headerText + ': ' + initVal + ' ' + unit, 20);
+        sliderPanel.header.height = '30px';
+        sliderPanel.header.width = '150px';
+
 
         sliderPanel.slider = BABYLON.GUI.Slider();
         sliderPanel.slider.minimum = minVal;
         sliderPanel.slider.maximum = maxVal;
         sliderPanel.slider.value = initVal;
         sliderPanel.slider.onValueChangedObservable.add(function(value) {
-            sliderPanel.slider.header.text = sliderPanel.headerText + ': ' + sliderPanel.slider.value + ' ' + sliderPanel.unit;
+            sliderPanel.header.text = headerText + ': ' + value + ' ' + unit;
             sliderPanel.valChangeFn(value);
         });
+        sliderPanel.slider.height = '30px';
+        sliderPanel.slider.width = '150px';
 
         UI.AddControlsToTarget([sliderPanel.header, sliderPanel.slider], sliderPanel.panel);
 
