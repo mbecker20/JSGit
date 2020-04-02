@@ -1,5 +1,5 @@
 class UI {
-    static PADDING = 2;
+    static SPACING = '20px';
 
     // makes the main gui object
     static MakeGUI() {
@@ -11,6 +11,7 @@ class UI {
 
         // make main menu (can add submenus to main menu afterwords)
         gui.mainMenu = UI.MakeMainMenu(gui);
+        gui.mainMenu.panel.background = 'black'
         gui.activeMenu = gui.mainMenu;
         gui.activeMenu.hide();
     
@@ -41,16 +42,23 @@ class UI {
         mainMenu.panel.top = 30;
 
         mainMenu.header = UI.MakeTextBlock(mainMenu.name, 30);
-        UI.SetControlsWidthHeight([mainMenu.header], '200px', '50px')
+        UI.SetControlsWidthHeight([mainMenu.header], '200px', '50px');
+        mainMenu.panel.addControl(UI.MakeVertSpacer(UI.SPACING))
         mainMenu.panel.addControl(mainMenu.header);
 
 
+        mainMenu.addControl = function(control) {
+            UI.AddControlsToTarget([UI.MakeVertSpacer(UI.SPACING), control], mainMenu.panel);
+        }
+
         mainMenu.addControls = function(controls) {
-            UI.AddControlsToTarget(controls, mainMenu.panel);
+            for(var i = 0; i < controls.length; i++) {
+                mainMenu.addControl(controls[i]);
+            }
         }
         
         mainMenu.addSubMenu = function(subMenu) {
-            mainMenu.panel.addControl(UI.MakeParentButton(subMenu.name.concat('ParentButton'), subMenu.name, subMenu, gui));
+            mainMenu.addControl(UI.MakeParentButton(subMenu.name.concat('ParentButton'), subMenu.name, subMenu, gui));
         }
 
         mainMenu.show = function() {
@@ -76,10 +84,17 @@ class UI {
         menu.panel.top = 30;
 
         menu.headerPanel = UI.MakeSubMenuHeaderPanel(name, parentMenu, gui);
-        menu.panel.addControl(menu.headerPanel.panel);
+        menu.panel.addControl(UI.MakeVertSpacer(UI.SPACING));
+        menu.panel.addControl(menu.headerPanel);
+
+        menu.addControl = function(control) {
+            UI.AddControlsToTarget([UI.MakeVertSpacer(UI.SPACING), control], menu.panel);
+        }
 
         menu.addControls = function(controls) {
-            UI.AddControlsToTarget(controls, menu.panel);
+            for(var i = 0; i < controls.length; i++) {
+                menu.addControl(controls[i]);
+            }
         }
 
         menu.addSubMenu = function(subMenu) {
@@ -103,14 +118,14 @@ class UI {
     static MakeSubMenuHeaderPanel(menuName, parent, gui) {
         // returns subMenu header panel obj
         // has backbutton and headertext in a panel horizontally
-        var headerPanel = {};
-        headerPanel.panel = UI.MakePanel(false);
-        UI.AdaptContainerHeight(headerPanel.panel);
-        headerPanel.backButton = UI.MakeBackButton(menuName.concat('BackButton'), parent, gui);
-        headerPanel.headerText = UI.MakeTextBlock(menuName, 28, 'white');
-        headerPanel.headerText.height = '50px';
-        headerPanel.headerText.width = '200px';
-        UI.AddControlsToTarget([headerPanel.backButton, headerPanel.headerText], headerPanel.panel);
+        
+        var headerPanel = UI.MakePanel(false);
+        UI.AdaptContainerHeight(headerPanel);
+        var backButton = UI.MakeBackButton(menuName.concat('BackButton'), parent, gui);
+        var headerText = UI.MakeTextBlock(menuName, 28, 'white');
+        headerText.height = '50px';
+        headerText.width = '200px';
+        UI.AddControlsToTarget([backButton, headerText], headerPanel);
         return headerPanel;
     }
 
@@ -120,54 +135,50 @@ class UI {
         // unit is string representing units ('degrees' or 'radians')
         // valChangeFn is function(value) that updates whatever the slider updates
         // valChangeFn does not need to change header as this is done here
-        var sliderPanel = {};
-        sliderPanel.panel = UI.MakePanel();
-        UI.AdaptContainerWidth(sliderPanel.panel);
+        var sliderPanel = UI.MakePanel();
+        UI.AdaptContainerWidth(sliderPanel);
 
-        sliderPanel.header = UI.MakeTextBlock(headerText + ': ' + initVal + ' ' + unit, 20);
-        sliderPanel.header.height = '30px';
-        sliderPanel.header.width = '250px';
+        var header = UI.MakeTextBlock(headerText + ': ' + initVal + ' ' + unit, 20);
+        header.height = '30px';
+        header.width = '250px';
 
 
-        sliderPanel.slider = new BABYLON.GUI.Slider();
-        sliderPanel.slider.minimum = minVal;
-        sliderPanel.slider.maximum = maxVal;
-        sliderPanel.slider.value = initVal;
-        sliderPanel.slider.onValueChangedObservable.add(function(value) {
-            sliderPanel.header.text = headerText + ': ' + math.round(10*value)/10 + ' ' + unit;
+        var slider = new BABYLON.GUI.Slider();
+        slider.minimum = minVal;
+        slider.maximum = maxVal;
+        slider.value = initVal;
+        slider.onValueChangedObservable.add(function(value) {
+            header.text = headerText + ': ' + math.round(10*value)/10 + ' ' + unit;
             valChangeFn(value);
         });
-        sliderPanel.slider.height = '30px';
-        sliderPanel.slider.width = '250px';
-        sliderPanel.slider.color = 'grey'
-        sliderPanel.slider.background = 'black'
-        sliderPanel.slider.borderColor = 'white'
-        sliderPanel.slider.isThumbCircle = true;
-        sliderPanel.slider.thumbWidth = 30;
+        slider.height = '30px';
+        slider.width = '250px';
+        slider.color = 'grey'
+        slider.background = 'black'
+        slider.borderColor = 'white'
+        slider.isThumbCircle = true;
+        slider.thumbWidth = 30;
 
 
-        UI.SetControlsPadding([sliderPanel.header, sliderPanel.slider], 2);
-
-        UI.AddControlsToTarget([sliderPanel.header, sliderPanel.slider], sliderPanel.panel);
+        UI.SetControlsPadding([header, slider], 2);
+        UI.AddControlsToTarget([header, slider], sliderPanel);
 
         return sliderPanel
     }
 
     static MakeShowHideButton(gui) {
-        var shButton = {};
-        //shButton.gui = gui;
-        shButton.texts = ['show', 'hide'];
-        shButton.state = 0;
-        shButton.button = UI.MakeButton('shButton', 'show', function() {
-            shButton.state = (shButton.state + 1) % 2;
-            shButton.button.children[0].text = shButton.texts[shButton.state];
+        var texts = ['show', 'hide'];
+        var state = 0;
+        var shButton = UI.MakeButton('shButton', 'show', function() {
+            state = (state + 1) % 2;
+            shButton.children[0].text = texts[state];
             gui.activeMenu.panel.isVisible = !gui.activeMenu.panel.isVisible;
         });
-        UI.AlignControlsTopLeft([shButton.button]);
-        shButton.button.color = 'white'
-        shButton.button.width = '60px';
-        shButton.button.height = '30px';
-        gui.texture.addControl(shButton.button);
+        UI.AlignControlsTopLeft([shButton]);
+        shButton.color = 'white'
+        shButton.width = '60px';
+        shButton.height = '30px';
+        gui.texture.addControl(shButton);
 
         return shButton;
     }
@@ -176,26 +187,16 @@ class UI {
         // button acts like a checkbox (hide/show settings button)
         // text0 is initial (true) state;
         // onPressedFn0 is run when state switches to true
-        var dualButton = {};
-        dualButton.state = true;
-        dualButton.text0 = text0;
-        dualButton.text1 = text1;
-        dualButton.onPressedFn0 = onPressedFn0
-        dualButton.button = UI.MakeButton(name, text0, function() {
-            dualButton.state = !dualButton.state;
-            if(dualButton.state) {
-                //switched to true
-                dualButton.button.text = dualButton.text0;
-                onPressedFn0();
-                
-            } else {
-                //switched to false
-                dualButton.button.text = dualButton.text1;
-                onPressedFn1();
-            }
+        var state = 0
+        var texts = [text0, text1];
+        var fns = [onPressedFn0, onPressedFn1]
+        var button = UI.MakeButton(name, text0, function() {
+            state = (state + 1) % 2;
+            button.text = texts[state];
+            fns[state]();
         });
 
-        return dualButton;
+        return button;
     }
 
     static MakeParentButton(name, text, subMenu, gui) {
@@ -217,6 +218,16 @@ class UI {
         backButton.width = '30px'
         backButton.height = '30px'
         return backButton;
+    }
+
+    static MakeVertSpacer(spacing = '5px') {
+        // s
+        var spacer = new BABYLON.GUI.Rectangle();
+        spacer.width = '1px';
+        spacer.height = spacing;
+        spacer.color = 'green'
+        spacer.alpha = 0;
+        return spacer;
     }
 
     static MakeButton(name, text, onPressedFn) {
