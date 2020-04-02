@@ -11,9 +11,9 @@ function makeGUI() {
     gui.shButton = UI.MakeShowHideButton(gui);
 
     gui.setActiveMenu = function(menu) {
-        gui.activeMenu.panel.isVisible = false; // hide current active menu
+        gui.activeMenu.hide(); // hide current active menu
         gui.activeMenu = menu;
-        gui.activeMenu.panel.isVisible = true; // show new active menu
+        gui.activeMenu.show(); // show new active menu
     }
 
     return gui;
@@ -30,8 +30,11 @@ class UI {
         }
     }
 
-    static MakePanel() {
-        return new BABYLON.GUI.StackPanel();
+    static MakePanel(isVertical = true) {
+        // isVertical false means horizontal stackpanel
+        var panel = new BABYLON.GUI.StackPanel();
+        panel.isVertical = isVertical;
+        return panel;
     }
 
     static AlignControlsTopLeft(controls) {
@@ -78,23 +81,28 @@ class UI {
         }
         
         mainMenu.addSubMenu = function(subMenu) {
+            mainMenu.subs[subMenu.name] = subMenu;
             mainMenu.controls[subMenu.name] = UI.MakeButton(subMenu.name, subMenu.name, function() {
+                gui.setActiveMenu(submenu);
             });
             mainMenu.controlKeys.push(subMenu.name);
             UI.AddControlsToTarget([subMenu.panel], mainMenu.panel);
         }
 
-        mainMenu.addSubMenu = function(name) {
-            // name becomes key to the SubMenu value
-            mainMenu.subs[name] = UI.MakeSubMenu(name, mainMenu);
+        mainMenu.show = function() {
+            mainMenu.panel.isVisible = true;
+        }
+
+        mainMenu.hide = function() {
+            mainMenu.panel.isVisible = false;
         }
 
         return mainMenu;
     }
 
-    static MakeSubMenu(name, parent) {
+    static MakeSubMenu(name, parent, gui) {
         // basically same as main menu, but includes back button
-        // parent is page that the back button goes back to
+        // parent is menu that the back button goes back to
         let menu = {};
         menu.name = name;
         menu.subs = {};
@@ -105,7 +113,17 @@ class UI {
         menu.panel = UI.MakePanel();
         UI.AdaptContainerSize(menu.panel);
 
-        menu.controls.backButton = UI.MakeBackButton();
+        menu.headerPanel = UI.MakeSubMenuHeaderPanel(gui);
+
+        menu.addControl = function(name, control) {
+            menu.controls[name] = control;
+            menu.controlKeys.push(name);
+            menu.panel.addControl(control);
+        }
+
+        menu.show = function() {
+            menu.panel.isVisible = true;
+        }
 
         menu.hide = function() {
             menu.panel.isVisible = false;
@@ -166,6 +184,10 @@ class UI {
     }
 
     static MakeBackButton() {
+        
+    }
+
+    static MakeSubMenuHeaderPanel(gui) {
         
     }
 
