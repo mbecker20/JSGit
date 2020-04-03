@@ -185,11 +185,14 @@ class UI {
         return shButton;
     }
 
-    static MakeFullscreenButton(canvas) {
-        
-        var fsButton = UI.MakeDualTextButton('fsButton', 'enter fullscreen', 'exit fullscreen', function() {
+    static MakeFullscreenButton(canvas) { 
+        var fsButton = UI.MakeDualButton('fsButton', 'enter fullscreen', 'exit fullscreen', function() {
             if(screenfull.isEnabled) {
-                screenfull.toggle(canvas);
+                screenfull.exit();
+            }
+        }, function() {
+            if(screenfull.isEnabled) {
+                screenfull.request(canvas);
             }
         });
         fsButton.color = 'white';
@@ -215,8 +218,8 @@ class UI {
 
     static MakeDualButton(name, text0, text1, onPressedFn0, onPressedFn1) {
         // button acts like a checkbox (hide/show settings button)
-        // text0 is initial (true) state;
-        // onPressedFn0 is run when state switches to true
+        // text0 is initial 0 state;
+        // onPressedFn0 is run when state switches to 0
         var state = 0
         var texts = [text0, text1];
         var fns = [onPressedFn0, onPressedFn1]
