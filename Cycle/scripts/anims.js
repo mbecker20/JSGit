@@ -671,11 +671,11 @@ class Anim7 {
             pConst.g = value;
         });
 
-        var mSphereSliderPanel = UI.MakeSliderPanel('sphere mass', '', .1, 10, pConst.mSphere, function(value) {
+        var mSphereSliderPanel = UI.MakeSliderPanel('sphere mass', '', .1, 5, pConst.mSphere, function(value) {
             pConst.mSphere = value;
         })
 
-        var mCubeSliderPanel = UI.MakeSliderPanel('cube mass', '', .1, 10, pConst.mCube, function(value) {
+        var mCubeSliderPanel = UI.MakeSliderPanel('cube mass', '', .1, 5, pConst.mCube, function(value) {
             pConst.mCube = value;
         })
 
