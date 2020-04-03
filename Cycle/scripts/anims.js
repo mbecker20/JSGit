@@ -524,7 +524,7 @@ class Anim7 {
         this.stepsPerFrame = 2;
         this.params = {l: 6, lDot: 3, theta: 1, thetaDot: 2, phi: 0, phiDot: 10};
         this.pConst = {mSphere: 1.1, mCube: 1, g: 10, lTot: 10, rSphere: 1, sCube: 2};
-        this.damping = {lDot: .02, thetaDot: .02, phiDot: .02};
+        this.damping = {lDot: .01, thetaDot: .01, phiDot: .01};
         this.pConst.sphereIcm = this.pConst.mSphere * (2/5) * MF.Square(this.pConst.rSphere);
         this.pConst.cubeIcm = this.pConst.mCube * (1/6) * MF.Square(this.pConst.sCube);
 
