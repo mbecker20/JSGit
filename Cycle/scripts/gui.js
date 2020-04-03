@@ -9,11 +9,8 @@ class UI {
         // make show/hide button
         gui.shButton = UI.MakeShowHideButton(gui);
 
-        // make fullscreen button
-        gui.fsButton = UI.MakeFullscreenButton(gui, canvas);
-
         // make main menu (can add submenus to main menu afterwords)
-        gui.mainMenu = UI.MakeMainMenu(gui);
+        gui.mainMenu = UI.MakeMainMenu(gui, canvas);
         gui.mainMenu.panel.background = 'black'
         gui.activeMenu = gui.mainMenu;
         gui.activeMenu.hide();
@@ -32,7 +29,7 @@ class UI {
     }
 
     // other constructors
-    static MakeMainMenu(gui) {
+    static MakeMainMenu(gui, canvas) {
         //name is string
         let mainMenu = {};
         mainMenu.name = 'Main Menu';
@@ -71,6 +68,8 @@ class UI {
         mainMenu.hide = function() {
             mainMenu.panel.isVisible = false;
         }
+
+        mainMenu.addControl(UI.MakeFullscreenButton(canvas));
 
         return mainMenu;
     }
@@ -186,19 +185,17 @@ class UI {
         return shButton;
     }
 
-    static MakeFullscreenButton(gui, canvas) {
+    static MakeFullscreenButton(canvas) {
         
         var fsButton = UI.MakeDualTextButton('fsButton', 'enter fullscreen', 'exit fullscreen', function() {
             if(screenfull.isEnabled) {
                 screenfull.toggle(canvas);
             }
         });
-        fsButton.color = 'white'
-        fsButton.width = '130px'
-        fsButton.height = '20px'
-        fsButton.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-        fsButton.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-        gui.texture.addControl(fsButton);
+        fsButton.color = 'white';
+        fsButton.width = '200px';
+        fsButton.height = '50px';
+        return fsButton;
     }
 
     static MakeDualTextButton(name, text0, text1, onPressedFn) {
