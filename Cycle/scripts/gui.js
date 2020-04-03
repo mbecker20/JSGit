@@ -2,12 +2,15 @@ class UI {
     static SPACING = '20px';
 
     // makes the main gui object
-    static MakeGUI() {
+    static MakeGUI(canvas) {
         var gui = {}
         gui.texture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI('gui');
     
         // make show/hide button
         gui.shButton = UI.MakeShowHideButton(gui);
+
+        // make fullscreen button
+        gui.fsButton = UI.MakeFullscreenButton(gui, canvas);
 
         // make main menu (can add submenus to main menu afterwords)
         gui.mainMenu = UI.MakeMainMenu(gui);
@@ -183,7 +186,37 @@ class UI {
         return shButton;
     }
 
-    static MakeDualButton(gui, text0, text1, onPressedFn0, onPressedFn1) {
+    static MakeFullscreenButton(gui, canvas) {
+        
+        var fsButton = UI.MakeDualTextButton('fsButton', 'enter fullscreen', 'exit fullscreen', function() {
+            if(screenfull.isEnabled) {
+                screenfull.toggle(canvas);
+            }
+        });
+        fsButton.color = 'white'
+        fsButton.width = '130px'
+        fsButton.height = '20px'
+        fsButton.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+        fsButton.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+        gui.texture.addControl(fsButton);
+    }
+
+    static MakeDualTextButton(name, text0, text1, onPressedFn) {
+        // button acts like a checkbox (hide/show settings button)
+        // text0 is initial (true) state;
+        // onPressedFn0 is run when state switches to true
+        var state = 0
+        var texts = [text0, text1];
+        var button = UI.MakeButton(name, text0, function() {
+            state = (state + 1) % 2;
+            button.children[0].text = texts[state];
+            onPressedFn();
+        });
+
+        return button;
+    }
+
+    static MakeDualButton(name, text0, text1, onPressedFn0, onPressedFn1) {
         // button acts like a checkbox (hide/show settings button)
         // text0 is initial (true) state;
         // onPressedFn0 is run when state switches to true
@@ -192,7 +225,7 @@ class UI {
         var fns = [onPressedFn0, onPressedFn1]
         var button = UI.MakeButton(name, text0, function() {
             state = (state + 1) % 2;
-            button.text = texts[state];
+            button.children[0].text = texts[state];
             fns[state]();
         });
 

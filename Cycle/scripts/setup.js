@@ -25,7 +25,7 @@ window.addEventListener('DOMContentLoaded', function(){
         var myMats = new MyMats(scene);
 
         //setup gui
-        window.gui = UI.MakeGUI();
+        window.gui = UI.MakeGUI(canvas);
 
         var grid = BF.MakeGridXZ([-10,0,-10], 20, 2, 2);
 
