@@ -715,27 +715,34 @@ class Anim8 {
         // forced lagrangian params. for when phiDot is set manually (a function of time in physics sense)
         this.forcedParams = {theta: 1, thetaDot: 2};
         this.freeParams = {theta: 1, thetaDot: 2, phi: 0, phiDot: 0}; // free Lagrangian params. phiDot included as a param
-        this.pConst = {m: 1, r: 6, g: 10, phi: 0, phiDot: 2.5};
+        this.pConst = {mSphere: 1, rSphere: 1, mRing: 1, rRing: 6, g: 10, phi: 0, phiDot: 2.5};
+        this.setConstants(this.pConst);
         this.damping = {thetaDot: .05, phiDot: .05}; // can use one damping obj for both
-        this.forcedMode = true; // false if should be stepped by free lagrangian
 
         this.forcedLagrangian = new SplitLagrangian(this.makeForcedLFuncs(), this.forcedParams, this.pConst, this.damping);
         this.freeLagrangian = new SplitLagrangian(this.makeFreeLFuncs(), this.freeParams, this.pConst, this.damping);
     }
 
+    setConstants(pConst) {
+        pConst.c0 = .5 * pConst.mSphere * (MF.Square(pConst.rRing) + (2/5) * MF.Square(pConst.rSphere));
+        pConst.c1 = .5 * pConst.mSphere * MF.Square(pConst.rRing);
+        pConst.c2 = .5 * (pConst.mSphere * (2/5) * MF.Square(pConst.rSphere) + .5 * pConst.mRing * MF.Square(pConst.rRing));
+        pConst.c3 = pConst.mSphere * pConst.g * pConst.rRing;
+    }
+
     makeForcedLFuncs() {
         function l0(p, pConst) {
-            return .5 * pConst.m * MF.Square(pConst.r * p.thetaDot);
+            return pConst.c0 * MF.Square(p.thetaDot);
         }
         l0.paramKeys = ['thetaDot'];
 
         function l1(p, pConst) {
-            return .5 * pConst.m * MF.Square(pConst.r * Math.sin(p.theta) * pConst.phiDot);
+            return pConst.c1 * MF.Square(Math.sin(p.theta) * pConst.phiDot);
         }
         l1.paramKeys = ['theta'];
 
         function l2(p, pConst) {
-            return pConst.m * pConst.g * pConst.r * Math.cos(p.theta);
+            return pConst.c3 * Math.cos(p.theta);
         }
         l2.paramKeys = ['theta'];
 
@@ -744,50 +751,53 @@ class Anim8 {
 
     makeFreeLFuncs() {
         function l0(p, pConst) {
-            return .5 * pConst.m * MF.Square(pConst.r * p.thetaDot);
+            return pConst.c0 * MF.Square(p.thetaDot);
         }
         l0.paramKeys = ['thetaDot'];
 
         function l1(p, pConst) {
-            return .5 * pConst.m * MF.Square(pConst.r * Math.sin(p.theta) * p.phiDot);
+            return (pConst.c1 * MF.Square(Math.sin(p.theta)) + pConst.c2) * MF.Square(p.phiDot);
         }
         l1.paramKeys = ['theta', 'phiDot'];
 
         function l2(p, pConst) {
-            return pConst.m * pConst.g * pConst.r * Math.cos(p.theta);
+            return pConst.c3 * Math.cos(p.theta);
         }
         l2.paramKeys = ['theta'];
 
         return [l0, l1, l2];
     }
 
-    switchToFreeMode() {
+    switchToFreeMode(phiDotSP) {
         this.freeParams.theta = this.forcedParams.theta;
         this.freeParams.thetaDot = this.forcedParams.thetaDot;
         this.freeParams.phi = this.pConst.phi;
         this.freeParams.phiDot = this.pConst.phiDot;
         this.step = this.stepFree;
+        phiDotSP.isVisible = false;
     }
 
-    switchToForcedMode() {
+    switchToForcedMode(phiDotSP) {
         this.forcedParams.theta = this.freeParams.theta;
         this.forcedParams.thetaDot = this.freeParams.thetaDot;
         this.pConst.phi = this.freeParams.phi;
         this.pConst.phiDot = this.freeParams.phiDot;
         this.step = this.stepForced;
+        phiDotSP.children[1].value = this.pConst.phiDot;
+        phiDotSP.isVisible = true;
     }
 
     setupMeshs(scene) {
         this.ground = BABYLON.MeshBuilder.CreateGround('ground4', {width:20,height:20}, scene);
         this.ground.receiveShadows = true;
 
-        this.ring = BABYLON.MeshBuilder.CreateTorus('ring', {diameter: 2*this.pConst.r, thickness: .25, tessellation: 64}, scene);
+        this.ring = BABYLON.MeshBuilder.CreateTorus('ring', {diameter: 2*this.pConst.rRing, thickness: .25, tessellation: 64}, scene);
         this.ring.rotation.x = Math.PI/2;
         this.ring.bakeCurrentTransformIntoVertices();
-        this.ring.position = BF.Vec3([0,this.pConst.r + 2,0]);
+        this.ring.position = BF.Vec3([0,this.pConst.rRing + 2,0]);
         this.ring.receiveShadows = true;
 
-        this.mass = BABYLON.MeshBuilder.CreateSphere('ringMass', {segments:16, diameter:1.5}, scene);
+        this.mass = BABYLON.MeshBuilder.CreateSphere('ringMass', {segments:16, diameter: 2*this.pConst.rSphere}, scene);
         this.mass.parent = this.ring;
         this.mass.receiveShadows = true;
 
@@ -803,13 +813,13 @@ class Anim8 {
 
     setPos(p) {
         // updates position of mesh based on current params
-        BF.SetVec3(math.multiply([Math.sin(p.theta),-Math.cos(p.theta),0],this.pConst.r), this.mass.position);
+        BF.SetVec3(math.multiply([Math.sin(p.theta),-Math.cos(p.theta),0],this.pConst.rRing), this.mass.position);
         this.ring.rotation.y = this.pConst.phi;
     }
 
     stepForced() {
         this.forcedLagrangian.stepCorrected(this.dt, this.stepsPerFrame);
-        this.pConst.phi += this.pConst.phiDot * this.dt;
+        this.pConst.phi += this.stepsPerFrame * this.pConst.phiDot * this.dt;
         this.setPos(this.forcedParams);
     }
 
@@ -824,6 +834,7 @@ class Anim8 {
 
         var gSliderPanel = UI.MakeSliderPanel('gravity', '', 0, 40, anim.pConst.g, function(value) {
             anim.pConst.g = value;
+            anim.pConst.c3 = anim.pConst.mSphere * anim.pConst.g * anim.pConst.rRing;
         });
 
         var phiDotSliderPanel = UI.MakeSliderPanel('ring spin speed', '', 0, 6, anim.pConst.phiDot, function(value) {
@@ -831,9 +842,9 @@ class Anim8 {
         })
 
         var modeSwitchButton = UI.MakeDualButton('modeSwitch', 'switch to free', 'switch to forced', function() {
-            anim.switchToForcedMode();
+            anim.switchToForcedMode(phiDotSliderPanel);
         }, function() {
-            anim.switchToFreeMode();
+            anim.switchToFreeMode(phiDotSliderPanel);
         })
         modeSwitchButton.width = '200px'
         modeSwitchButton.height = '50px'
