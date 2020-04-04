@@ -155,6 +155,7 @@ class Anim2 {
 }
 
 class Anim3 {
+    // rotating ring with derived diff eq
     constructor(scene, myMats, shadows) {
         // make local origin of anim
         this.node = new BABYLON.TransformNode('anim3Node', scene);
@@ -517,7 +518,7 @@ class Anim6 {
 class Anim7 {
     constructor(scene, myMats, shadows, gui) {
         // sphere swings, cube up and down
-        this.node = BF.MakeTransformNode('anim4Node', scene);
+        this.node = BF.MakeTransformNode('anim7Node', scene);
 
         // setup lagrangian update system
         this.dt = .01;
@@ -547,7 +548,7 @@ class Anim7 {
 
         // set initial position of everything
         this.setPos();
-        this.setupGUIPanel(gui, this.pConst);
+        this.setupGUIMenu(gui, this.pConst);
     }
 
     setMaterials(myMats) {
@@ -664,7 +665,7 @@ class Anim7 {
         }
     }
 
-    setupGUIPanel(gui, pConst) {
+    setupGUIMenu(gui, pConst) {
         this.guiMenu = UI.MakeSubMenu('anim7 settings', gui.mainMenu, gui);
 
         var gSliderPanel = UI.MakeSliderPanel('gravity', '', 0, 40, pConst.g, function(value) {
@@ -681,6 +682,164 @@ class Anim7 {
 
         this.guiMenu.addControls([gSliderPanel, mSphereSliderPanel, mCubeSliderPanel, UI.MakeVertSpacer(UI.SPACING)]);
         this.guiMenu.panel.background = 'black'
+
+        gui.mainMenu.addSubMenu(this.guiMenu);
+    }
+}
+
+class Anim8 {
+    // spinning ring
+    constructor(scene, myMats, shadows, gui) {
+        // make node
+        this.node = BF.MakeTransformNode('anim8node', scene);
+
+        // setup lagrangian update system
+        this.setupLagrangian();
+
+        this.setupMeshs(scene);
+
+        this.setMaterials(myMats);
+
+        BF.ConnectMeshsToShadows([this.ring, this.mass, this.ground], shadows);
+
+        this.step = this.stepForced;
+        this.setPos(this.forcedParams);
+
+        this.setupGUIMenu(gui, this);
+    }
+
+    setupLagrangian() {
+        this.dt = .01;
+        this.stepsPerFrame = 2;
+
+        // forced lagrangian params. for when phiDot is set manually (a function of time in physics sense)
+        this.forcedParams = {theta: 1, thetaDot: 2};
+        this.freeParams = {theta: 1, thetaDot: 2, phi: 0, phiDot: 0}; // free Lagrangian params. phiDot included as a param
+        this.pConst = {m: 1, r: 6, g: 10, phi: 0, phiDot: 2.5};
+        this.damping = {thetaDot: .05, phiDot: .05}; // can use one damping obj for both
+        this.forcedMode = true; // false if should be stepped by free lagrangian
+
+        this.forcedLagrangian = new SplitLagrangian(this.makeForcedLFuncs(), this.forcedParams, this.pConst, this.damping);
+        this.freeLagrangian = new SplitLagrangian(this.makeFreeLFuncs(), this.freeParams, this.pConst, this.damping);
+    }
+
+    makeForcedLFuncs() {
+        function l0(p, pConst) {
+            return .5 * pConst.m * MF.Square(pConst.r * p.thetaDot);
+        }
+        l0.paramKeys = ['thetaDot'];
+
+        function l1(p, pConst) {
+            return .5 * pConst.m * MF.Square(pConst.r * Math.sin(p.theta) * pConst.phiDot);
+        }
+        l1.paramKeys = ['theta'];
+
+        function l2(p, pConst) {
+            return pConst.m * pConst.g * pConst.r * Math.cos(p.theta);
+        }
+        l2.paramKeys = ['theta'];
+
+        return [l0, l1, l2];
+    }
+
+    makeFreeLFuncs() {
+        function l0(p, pConst) {
+            return .5 * pConst.m * MF.Square(pConst.r * p.thetaDot);
+        }
+        l0.paramKeys = ['thetaDot'];
+
+        function l1(p, pConst) {
+            return .5 * pConst.m * MF.Square(pConst.r * Math.sin(p.theta) * p.phiDot);
+        }
+        l1.paramKeys = ['theta', 'phiDot'];
+
+        function l2(p, pConst) {
+            return pConst.m * pConst.g * pConst.r * Math.cos(p.theta);
+        }
+        l2.paramKeys = ['theta'];
+
+        return [l0, l1, l2];
+    }
+
+    switchToFreeMode() {
+        this.freeParams.theta = this.forcedParams.theta;
+        this.freeParams.thetaDot = this.forcedParams.thetaDot;
+        this.freeParams.phi = this.pConst.phi;
+        this.freeParams.phiDot = this.pConst.phiDot;
+        this.step = this.stepFree;
+    }
+
+    switchToForcedMode() {
+        this.forcedParams.theta = this.freeParams.theta;
+        this.forcedParams.thetaDot = this.freeParams.thetaDot;
+        this.pConst.phi = this.freeParams.phi;
+        this.pConst.phiDot = this.freeParams.phiDot;
+        this.step = this.stepForced;
+    }
+
+    setupMeshs(scene) {
+        this.ground = BABYLON.MeshBuilder.CreateGround('ground4', {width:20,height:20}, scene);
+        this.ground.receiveShadows = true;
+
+        this.ring = BABYLON.MeshBuilder.CreateTorus('ring', {diameter: 2*this.pConst.r, thickness: .25, tessellation: 64}, scene);
+        this.ring.rotation.x = Math.PI/2;
+        this.ring.bakeCurrentTransformIntoVertices();
+        this.ring.position = BF.Vec3([0,this.pConst.r + 2,0]);
+        this.ring.receiveShadows = true;
+
+        this.mass = BABYLON.MeshBuilder.CreateSphere('ringMass', {segments:16, diameter:1.5}, scene);
+        this.mass.parent = this.ring;
+        this.mass.receiveShadows = true;
+
+        BF.SetChildren(this.node, [this.ground, this.ring]);
+    }
+
+    setMaterials(myMats) {
+        this.ground.material = myMats.wArrow;
+        this.ring.material = myMats.wArrow;
+        this.mass.material = myMats.darkMoon;
+        BF.ForceCompileMaterials([this.ring, this.mass, this.ground]);
+    }
+
+    setPos(p) {
+        // updates position of mesh based on current params
+        BF.SetVec3(math.multiply([Math.sin(p.theta),-Math.cos(p.theta),0],this.pConst.r), this.mass.position);
+        this.ring.rotation.y = this.pConst.phi;
+    }
+
+    stepForced() {
+        this.forcedLagrangian.stepCorrected(this.dt, this.stepsPerFrame);
+        this.pConst.phi += this.pConst.phiDot * this.dt;
+        this.setPos(this.forcedParams);
+    }
+
+    stepFree() {
+        this.freeLagrangian.stepCorrected(this.dt, this.stepsPerFrame);
+        this.pConst.phi = this.freeParams.phi;
+        this.setPos(this.freeParams);
+    }
+
+    setupGUIMenu(gui, anim) {
+        this.guiMenu = UI.MakeSubMenu('anim8 settings', gui.mainMenu, gui);
+
+        var gSliderPanel = UI.MakeSliderPanel('gravity', '', 0, 40, anim.pConst.g, function(value) {
+            anim.pConst.g = value;
+        });
+
+        var phiDotSliderPanel = UI.MakeSliderPanel('ring spin speed', '', 0, 6, anim.pConst.phiDot, function(value) {
+            anim.pConst.phiDot = value;
+        })
+
+        var modeSwitchButton = UI.MakeDualButton('modeSwitch', 'switch to free', 'switch to forced', function() {
+            anim.switchToForcedMode();
+        }, function() {
+            anim.switchToFreeMode();
+        })
+        modeSwitchButton.width = '200px'
+        modeSwitchButton.height = '50px'
+        modeSwitchButton.color = 'white'
+
+        this.guiMenu.addControls([gSliderPanel, phiDotSliderPanel, modeSwitchButton, UI.MakeVertSpacer(UI.SPACING)]);
 
         gui.mainMenu.addSubMenu(this.guiMenu);
     }

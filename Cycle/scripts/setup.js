@@ -51,10 +51,12 @@ window.addEventListener('DOMContentLoaded', function(){
         //var anim6 = new Anim6(scene, myMats, shadows);
         //anim6.node.position = BF.Vec3([0,0,20]);
 
-        window.anim7 = new Anim7(scene, myMats, cycle.shadows, window.gui);
+        //var anim7 = new Anim7(scene, myMats, cycle.shadows, window.gui);
         //anim7.node.position = grid[1][0];
 
-        var anims = [cycle, window.anim7];
+        var anim8 = new Anim8(scene, myMats, cycle.shadows, window.gui);
+
+        var anims = [cycle, anim8];
 
         scene.registerAfterRender(function () {
             for(var i = 0; i < anims.length; i++) {

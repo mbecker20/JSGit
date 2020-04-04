@@ -11,7 +11,6 @@ class UI {
 
         // make main menu (can add submenus to main menu afterwords)
         gui.mainMenu = UI.MakeMainMenu(gui, canvas);
-        gui.mainMenu.panel.background = 'black'
         gui.activeMenu = gui.mainMenu;
         gui.activeMenu.hide();
     
@@ -40,6 +39,7 @@ class UI {
         UI.AlignControlsTopLeft([mainMenu.panel]);
 
         mainMenu.panel.top = 30;
+        mainMenu.panel.background = 'black'
 
         mainMenu.header = UI.MakeTextBlock(mainMenu.name, 30);
         UI.SetControlsWidthHeight([mainMenu.header], '200px', '50px');
@@ -84,6 +84,7 @@ class UI {
         UI.AdaptContainerWidth(menu.panel);
         UI.AlignControlsTopLeft([menu.panel]);
         menu.panel.top = 30;
+        menu.panel.background = 'black'
 
         menu.headerPanel = UI.MakeSubMenuHeaderPanel(name, parentMenu, gui);
         menu.panel.addControl(UI.MakeVertSpacer(UI.SPACING));
