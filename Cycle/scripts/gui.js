@@ -1,5 +1,5 @@
 class UI {
-    static SPACING = '20px';
+    static SPACING = '15px';
 
     // makes the main gui object
     static MakeGUI(canvas) {
@@ -87,10 +87,12 @@ class UI {
 
         menu.parentButton = UI.MakeParentButton(name.concat('parentButton'), 'settings', menu, gui);
 
+        menu.sv = UI.MakeScrollViewer();
         menu.panel = UI.MakePanel();
+        menu.sv.addControl(menu.panel);
         UI.AdaptContainerWidth(menu.panel);
         UI.AlignControlsTopLeft([menu.panel]);
-        menu.panel.top = 30;
+        menu.sv.top = 30;
         menu.panel.background = 'black'
 
         menu.headerPanel = UI.MakeSubMenuHeaderPanel(name, parentMenu, gui);
@@ -112,15 +114,15 @@ class UI {
         }
 
         menu.show = function() {
-            menu.panel.isVisible = true;
+            menu.sv.isVisible = true;
         }
 
         menu.hide = function() {
-            menu.panel.isVisible = false;
+            menu.sv.isVisible = false;
         }
 
         menu.hide();
-        gui.addControl(menu.panel);
+        gui.addControl(menu.sv);
 
         return menu;
     }
@@ -259,7 +261,7 @@ class UI {
         });
         fsButton.color = 'white';
         fsButton.width = '200px';
-        fsButton.height = '50px';
+        fsButton.height = '30px';
         return fsButton;
     }
 
@@ -310,7 +312,7 @@ class UI {
         });
         parentButton.color = 'white'
         parentButton.width = '200px'
-        parentButton.height = '50px'
+        parentButton.height = '30px'
         return parentButton;
     }
 
@@ -335,11 +337,10 @@ class UI {
         return spacer;
     }
 
-    static MakeButton(name, text, onPressedFn, width = '200px', height = '50px') {
+    static MakeButton(name, text, onPressedFn, width = '200px', height = '30px') {
         var button = BABYLON.GUI.Button.CreateSimpleButton(name, text);
         button.onPointerClickObservable.add(onPressedFn);
-        button.width = width;
-        button.height = height;
+        UI.SetControlsWidthHeight([button], width, height);
         button.color = 'white';
         return button;
     }
@@ -368,6 +369,16 @@ class UI {
             }
         }
         return panel;
+    }
+
+    static MakeScrollViewer(name = '') {
+        var sv = new BABYLON.GUI.ScrollViewer(name);
+        sv.width = '270px'
+        sv.height = '300px'
+        UI.AlignControlsTopLeft([sv]);
+        sv.barSize = 20;
+        sv.color = 'black'
+        return sv;
     }
 
     // helpers
