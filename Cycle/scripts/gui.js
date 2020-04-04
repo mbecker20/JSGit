@@ -1,5 +1,9 @@
 class UI {
     static SPACING = '15px';
+    
+    // standard width height
+    static STANDARDW = '200px';
+    static STANDARDH = '40px';
 
     // makes the main gui object
     static MakeGUI(canvas) {
@@ -45,12 +49,12 @@ class UI {
 
         mainMenu.header = UI.MakeTextBlock(mainMenu.name, 30);
         UI.SetControlsWidthHeight([mainMenu.header], '200px', '50px');
-        mainMenu.panel.addControl(UI.MakeVertSpacer(UI.SPACING))
+        mainMenu.panel.addControl(UI.MakeVertSpacer())
         mainMenu.panel.addControl(mainMenu.header);
 
 
         mainMenu.addControl = function(control) {
-            UI.AddControlsToTarget([UI.MakeVertSpacer(UI.SPACING), control], mainMenu.panel);
+            UI.AddControlsToTarget([UI.MakeVertSpacer(), control], mainMenu.panel);
         }
 
         mainMenu.addControls = function(controls) {
@@ -60,7 +64,7 @@ class UI {
         }
         
         mainMenu.addSubMenus = function(subMenus) {
-            mainMenu.panel.addControl(UI.MakeVertSpacer(UI.SPACING));
+            mainMenu.panel.addControl(UI.MakeVertSpacer());
             for(var i = 0; i < subMenus.length; i++) {
                 mainMenu.panel.addControl(subMenus[i].parentButton);
             }
@@ -96,11 +100,11 @@ class UI {
         menu.panel.background = 'black'
 
         menu.headerPanel = UI.MakeSubMenuHeaderPanel(name, parentMenu, gui);
-        menu.panel.addControl(UI.MakeVertSpacer(UI.SPACING));
+        menu.panel.addControl(UI.MakeVertSpacer());
         menu.panel.addControl(menu.headerPanel);
 
         menu.addControl = function(control) {
-            UI.AddControlsToTarget([UI.MakeVertSpacer(UI.SPACING), control], menu.panel);
+            UI.AddControlsToTarget([UI.MakeVertSpacer(), control], menu.panel);
         }
 
         menu.addControls = function(controls) {
@@ -222,7 +226,7 @@ class UI {
             caSubPanel.isVisible = !caSubPanel.isVisible;
         });
         var animKeys = Object.keys(animState.anims);
-        var animButtons = [];
+        var animButtons = [UI.MakeVertSpacer()];
         for(var i = 0; i < animKeys.length; i++) {
             animButtons.push(UI.MakeActivateAnimButton(animKeys[i], animState, caSubPanel));
         }
@@ -233,15 +237,12 @@ class UI {
     }
 
     static MakeShowHideButton(gui) {
-        var texts = ['show', 'hide'];
-        var state = 0;
-        var shButton = UI.MakeButton('shButton', 'show', function() {
-            state = (state + 1) % 2;
-            shButton.children[0].text = texts[state];
-            gui.activeMenu.panel.isVisible = !gui.activeMenu.panel.isVisible;
+        var shButton = UI.MakeDualButton('shButton', 'show', 'hide', function() {
+            gui.activeMenu.hide();
+        }, function() {
+            gui.activeMenu.show();
         });
         UI.AlignControlsTopLeft([shButton]);
-        shButton.color = 'white'
         shButton.width = '60px';
         shButton.height = '30px';
         gui.texture.addControl(shButton);
@@ -259,9 +260,6 @@ class UI {
                 screenfull.request(canvas);
             }
         });
-        fsButton.color = 'white';
-        fsButton.width = '200px';
-        fsButton.height = '30px';
         return fsButton;
     }
 
@@ -271,7 +269,8 @@ class UI {
             animState.activeAnim = animState.anims[text];
             animState.activeAnim.activate();
             parentPanel.isVisible = false;
-        })
+        });
+        aaButton.color = 'green';
         return aaButton;
     }
 
@@ -311,8 +310,6 @@ class UI {
             gui.setActiveMenu(subMenu);
         });
         parentButton.color = 'white'
-        parentButton.width = '200px'
-        parentButton.height = '30px'
         return parentButton;
     }
 
@@ -327,7 +324,7 @@ class UI {
         return backButton;
     }
 
-    static MakeVertSpacer(spacing = '5px') {
+    static MakeVertSpacer(spacing = UI.SPACING) {
         // s
         var spacer = new BABYLON.GUI.Rectangle();
         spacer.width = '1px';
@@ -337,7 +334,7 @@ class UI {
         return spacer;
     }
 
-    static MakeButton(name, text, onPressedFn, width = '200px', height = '30px') {
+    static MakeButton(name, text, onPressedFn, width = UI.STANDARDW, height = UI.STANDARDH) {
         var button = BABYLON.GUI.Button.CreateSimpleButton(name, text);
         button.onPointerClickObservable.add(onPressedFn);
         UI.SetControlsWidthHeight([button], width, height);
@@ -374,7 +371,7 @@ class UI {
     static MakeScrollViewer(name = '') {
         var sv = new BABYLON.GUI.ScrollViewer(name);
         sv.width = '270px'
-        sv.height = '300px'
+        sv.height = '340px'
         UI.AlignControlsTopLeft([sv]);
         sv.barSize = 20;
         sv.color = 'black'

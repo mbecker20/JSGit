@@ -863,7 +863,7 @@ class Anim8 {
             anim.damping.phiDot = value;
         });
 
-        this.guiMenu.addControls([gSliderPanel, phiDotSliderPanel, modeSwitchButton, thetaDampingSliderPanel, phiDampingSliderPanel, UI.MakeVertSpacer(UI.SPACING)]);
+        this.guiMenu.addControls([gSliderPanel, phiDotSliderPanel, modeSwitchButton, thetaDampingSliderPanel, phiDampingSliderPanel, UI.MakeVertSpacer()]);
     }
 
     activate() {
