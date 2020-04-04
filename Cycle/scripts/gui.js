@@ -23,6 +23,8 @@ class UI {
         gui.addControl = function(control) {
             gui.texture.addControl(control);
         }
+
+        gui.add
     
         return gui;
     }
@@ -57,8 +59,11 @@ class UI {
             }
         }
         
-        mainMenu.addSubMenu = function(subMenu) {
-            mainMenu.addControl(UI.MakeParentButton(subMenu.name.concat('ParentButton'), subMenu.name, subMenu, gui));
+        mainMenu.addSubMenus = function(subMenus) {
+            mainMenu.panel.addControl(UI.MakeVertSpacer(UI.SPACING));
+            for(var i = 0; i < subMenus.length; i++) {
+                mainMenu.panel.addControl(subMenus[i].parentButton);
+            }
         }
 
         mainMenu.show = function() {
@@ -79,6 +84,8 @@ class UI {
         // parent is menu that the back button goes back to
         let menu = {};
         menu.name = name;
+
+        menu.parentButton = UI.MakeParentButton(name.concat('parentButton'), 'settings', menu, gui);
 
         menu.panel = UI.MakePanel();
         UI.AdaptContainerWidth(menu.panel);
@@ -169,6 +176,60 @@ class UI {
         return sliderPanel
     }
 
+    static MakeSliderPanelPrecise(headerText, unit, minVal, maxVal, initVal, valChangeFn) {
+        // makes slider panel. header above slider.
+        // header becomes 'headerText: val unit'
+        // unit is string representing units ('degrees' or 'radians')
+        // valChangeFn is function(value) that updates whatever the slider updates
+        // valChangeFn does not need to change header as this is done here
+        var sliderPanel = UI.MakePanel();
+        UI.AdaptContainerWidth(sliderPanel);
+
+        var header = UI.MakeTextBlock(headerText + ': ' + initVal + ' ' + unit, 20);
+        header.height = '30px';
+        header.width = '250px';
+
+
+        var slider = new BABYLON.GUI.Slider();
+        slider.minimum = minVal;
+        slider.maximum = maxVal;
+        slider.value = initVal;
+        slider.onValueChangedObservable.add(function(value) {
+            header.text = headerText + ': ' + math.round(100*value)/100 + ' ' + unit;
+            valChangeFn(value);
+        });
+        slider.height = '30px';
+        slider.width = '250px';
+        slider.color = 'grey'
+        slider.background = 'black'
+        slider.borderColor = 'white'
+        slider.isThumbCircle = true;
+        slider.thumbWidth = 30;
+
+
+        UI.SetControlsPadding([header, slider], 2);
+        UI.AddControlsToTarget([header, slider], sliderPanel);
+
+        return sliderPanel
+    }
+
+    static MakeChooseAnimPanel(animState) {
+        var caPanel = UI.MakePanel();
+        var caSubPanel = UI.MakePanel();
+        var headerButton = UI.MakeButton('chooseAnimBut', 'choose simulation', function() {
+            caSubPanel.isVisible = !caSubPanel.isVisible;
+        });
+        var animKeys = Object.keys(animState.anims);
+        var animButtons = [];
+        for(var i = 0; i < animKeys.length; i++) {
+            animButtons.push(UI.MakeActivateAnimButton(animKeys[i], animState, caSubPanel));
+        }
+        caSubPanel.isVisible = false;
+        UI.AddControlsToTarget(animButtons, caSubPanel);
+        UI.AddControlsToTarget([headerButton, caSubPanel], caPanel);
+        return caPanel;
+    }
+
     static MakeShowHideButton(gui) {
         var texts = ['show', 'hide'];
         var state = 0;
@@ -200,6 +261,16 @@ class UI {
         fsButton.width = '200px';
         fsButton.height = '50px';
         return fsButton;
+    }
+
+    static MakeActivateAnimButton(text, animState, parentPanel) {
+        var aaButton = UI.MakeButton('', text, function() {
+            animState.activeAnim.deactivate();
+            animState.activeAnim = animState.anims[text];
+            animState.activeAnim.activate();
+            parentPanel.isVisible = false;
+        })
+        return aaButton;
     }
 
     static MakeDualTextButton(name, text0, text1, onPressedFn) {
@@ -264,9 +335,12 @@ class UI {
         return spacer;
     }
 
-    static MakeButton(name, text, onPressedFn) {
+    static MakeButton(name, text, onPressedFn, width = '200px', height = '50px') {
         var button = BABYLON.GUI.Button.CreateSimpleButton(name, text);
         button.onPointerClickObservable.add(onPressedFn);
+        button.width = width;
+        button.height = height;
+        button.color = 'white';
         return button;
     }
 
@@ -279,7 +353,7 @@ class UI {
         return textBlock;
     }
 
-    static MakePanel(isVertical = true, topLeft = false, adaptSize = false) {
+    static MakePanel(isVertical = true, topLeft = false, adaptSize = true) {
         // isVertical false means horizontal stackpanel
         var panel = new BABYLON.GUI.StackPanel();
         panel.isVertical = isVertical;

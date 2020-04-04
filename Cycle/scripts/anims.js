@@ -666,7 +666,7 @@ class Anim7 {
     }
 
     setupGUIMenu(gui, pConst) {
-        this.guiMenu = UI.MakeSubMenu('anim7 settings', gui.mainMenu, gui);
+        this.guiMenu = UI.MakeSubMenu('settings', gui.mainMenu, gui);
 
         var gSliderPanel = UI.MakeSliderPanel('gravity', '', 0, 40, pConst.g, function(value) {
             pConst.g = value;
@@ -681,9 +681,16 @@ class Anim7 {
         })
 
         this.guiMenu.addControls([gSliderPanel, mSphereSliderPanel, mCubeSliderPanel, UI.MakeVertSpacer(UI.SPACING)]);
-        this.guiMenu.panel.background = 'black'
+    }
 
-        gui.mainMenu.addSubMenu(this.guiMenu);
+    activate() {
+        this.node.setEnabled(true);
+        this.guiMenu.parentButton.isVisible = true;
+    }
+
+    deactivate() {
+        this.node.setEnabled(false);
+        this.guiMenu.parentButton.isVisible = false;
     }
 }
 
@@ -717,7 +724,7 @@ class Anim8 {
         this.freeParams = {theta: 1, thetaDot: 2, phi: 0, phiDot: 0}; // free Lagrangian params. phiDot included as a param
         this.pConst = {mSphere: 1, rSphere: 1, mRing: 1, rRing: 6, g: 10, phi: 0, phiDot: 2.5};
         this.setConstants(this.pConst);
-        this.damping = {thetaDot: .05, phiDot: .05}; // can use one damping obj for both
+        this.damping = {thetaDot: 0.01, phiDot: 0.01}; // can use one damping obj for both
 
         this.forcedLagrangian = new SplitLagrangian(this.makeForcedLFuncs(), this.forcedParams, this.pConst, this.damping);
         this.freeLagrangian = new SplitLagrangian(this.makeFreeLFuncs(), this.freeParams, this.pConst, this.damping);
@@ -830,7 +837,7 @@ class Anim8 {
     }
 
     setupGUIMenu(gui, anim) {
-        this.guiMenu = UI.MakeSubMenu('anim8 settings', gui.mainMenu, gui);
+        this.guiMenu = UI.MakeSubMenu('settings', gui.mainMenu, gui);
 
         var gSliderPanel = UI.MakeSliderPanel('gravity', '', 0, 40, anim.pConst.g, function(value) {
             anim.pConst.g = value;
@@ -841,17 +848,31 @@ class Anim8 {
             anim.pConst.phiDot = value;
         })
 
-        var modeSwitchButton = UI.MakeDualButton('modeSwitch', 'switch to free', 'switch to forced', function() {
+        var modeSwitchButton = UI.MakeDualButton('modeSwitch', 'switch to free ring', 'switch to forced ring', function() {
             anim.switchToForcedMode(phiDotSliderPanel);
         }, function() {
             anim.switchToFreeMode(phiDotSliderPanel);
         })
-        modeSwitchButton.width = '200px'
-        modeSwitchButton.height = '50px'
+        UI.SetControlsWidthHeight([modeSwitchButton], '200px', '50px');
         modeSwitchButton.color = 'white'
 
-        this.guiMenu.addControls([gSliderPanel, phiDotSliderPanel, modeSwitchButton, UI.MakeVertSpacer(UI.SPACING)]);
+        var thetaDampingSliderPanel = UI.MakeSliderPanelPrecise('theta damping', '', 0, .2, anim.damping.thetaDot, function(value) {
+            anim.damping.thetaDot = value;
+        });
+        var phiDampingSliderPanel = UI.MakeSliderPanelPrecise('phi damping', '', 0, .2, anim.damping.phiDot, function(value) {
+            anim.damping.phiDot = value;
+        });
 
-        gui.mainMenu.addSubMenu(this.guiMenu);
+        this.guiMenu.addControls([gSliderPanel, phiDotSliderPanel, modeSwitchButton, thetaDampingSliderPanel, phiDampingSliderPanel, UI.MakeVertSpacer(UI.SPACING)]);
+    }
+
+    activate() {
+        this.node.setEnabled(true);
+        this.guiMenu.parentButton.isVisible = true;
+    }
+
+    deactivate() {
+        this.node.setEnabled(false);
+        this.guiMenu.parentButton.isVisible = false;
     }
 }

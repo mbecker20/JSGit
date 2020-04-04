@@ -11,10 +11,10 @@ window.addEventListener('DOMContentLoaded', function(){
         
         //setup camera
         //var camPos = BF.Vec3([37, 20, -22]);
-        var camPos = BF.Vec3([32, 19, -30]);
+        var camPos = BF.Vec3([22, 16, -22]);
         window.camera = new BABYLON.FlyCamera('camera1', camPos, scene);
         window.camera=setUpFlyCam(window.camera, canvas);
-        window.camera.setTarget(BF.Vec3([0,0,0]));
+        window.camera.setTarget(BF.Vec3([0,4,0]));
         //window.camera.setTarget(BF.Vec3([0,7,20]));
 
         //setup scene environment
@@ -51,17 +51,22 @@ window.addEventListener('DOMContentLoaded', function(){
         //var anim6 = new Anim6(scene, myMats, shadows);
         //anim6.node.position = BF.Vec3([0,0,20]);
 
-        //var anim7 = new Anim7(scene, myMats, cycle.shadows, window.gui);
+        var anim7 = new Anim7(scene, myMats, cycle.shadows, window.gui);
         //anim7.node.position = grid[1][0];
 
         var anim8 = new Anim8(scene, myMats, cycle.shadows, window.gui);
+        anim8.deactivate();
 
-        var anims = [cycle, anim8];
+        var anims = {'pendulum tug of war': anim7, 'mass on a ring': anim8};
+
+        var animState = {activeAnim: anim7, anims: anims};
+
+        window.gui.mainMenu.addControl(UI.MakeChooseAnimPanel(animState));
+        window.gui.mainMenu.addSubMenus([anim7.guiMenu, anim8.guiMenu]);
 
         scene.registerAfterRender(function () {
-            for(var i = 0; i < anims.length; i++) {
-                anims[i].step();
-            }
+            cycle.step();
+            animState.activeAnim.step();
         });
 
         // return the created scene
