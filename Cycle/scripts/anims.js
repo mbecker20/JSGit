@@ -839,10 +839,10 @@ class Anim8 {
     setupGUIMenu(gui, anim) {
         this.guiMenu = UI.MakeSubMenu('settings', gui.mainMenu, gui);
 
-        var gSliderPanel = UI.MakeSliderPanel('gravity', '', 0, 40, anim.pConst.g, function(value) {
+        /* var gSliderPanel = UI.MakeSliderPanel('gravity', '', 0, 40, anim.pConst.g, function(value) {
             anim.pConst.g = value;
             anim.pConst.c3 = anim.pConst.mSphere * anim.pConst.g * anim.pConst.rRing;
-        });
+        }); */
 
         var phiDotSliderPanel = UI.MakeSliderPanel('ring spin speed', '', 0, 6, anim.pConst.phiDot, function(value) {
             anim.pConst.phiDot = value;
@@ -863,7 +863,7 @@ class Anim8 {
             anim.damping.phiDot = value;
         });
 
-        this.guiMenu.addControls([gSliderPanel, phiDotSliderPanel, modeSwitchButton, thetaDampingSliderPanel, phiDampingSliderPanel, UI.MakeVertSpacer()]);
+        this.guiMenu.addControls([phiDotSliderPanel, modeSwitchButton, thetaDampingSliderPanel, phiDampingSliderPanel, UI.MakeVertSpacer()]);
     }
 
     activate() {

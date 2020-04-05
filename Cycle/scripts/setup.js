@@ -61,8 +61,9 @@ window.addEventListener('DOMContentLoaded', function(){
 
         var animState = {activeAnim: anim7, anims: anims};
 
-        window.gui.mainMenu.addControl(UI.MakeChooseAnimPanel(animState));
-        window.gui.mainMenu.addSubMenus([anim7.guiMenu, anim8.guiMenu]);
+        var caMenu = UI.MakeChooseAnimMenu(animState, window.gui);
+        window.gui.mainMenu.addSubMenu(caMenu);
+        window.gui.mainMenu.addOneOfSubMenus([anim7.guiMenu, anim8.guiMenu]);
 
         scene.registerAfterRender(function () {
             cycle.step();

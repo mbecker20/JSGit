@@ -27,8 +27,6 @@ class UI {
         gui.addControl = function(control) {
             gui.texture.addControl(control);
         }
-
-        gui.add
     
         return gui;
     }
@@ -62,8 +60,13 @@ class UI {
                 mainMenu.addControl(controls[i]);
             }
         }
+
+        mainMenu.addSubMenu = function(subMenu) {
+            mainMenu.addControl(subMenu.parentButton);
+        }
         
-        mainMenu.addSubMenus = function(subMenus) {
+        mainMenu.addOneOfSubMenus = function(subMenus) {
+            // for when only 1 parent button will be active at a time
             mainMenu.panel.addControl(UI.MakeVertSpacer());
             for(var i = 0; i < subMenus.length; i++) {
                 mainMenu.panel.addControl(subMenus[i].parentButton);
@@ -83,13 +86,13 @@ class UI {
         return mainMenu;
     }
 
-    static MakeSubMenu(name, parentMenu, gui) {
+    static MakeSubMenu(name, parentMenu, gui, pbText = 'settings') {
         // basically same as main menu, but includes back button
         // parent is menu that the back button goes back to
         let menu = {};
         menu.name = name;
 
-        menu.parentButton = UI.MakeParentButton(name.concat('parentButton'), 'settings', menu, gui);
+        menu.parentButton = UI.MakeParentButton(name.concat('parentButton'), pbText, menu, gui);
 
         menu.sv = UI.MakeScrollViewer();
         menu.panel = UI.MakePanel();
@@ -236,6 +239,17 @@ class UI {
         return caPanel;
     }
 
+    static MakeChooseAnimMenu(animState, gui) {
+        var caMenu = UI.MakeSubMenu('simulations', gui.mainMenu, gui, 'choose simulation');
+        var animKeys = Object.keys(animState.anims);
+        var animButtons = [];
+        for(var i = 0; i < animKeys.length; i++) {
+            animButtons.push(UI.MakeMenuActivateAnimButton(animKeys[i], animState, gui));
+        }
+        caMenu.addControls(animButtons);
+        return caMenu;
+    }
+
     static MakeShowHideButton(gui) {
         var shButton = UI.MakeDualButton('shButton', 'show', 'hide', function() {
             gui.activeMenu.hide();
@@ -270,7 +284,18 @@ class UI {
             animState.activeAnim.activate();
             parentPanel.isVisible = false;
         });
-        aaButton.color = 'green';
+        aaButton.color = 'white';
+        return aaButton;
+    }
+
+    static MakeMenuActivateAnimButton(text, animState, gui) {
+        var aaButton = UI.MakeButton('', text, function() {
+            animState.activeAnim.deactivate();
+            animState.activeAnim = animState.anims[text];
+            animState.activeAnim.activate();
+            gui.setActiveMenu(gui.mainMenu);
+        });
+        aaButton.color = 'white';
         return aaButton;
     }
 
