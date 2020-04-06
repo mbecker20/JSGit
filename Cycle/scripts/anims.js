@@ -1,14 +1,14 @@
 class Anim1 {
-    constructor(scene, myMats, shadows) {
+    constructor(scene, myMats, shadows, gui) {
         this.node = new BABYLON.TransformNode('anim1Node', scene);
 
-        this.r=2;
+        this.r=3;
         this.sphere = BABYLON.MeshBuilder.CreateSphere('sphere1', {segments:16, diameter:2}, scene);
-        this.sphere.position = BF.Vec3([0, 2, 0]);
+        this.sphere.position = BF.Vec3([0, 2*this.r, 0]);
         this.sphere.material = myMats.darkMoon;
         this.sphere.receiveShadows = true;
 
-        this.ground = BABYLON.MeshBuilder.CreateGround('ground1', {width:10,height:10}, scene);
+        this.ground = BABYLON.MeshBuilder.CreateGround('ground1', {width:20,height:20}, scene);
         this.ground.position = BF.ZeroVec3();
         this.ground.material = myMats.wArrow;
         this.ground.receiveShadows = true;
@@ -35,6 +35,8 @@ class Anim1 {
         this.groundVUp=Math.sqrt(this.v*this.v-2*this.g*(this.sphere.position.y-1));
 
         this.onGround=false;
+
+        this.setupGUIMenu(gui, this);
     }
 
     step() {
@@ -111,6 +113,30 @@ class Anim1 {
         const xzScale=this.r-this.oscY;
         this.scaling.set(xzScale,yScale,xzScale);
         this.sphere.scaling=this.scaling;
+    }
+
+    setupGUIMenu(gui, anim) {
+        this.guiMenu = UI.MakeSubMenu('sim settings', gui.mainMenu, gui);
+
+        var kSlider = UI.MakeSliderPanel('springiness', '', 32, 200, anim.k, function(value) {
+            anim.k = value;
+        });
+
+        var dampingSlider = UI.MakeSliderPanel('damping', '', 0, 2, anim.damping, function(value) {
+            anim.damping = value;
+        });
+
+        this.guiMenu.addControls([kSlider, dampingSlider, UI.MakeVertSpacer()]);
+    }
+
+    activate() {
+        this.node.setEnabled(true);
+        this.guiMenu.parentButton.isVisible = true;
+    }
+
+    deactivate() {
+        this.node.setEnabled(false);
+        this.guiMenu.parentButton.isVisible = false;
     }
 }
 
@@ -837,7 +863,7 @@ class Anim8 {
     }
 
     setupGUIMenu(gui, anim) {
-        this.guiMenu = UI.MakeSubMenu('settings', gui.mainMenu, gui);
+        this.guiMenu = UI.MakeSubMenu('sim settings', gui.mainMenu, gui);
 
         /* var gSliderPanel = UI.MakeSliderPanel('gravity', '', 0, 40, anim.pConst.g, function(value) {
             anim.pConst.g = value;

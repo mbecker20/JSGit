@@ -35,7 +35,7 @@ class UI {
     static MakeMainMenu(gui, canvas) {
         //name is string
         let mainMenu = {};
-        mainMenu.name = 'Main Menu';
+        mainMenu.name = 'main menu';
         mainMenu.panel = UI.MakePanel();
         gui.texture.addControl(mainMenu.panel);
 
@@ -86,7 +86,7 @@ class UI {
         return mainMenu;
     }
 
-    static MakeSubMenu(name, parentMenu, gui, pbText = 'settings') {
+    static MakeSubMenu(name, parentMenu, gui, pbText = 'sim settings') {
         // basically same as main menu, but includes back button
         // parent is menu that the back button goes back to
         let menu = {};
@@ -244,9 +244,12 @@ class UI {
         var animKeys = Object.keys(animState.anims);
         var animButtons = [];
         for(var i = 0; i < animKeys.length; i++) {
-            animButtons.push(UI.MakeMenuActivateAnimButton(animKeys[i], animState, gui));
+            animButtons.push(UI.MakeMenuActivateAnimButton(animKeys[i], animState, caMenu));
         }
         caMenu.addControls(animButtons);
+        //add a property that holds the active sim button to change its color to highlight that its active
+        caMenu.activeAnimButton = animButtons[0];
+        caMenu.activeAnimButton.color = 'green';
         return caMenu;
     }
 
@@ -288,12 +291,14 @@ class UI {
         return aaButton;
     }
 
-    static MakeMenuActivateAnimButton(text, animState, gui) {
+    static MakeMenuActivateAnimButton(text, animState, caMenu) {
         var aaButton = UI.MakeButton('', text, function() {
             animState.activeAnim.deactivate();
             animState.activeAnim = animState.anims[text];
             animState.activeAnim.activate();
-            gui.setActiveMenu(gui.mainMenu);
+            caMenu.activeAnimButton.color = 'white';
+            caMenu.activeAnimButton = aaButton;
+            caMenu.activeAnimButton.color = 'green';
         });
         aaButton.color = 'white';
         return aaButton;

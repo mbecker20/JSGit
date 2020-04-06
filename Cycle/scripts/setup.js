@@ -33,8 +33,8 @@ window.addEventListener('DOMContentLoaded', function(){
         var shadowQual = 1024;
         var cycle = new Cycle(scene, myMats, shadowQual);
 
-        //var anim1 = new Anim1(scene, myMats, shadows);
-        //anim1.node.position = grid[0][1]; 
+        var anim1 = new Anim1(scene, myMats, cycle.shadows, window.gui);
+        anim1.deactivate();
 
         //var anim2 = new Anim2(scene, myMats, shadows);
         //anim2.node.position = grid[1];
@@ -57,13 +57,13 @@ window.addEventListener('DOMContentLoaded', function(){
         var anim8 = new Anim8(scene, myMats, cycle.shadows, window.gui);
         anim8.deactivate();
 
-        var anims = {'pendulum tug of war': anim7, 'mass on a ring': anim8};
+        var anims = {'pendulum tug of war': anim7, 'mass on a ring': anim8, 'bouncy ball': anim1};
 
         var animState = {activeAnim: anim7, anims: anims};
 
         var caMenu = UI.MakeChooseAnimMenu(animState, window.gui);
         window.gui.mainMenu.addSubMenu(caMenu);
-        window.gui.mainMenu.addOneOfSubMenus([anim7.guiMenu, anim8.guiMenu]);
+        window.gui.mainMenu.addOneOfSubMenus([anim7.guiMenu, anim8.guiMenu, anim1.guiMenu]);
 
         scene.registerAfterRender(function () {
             cycle.step();
