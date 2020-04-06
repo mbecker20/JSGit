@@ -240,16 +240,21 @@ class UI {
     }
 
     static MakeChooseAnimMenu(animState, gui) {
+        // adds the caMenu to gui texture and adds the choose anim button to main menu
         var caMenu = UI.MakeSubMenu('simulations', gui.mainMenu, gui, 'choose simulation');
         var animKeys = Object.keys(animState.anims);
         var animButtons = [];
+        var animMenus = [];
         for(var i = 0; i < animKeys.length; i++) {
             animButtons.push(UI.MakeMenuActivateAnimButton(animKeys[i], animState, caMenu));
+            animMenus.push(animState.anims[animKeys[i]].guiMenu);
         }
         caMenu.addControls(animButtons);
         //add a property that holds the active sim button to change its color to highlight that its active
         caMenu.activeAnimButton = animButtons[0];
         caMenu.activeAnimButton.color = 'green';
+        gui.mainMenu.addSubMenu(caMenu);
+        gui.mainMenu.addOneOfSubMenus(animMenus);
         return caMenu;
     }
 
