@@ -5,6 +5,9 @@ class UI {
     static STANDARDW = '200px';
     static STANDARDH = '40px';
 
+    static SMALLW = '110px';
+    static SMALLH = '30px'
+
     // makes the main gui object
     static MakeGUI(canvas) {
         var gui = {}
@@ -134,6 +137,25 @@ class UI {
         return menu;
     }
 
+    static MakeChooseAnimMenu(animState, gui) {
+        // adds the caMenu to gui texture and adds the choose anim button to main menu
+        var caMenu = UI.MakeSubMenu('simulations', gui.mainMenu, gui, 'choose simulation');
+        var animKeys = Object.keys(animState.anims);
+        var animButtons = [];
+        var animMenus = [];
+        for(var i = 0; i < animKeys.length; i++) {
+            animButtons.push(UI.MakeMenuActivateAnimButton(animKeys[i], animState, caMenu));
+            animMenus.push(animState.anims[animKeys[i]].guiMenu);
+        }
+        caMenu.addControls(animButtons);
+        //add a property that holds the active sim button to change its color to highlight that its active
+        caMenu.activeAnimButton = animButtons[0];
+        caMenu.activeAnimButton.color = 'green';
+        gui.mainMenu.addSubMenu(caMenu);
+        gui.mainMenu.addOneOfSubMenus(animMenus);
+        return caMenu;
+    }
+
     static MakeSubMenuHeaderPanel(menuName, parent, gui) {
         // returns subMenu header panel obj
         // has backbutton and headertext in a panel horizontally
@@ -239,23 +261,13 @@ class UI {
         return caPanel;
     }
 
-    static MakeChooseAnimMenu(animState, gui) {
-        // adds the caMenu to gui texture and adds the choose anim button to main menu
-        var caMenu = UI.MakeSubMenu('simulations', gui.mainMenu, gui, 'choose simulation');
-        var animKeys = Object.keys(animState.anims);
-        var animButtons = [];
-        var animMenus = [];
-        for(var i = 0; i < animKeys.length; i++) {
-            animButtons.push(UI.MakeMenuActivateAnimButton(animKeys[i], animState, caMenu));
-            animMenus.push(animState.anims[animKeys[i]].guiMenu);
-        }
-        caMenu.addControls(animButtons);
-        //add a property that holds the active sim button to change its color to highlight that its active
-        caMenu.activeAnimButton = animButtons[0];
-        caMenu.activeAnimButton.color = 'green';
-        gui.mainMenu.addSubMenu(caMenu);
-        gui.mainMenu.addOneOfSubMenus(animMenus);
-        return caMenu;
+    static MakeTwoButtonPanel(name0, text0, f0, name1, text1, f1) {
+        var tbPanel = UI.MakePanel(false);
+        var but0 = UI.MakeButton(name0, text0, f0, UI.SMALLW, UI.STANDARDH);
+        var but1 = UI.MakeButton(name1, text1, f1, UI.SMALLW, UI.STANDARDH);
+        UI.AddControlsToTarget([but0, UI.MakeHorizSpacer(), but1], tbPanel);
+
+        return tbPanel;
     }
 
     static MakeShowHideButton(gui) {
@@ -360,10 +372,18 @@ class UI {
     }
 
     static MakeVertSpacer(spacing = UI.SPACING) {
-        // s
         var spacer = new BABYLON.GUI.Rectangle();
         spacer.width = '1px';
         spacer.height = spacing;
+        spacer.color = 'green'
+        spacer.alpha = 0;
+        return spacer;
+    }
+
+    static MakeHorizSpacer(spacing = UI.SPACING) {
+        var spacer = new BABYLON.GUI.Rectangle();
+        spacer.width = spacing;
+        spacer.height = '1px';
         spacer.color = 'green'
         spacer.alpha = 0;
         return spacer;
