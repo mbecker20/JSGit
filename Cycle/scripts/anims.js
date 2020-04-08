@@ -30,7 +30,7 @@ class Anim1 {
         this.oscV=0;
         this.damping=2;
 
-        this.deltaRot=.08
+        this.deltaRot=.02
 
         this.groundVUp=Math.sqrt(this.v*this.v-2*this.g*(this.sphere.position.y-1));
 
@@ -118,7 +118,7 @@ class Anim1 {
     setupGUIMenu(gui, anim) {
         this.guiMenu = UI.MakeSubMenu('sim settings', gui.mainMenu, gui);
 
-        var kSlider = UI.MakeSliderPanel('springiness', '', 32, 200, anim.k, function(value) {
+        var kSlider = UI.MakeSliderPanel('springiness', '', 32, 400, anim.k, function(value) {
             anim.k = value;
         });
 
@@ -245,18 +245,20 @@ class Anim3 {
 }
 
 class Anim4 {
-    constructor(scene, myMats, shadows) {
+    constructor(scene, myMats, shadows, gui) {
         this.node = new BABYLON.TransformNode('anim4Node', scene);
 
-        this.ground = BABYLON.MeshBuilder.CreateGround('ground4', {width:10,height:10}, scene);
+        this.ground = BABYLON.MeshBuilder.CreateGround('ground4', {width:20,height:20}, scene);
         this.ground.position = BF.ZeroVec3();
         this.ground.material = myMats.wArrow;
         this.ground.receiveShadows = true;
 
-        var showWArrow = true;
-        var showAxes = false;
+        var mainLength = 6;
+        var mainDiameter = 2;
+        var crossLength = 8;
+        var crossDiameter = 2;
 
-        this.tHandle = BF.MakeTHandle('tHandle', scene, 3, 1, 4, 1);
+        this.tHandle = BF.MakeTHandle('tHandle', scene, mainLength, mainDiameter, crossLength, crossDiameter);
         this.tHandle.material = myMats.darkMoon;
         this.tHandle.receiveShadows = true;
 
@@ -265,9 +267,9 @@ class Anim4 {
         this.dt = .008;
         this.g = 0;
 
-        this.tHandle = makePhysBody(scene, this.tHandle, BF.ZeroVec3(), [10,10,700], .1, this.dt, showWArrow, showAxes);
-        this.tHandle.p = BF.Vec3([0, 5, 0]);
-        this.tHandle.position = BF.Vec3([0, 5, 0]);
+        makePhysBody(scene, this.tHandle, BF.ZeroVec3(), [80,80,1200], .1, this.dt);
+        this.tHandle.p = BF.Vec3([0, 7, 0]);
+        this.tHandle.position = this.tHandle.p;
         this.tHandle.wArrow.pointer.material = myMats.wArrow;
         this.tHandle.updateMesh();
 
@@ -276,13 +278,41 @@ class Anim4 {
         this.stepsPerFrame = 1;
 
         BF.ForceCompileMaterials([this.tHandle, this.tHandle.wArrow.pointer, this.ground]);
+
+        this.setupGUIMenu(gui, this);
     }
 
-    step(g, dt) {
+    step() {
         for(var i=0; i<this.stepsPerFrame; i++) {
             this.tHandle.step(this.g, this.dt);
         }
         this.tHandle.updateMesh();
+    }
+
+    setupGUIMenu(gui, anim) {
+        this.guiMenu = UI.MakeSubMenu('sim settings', gui.mainMenu, gui);
+
+        var showWArrowButton = UI.MakeDualTextButton('showWArrowBut', 'show axis of rotation', 'hide axis of rotation', function() {
+            anim.tHandle.showWArrow = !anim.tHandle.showWArrow;
+            anim.tHandle.setShowWArrow(anim.tHandle.showWArrow);
+        });
+
+        var showAxesButton = UI.MakeDualTextButton('showAxesBut', 'show body axes', 'hide body axes', function() {
+            anim.tHandle.showAxes = !anim.tHandle.showAxes;
+            anim.tHandle.setShowAxes(anim.tHandle.showAxes);
+        });
+
+        this.guiMenu.addControls([showWArrowButton, showAxesButton, UI.MakeVertSpacer()]);
+    }
+
+    activate() {
+        this.node.setEnabled(true);
+        this.guiMenu.parentButton.isVisible = true;
+    }
+
+    deactivate() {
+        this.node.setEnabled(false);
+        this.guiMenu.parentButton.isVisible = false;
     }
 }
 
@@ -574,7 +604,7 @@ class PendTugOfWar {
 
         // set initial position of everything
         this.setPos();
-        this.setupGUIMenu(gui, this.pConst);
+        this.setupGUIMenu(gui, this);
     }
 
     setMaterials(myMats) {
@@ -639,11 +669,11 @@ class PendTugOfWar {
 
         BF.BakeMeshs([this.spherePiv, this.cubePiv]);
 
-        this.spherePiv.position = BF.Vec3([0, 12, -2]);
-        this.cubePiv.position = BF.Vec3([0, 12, 2]);
+        this.spherePiv.position = BF.Vec3([0, 12, -3]);
+        this.cubePiv.position = BF.Vec3([0, 12, 3]);
         
         this.topRope = BF.MakeTube('topRope', scene, .25);
-        this.topRope.scaling.x = 4;
+        this.topRope.scaling.x = 6;
         this.topRope.rotation.y = -Math.PI/2;
 
         this.sphereRope = BF.MakeTube('sphereRope', scene, .25);
@@ -691,22 +721,34 @@ class PendTugOfWar {
         }
     }
 
-    setupGUIMenu(gui, pConst) {
-        this.guiMenu = UI.MakeSubMenu('settings', gui.mainMenu, gui);
+    setupGUIMenu(gui, anim) {
+        this.guiMenu = UI.MakeSubMenu('sim settings', gui.mainMenu, gui);
 
-        var gSliderPanel = UI.MakeSliderPanel('gravity', '', 0, 40, pConst.g, function(value) {
-            pConst.g = value;
-        });
+        /* var gSliderPanel = UI.MakeSliderPanel('gravity', '', 0, 40, anim.pConst.g, function(value) {
+            anim.pConst.g = value;
+        }); */
 
-        var mSphereSliderPanel = UI.MakeSliderPanel('sphere mass', '', .1, 5, pConst.mSphere, function(value) {
-            pConst.mSphere = value;
+        var mSphereSliderPanel = UI.MakeSliderPanel('sphere mass', '', .1, 5, anim.pConst.mSphere, function(value) {
+            anim.pConst.mSphere = value;
         })
 
-        var mCubeSliderPanel = UI.MakeSliderPanel('cube mass', '', .1, 5, pConst.mCube, function(value) {
-            pConst.mCube = value;
+        var mCubeSliderPanel = UI.MakeSliderPanel('cube mass', '', .1, 5, anim.pConst.mCube, function(value) {
+            anim.pConst.mCube = value;
         })
 
-        this.guiMenu.addControls([gSliderPanel, mSphereSliderPanel, mCubeSliderPanel, UI.MakeVertSpacer(UI.SPACING)]);
+        var kickSpherePanel = UI.MakeTwoButtonPanel('kickSphere+', 'kick sphere +', function() {
+            anim.params.thetaDot += 2;
+        }, 'kickSphere-', 'kick sphere -', function() {
+            anim.params.thetaDot -= 2;
+        })
+
+        var kickCubePanel = UI.MakeTwoButtonPanel('kickCube+', 'kick cube +', function() {
+            anim.params.phiDot += 2;
+        }, 'kickCube-', 'kick cube -', function() {
+            anim.params.phiDot -= 2;
+        })
+
+        this.guiMenu.addControls([mSphereSliderPanel, mCubeSliderPanel, kickSpherePanel, kickCubePanel, UI.MakeVertSpacer(UI.SPACING)]);
     }
 
     activate() {
@@ -788,12 +830,14 @@ class SpinningRing {
     switchToFreeMode(phiDotSP) {
         this.lagrangian.switchForcingMode('free');
         phiDotSP.isVisible = false;
+        phiDampSP.isVisible = true;
     }
 
     switchToForcedMode(phiDotSP) {
         this.lagrangian.switchForcingMode('phiDotForcing');
         phiDotSP.children[1].value = this.p.phiDot;
         phiDotSP.isVisible = true;
+        phiDampSP.isVisible = false;
     }
 
     setupMeshs(scene) {
@@ -806,8 +850,11 @@ class SpinningRing {
         this.ring.position = BF.Vec3([0,this.pConst.rRing + 2,0]);
         this.ring.receiveShadows = true;
 
+        this.massParent = BF.MakeTransformNode('massParent', scene);
         this.mass = BABYLON.MeshBuilder.CreateSphere('ringMass', {segments:16, diameter: 2*this.pConst.rSphere}, scene);
-        this.mass.parent = this.ring;
+        this.massParent.parent = this.ring;
+        this.mass.parent = this.massParent;
+        BF.SetVec3([0,-this.pConst.rRing, 0], this.mass.position);
         this.mass.receiveShadows = true;
 
         BF.SetChildren(this.node, [this.ground, this.ring]);
@@ -822,8 +869,8 @@ class SpinningRing {
 
     setPos(p) {
         // updates position of mesh based on current params
-        BF.SetVec3(math.multiply([Math.sin(p.theta),-Math.cos(p.theta),0],this.pConst.rRing), this.mass.position);
-        this.ring.rotation.y = p.phi;
+        this.massParent.rotation.z = p.theta;
+        this.ring.rotation.y = this.pConst.phi;
     }
 
     step() {
@@ -844,20 +891,22 @@ class SpinningRing {
             anim.pConst.phiDot = value;
         })
 
-        var modeSwitchButton = UI.MakeDualButton('modeSwitch', 'switch to free ring', 'switch to forced ring', function() {
-            anim.switchToForcedMode(phiDotSliderPanel);
-        }, function() {
-            anim.switchToFreeMode(phiDotSliderPanel);
-        })
-        UI.SetControlsWidthHeight([modeSwitchButton], '200px', '50px');
-        modeSwitchButton.color = 'white'
-
         var thetaDampingSliderPanel = UI.MakeSliderPanelPrecise('theta damping', '', 0, .2, anim.damping.thetaDot, function(value) {
             anim.damping.thetaDot = value;
         });
+
         var phiDampingSliderPanel = UI.MakeSliderPanelPrecise('phi damping', '', 0, .2, anim.damping.phiDot, function(value) {
             anim.damping.phiDot = value;
         });
+        phiDampingSliderPanel.isVisible = false;
+
+        var modeSwitchButton = UI.MakeDualButton('modeSwitch', 'switch to free ring', 'switch to forced ring', function() {
+            anim.switchToForcedMode(phiDotSliderPanel, phiDampingSliderPanel);
+        }, function() {
+            anim.switchToFreeMode(phiDotSliderPanel, phiDampingSliderPanel);
+        })
+        UI.SetControlsWidthHeight([modeSwitchButton], '200px', '50px');
+        modeSwitchButton.color = 'white'
 
         this.guiMenu.addControls([phiDotSliderPanel, modeSwitchButton, thetaDampingSliderPanel, phiDampingSliderPanel, UI.MakeVertSpacer()]);
     }

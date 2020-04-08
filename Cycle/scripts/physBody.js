@@ -1,4 +1,4 @@
-function makePhysBody(scene,mesh,v,angMom,density,dt,showWArrow,showAxes) {
+function makePhysBody(scene, mesh, v, angMom, density, dt) {
     // returns the mesh with added functions and properties
     // mesh will have COM at origin after creation
     PF.MoveToCOM(mesh);
@@ -10,14 +10,15 @@ function makePhysBody(scene,mesh,v,angMom,density,dt,showWArrow,showAxes) {
     mesh.w = PF.getCorrW(mesh.oTens,mesh.momTens,mesh.angMom,dt);
     mesh.wVec3 = BF.Vec3([mesh.w])
 
-    mesh.arrowScale = .25;
+    mesh.arrowScale = 1;
     mesh.wArrow = BF.MakeArrow(mesh.name.concat(' wArrow'), scene, math.multiply(mesh.w, mesh.arrowScale), .3, .7);
     mesh.wArrow.position = mesh.position;
-    mesh.showWArrow = showWArrow;
 
-    mesh.axes = BF.MakeAxes(mesh.name.concat(' axes'), scene, 4);
+    mesh.axes = BF.MakeAxes(mesh.name.concat(' axes'), scene, 8);
     mesh.axes.setParent(mesh);
-    mesh.showAxes = showAxes;
+
+    mesh.showWArrow = false;
+    mesh.showAxes = false;
 
     mesh.step = function(g, dt) {
         mesh.oTens = BF.GetOTens(mesh);
@@ -38,29 +39,32 @@ function makePhysBody(scene,mesh,v,angMom,density,dt,showWArrow,showAxes) {
         mesh.position = mesh.p;
     }
 
-    mesh.setState = function() {
-        if(mesh.showWArrow) {
+    mesh.setState = function(showWArrow, showAxes) {
+        if(showWArrow) {
             mesh.updateMesh = mesh.updateMeshArrow;
-            if(mesh.showAxes) {
-                mesh.wArrow.setEnabled(true);
-                mesh.axes.setEnabled(true);
-            } else {
-                mesh.wArrow.setEnabled(true);
-                mesh.axes.setEnabled(false);
-            }
+            mesh.wArrow.setEnabled(true);
+            mesh.axes.setEnabled(showAxes);
         } else {
             mesh.updateMesh = mesh.updateMeshNoArrow;
-            if(mesh.showAxes) {
-                mesh.wArrow.setEnabled(false);
-                mesh.axes.setEnabled(true);
-            } else {
-                mesh.wArrow.setEnabled(false);
-                mesh.axes.setEnabled(false);
-            }
+            mesh.wArrow.setEnabled(false);
+            mesh.axes.setEnabled(showAxes);
         }
     }
 
-    mesh.setState();
+    mesh.setShowWArrow = function(showWArrow) {
+        // showWArrow is boolean
+        if(showWArrow) {
+            mesh.updateMesh = mesh.updateMeshArrow;
+            mesh.wArrow.setEnabled(true);
+        } else {
+            mesh.updateMesh = mesh.updateMeshNoArrow;
+            mesh.wArrow.setEnabled(false);
+        }
+    }
 
-    return mesh;
+    mesh.setShowAxes = function(showAxes) {
+        mesh.axes.setEnabled(showAxes);
+    }
+
+    mesh.setState(mesh.showWArrow, mesh.showAxes);
 }
