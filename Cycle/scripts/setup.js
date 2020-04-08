@@ -67,7 +67,7 @@ window.addEventListener('DOMContentLoaded', function(){
 
         var animState = {activeAnim: ptw, anims: anims};
 
-        var caMenu = UI.MakeChooseAnimMenu(animState, window.gui);
+        UI.MakeChooseAnimMenu(animState, window.gui);
 
         scene.registerAfterRender(function () {
             cycle.step();

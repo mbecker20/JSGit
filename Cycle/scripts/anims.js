@@ -126,7 +126,7 @@ class BouncyBall {
             anim.damping = value;
         });
 
-        this.guiMenu.addControls([kSlider, dampingSlider, UI.MakeVertSpacer()]);
+        this.guiMenu.addControls(['kSlider', 'dampingSlider', 'finalSpacer'], [kSlider, dampingSlider, UI.MakeVertSpacer()]);
     }
 
     activate() {
@@ -302,7 +302,7 @@ class DancingTHandle {
             anim.tHandle.setShowAxes(anim.tHandle.showAxes);
         });
 
-        this.guiMenu.addControls([showWArrowButton, showAxesButton, UI.MakeVertSpacer()]);
+        this.guiMenu.addControls(['showWArrowButton', 'showAxesButton', 'finalSpacer'], [showWArrowButton, showAxesButton, UI.MakeVertSpacer()]);
     }
 
     activate() {
@@ -731,28 +731,41 @@ class PendTugOfWar {
         /* var gSliderPanel = UI.MakeSliderPanel('gravity', '', 0, 40, anim.pConst.g, function(value) {
             anim.pConst.g = value;
         }); */
+        var names = [];
+        var controls = [];
 
         var mSphereSliderPanel = UI.MakeSliderPanel('sphere mass', '', .1, 5, anim.pConst.mSphere, function(value) {
             anim.pConst.mSphere = value;
-        })
+        });
+        names.push('mSphereSP');
+        controls.push(mSphereSliderPanel);
 
         var mCubeSliderPanel = UI.MakeSliderPanel('cube mass', '', .1, 5, anim.pConst.mCube, function(value) {
             anim.pConst.mCube = value;
-        })
+        });
+        names.push('mCubeSP');
+        controls.push(mCubeSliderPanel);
 
         var kickSpherePanel = UI.MakeTwoButtonPanel('kickSphere+', 'kick sphere +', function() {
             anim.params.thetaDot += 2;
         }, 'kickSphere-', 'kick sphere -', function() {
             anim.params.thetaDot -= 2;
-        })
+        });
+        names.push('kickSphereP');
+        controls.push(kickSpherePanel);
 
         var kickCubePanel = UI.MakeTwoButtonPanel('kickCube+', 'kick cube +', function() {
             anim.params.phiDot += 2;
         }, 'kickCube-', 'kick cube -', function() {
             anim.params.phiDot -= 2;
-        })
+        });
+        names.push('kickCubeP');
+        controls.push(kickCubePanel);
 
-        this.guiMenu.addControls([mSphereSliderPanel, mCubeSliderPanel, kickSpherePanel, kickCubePanel, UI.MakeVertSpacer(UI.SPACING)]);
+        names.push('finalSpacer');
+        controls.push(UI.MakeVertSpacer());
+
+        this.guiMenu.addControls(names, controls);
     }
 
     activate() {
@@ -831,17 +844,17 @@ class SpinningRing {
         return [l0, l1, l2, l3];
     }
 
-    switchToFreeMode(phiDotSP, phiDampSP) {
+    switchToFreeMode() {
         this.lagrangian.switchForcingMode('free');
-        phiDotSP.isVisible = false;
-        phiDampSP.isVisible = true;
+        this.guiMenu.hideControl('phiDotSP');
+        this.guiMenu.showControl('phiDampSP');
     }
 
-    switchToForcedMode(phiDotSP, phiDampSP) {
+    switchToForcedMode(phiDotSP) {
         this.lagrangian.switchForcingMode('phiDotForcing');
         phiDotSP.children[1].value = this.params.phiDot;
-        phiDotSP.isVisible = true;
-        phiDampSP.isVisible = false;
+        this.guiMenu.showControl('phiDotSP');
+        this.guiMenu.hideControl('phiDampSP');
     }
 
     setupMeshs(scene) {
@@ -885,6 +898,9 @@ class SpinningRing {
     setupGUIMenu(gui, anim) {
         this.guiMenu = UI.MakeSubMenu('sim settings', gui.mainMenu, gui);
 
+        var names = [];
+        var controls = [];
+
         /* var gSliderPanel = UI.MakeSliderPanel('gravity', '', 0, 40, anim.pConst.g, function(value) {
             anim.pConst.g = value;
             anim.pConst.c3 = anim.pConst.mSphere * anim.pConst.g * anim.pConst.rRing;
@@ -893,25 +909,36 @@ class SpinningRing {
         var phiDotSliderPanel = UI.MakeSliderPanel('ring spin speed', '', 0, 6, anim.params.phiDot, function(value) {
             anim.params.phiDot = value;
         })
+        names.push('phiDotSP');
+        controls.push(phiDotSliderPanel);
+
+        var modeSwitchButton = UI.MakeDualButton('modeSwitch', 'switch to free ring', 'switch to forced ring', function() {
+            anim.switchToForcedMode(phiDotSliderPanel);
+        }, function() {
+            anim.switchToFreeMode();
+        });
+        names.push('modeSwitchButton');
+        controls.push(modeSwitchButton);
+        UI.SetControlsWidthHeight([modeSwitchButton], '200px', '50px');
+        modeSwitchButton.color = 'white';
 
         var thetaDampingSliderPanel = UI.MakeSliderPanelPrecise('theta damping', '', 0, .2, anim.damping.thetaDot, function(value) {
             anim.damping.thetaDot = value;
         });
+        names.push('thetaDampSP');
+        controls.push(thetaDampingSliderPanel);
 
         var phiDampingSliderPanel = UI.MakeSliderPanelPrecise('phi damping', '', 0, .2, anim.damping.phiDot, function(value) {
             anim.damping.phiDot = value;
         });
-        phiDampingSliderPanel.isVisible = false;
+        names.push('phiDampSP');
+        controls.push(phiDampingSliderPanel);
 
-        var modeSwitchButton = UI.MakeDualButton('modeSwitch', 'switch to free ring', 'switch to forced ring', function() {
-            anim.switchToForcedMode(phiDotSliderPanel, phiDampingSliderPanel);
-        }, function() {
-            anim.switchToFreeMode(phiDotSliderPanel, phiDampingSliderPanel);
-        })
-        UI.SetControlsWidthHeight([modeSwitchButton], '200px', '50px');
-        modeSwitchButton.color = 'white'
+        names.push('finalSpacer');
+        controls.push(UI.MakeVertSpacer());
 
-        this.guiMenu.addControls([phiDotSliderPanel, modeSwitchButton, thetaDampingSliderPanel, phiDampingSliderPanel, UI.MakeVertSpacer()]);
+        this.guiMenu.addControls(names, controls);
+        this.guiMenu.hideControl('phiDampSP');
     }
 
     activate() {

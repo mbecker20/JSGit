@@ -48,32 +48,31 @@ class UI {
         mainMenu.panel.top = 30;
         mainMenu.panel.background = 'black'
 
-        mainMenu.header = UI.MakeTextBlock(mainMenu.name, 30);
-        UI.SetControlsWidthHeight([mainMenu.header], '200px', '50px');
-        mainMenu.panel.addControl(UI.MakeVertSpacer())
-        mainMenu.panel.addControl(mainMenu.header);
+        mainMenu.controls = {}; // all controls are panels including spacer
 
-
-        mainMenu.addControl = function(control) {
-            UI.AddControlsToTarget([UI.MakeVertSpacer(), control], mainMenu.panel);
+        mainMenu.addControl = function(name, control) {
+            mainMenu.controls[name] = UI.MakePanel();
+            UI.AddControlsToTarget([UI.MakeVertSpacer(), control], mainMenu.controls[name]);
+            mainMenu.panel.addControl(mainMenu.controls[name]);
         }
 
-        mainMenu.addControls = function(controls) {
+        mainMenu.addControls = function(names, controls) {
             for(var i = 0; i < controls.length; i++) {
-                mainMenu.addControl(controls[i]);
+                mainMenu.addControl(names[i], controls[i]);
             }
         }
 
         mainMenu.addSubMenu = function(subMenu) {
-            mainMenu.addControl(subMenu.parentButton);
+            mainMenu.addControl(subMenu.name.concat('PB'), subMenu.parentButton);
         }
         
-        mainMenu.addOneOfSubMenus = function(subMenus) {
+        mainMenu.addOneOfSubMenus = function(name, subMenus) {
             // for when only 1 parent button will be active at a time
-            mainMenu.panel.addControl(UI.MakeVertSpacer());
+            var oneOfPanel = UI.MakePanel();
             for(var i = 0; i < subMenus.length; i++) {
-                mainMenu.panel.addControl(subMenus[i].parentButton);
+                oneOfPanel.addControl(subMenus[i].parentButton);
             }
+            mainMenu.addControl(name, oneOfPanel);
         }
 
         mainMenu.show = function() {
@@ -84,7 +83,23 @@ class UI {
             mainMenu.panel.isVisible = false;
         }
 
-        mainMenu.addControl(UI.MakeFullscreenButton(canvas));
+        mainMenu.showControl = function(name) {
+            mainMenu.controls[name].isVisible = true;
+        }
+
+        mainMenu.hideControl = function(name) {
+            mainMenu.controls[name].isVisible = false;
+        }
+
+        mainMenu.setControlVisibility = function(name, isVisible) {
+            mainMenu.controls[name].isVisible = isVisible;
+        }
+
+        var header = UI.MakeTextBlock(mainMenu.name, 30);
+        UI.SetControlsWidthHeight([header], '200px', '50px');
+        mainMenu.addControl('header', header);
+
+        mainMenu.addControl('fsButton', UI.MakeFullscreenButton(canvas));
 
         return mainMenu;
     }
@@ -103,24 +118,32 @@ class UI {
         UI.AdaptContainerWidth(menu.panel);
         UI.AlignControlsTopLeft([menu.panel]);
         menu.sv.top = 30;
+        menu.controls = {};
         menu.panel.background = 'black'
 
-        menu.headerPanel = UI.MakeSubMenuHeaderPanel(name, parentMenu, gui);
-        menu.panel.addControl(UI.MakeVertSpacer());
-        menu.panel.addControl(menu.headerPanel);
-
-        menu.addControl = function(control) {
-            UI.AddControlsToTarget([UI.MakeVertSpacer(), control], menu.panel);
+        menu.addControl = function(name, control) {
+            menu.controls[name] = UI.MakePanel();
+            UI.AddControlsToTarget([UI.MakeVertSpacer(), control], menu.controls[name]);
+            menu.panel.addControl(menu.controls[name]);
         }
 
-        menu.addControls = function(controls) {
+        menu.addControls = function(names, controls) {
             for(var i = 0; i < controls.length; i++) {
-                menu.addControl(controls[i]);
+                menu.addControl(names[i], controls[i]);
             }
         }
 
         menu.addSubMenu = function(subMenu) {
-            menu.panel.addControl(UI.MakeParentButton(subMenu.name.concat('ParentButton'), subMenu.name, subMenu, gui));
+            menu.addControl(subMenu.name.concat('PB'), subMenu.parentButton);
+        }
+
+        menu.addOneOfSubMenus = function(name, subMenus) {
+            // for when only 1 parent button will be active at a time
+            var oneOfPanel = UI.MakePanel();
+            for(var i = 0; i < subMenus.length; i++) {
+                oneOfPanel.addControl(subMenus[i].parentButton);
+            }
+            menu.addControl(name, oneOfPanel);
         }
 
         menu.show = function() {
@@ -131,6 +154,20 @@ class UI {
             menu.sv.isVisible = false;
         }
 
+        menu.showControl = function(name) {
+            menu.controls[name].isVisible = true;
+        }
+
+        menu.hideControl = function(name) {
+            menu.controls[name].isVisible = false;
+        }
+
+        menu.setControlVisibility = function(name, isVisible) {
+            menu.controls[name].isVisible = isVisible;
+        }
+
+        menu.headerPanel = UI.MakeSubMenuHeaderPanel(name, parentMenu, gui);
+        menu.addControl('headerPanel', menu.headerPanel);
         menu.hide();
         gui.addControl(menu.sv);
 
@@ -142,24 +179,25 @@ class UI {
         var caMenu = UI.MakeSubMenu('simulations', gui.mainMenu, gui, 'choose simulation');
         var animKeys = Object.keys(animState.anims);
         var animButtons = [];
+        var animButtonNames = [];
         var animMenus = [];
         for(var i = 0; i < animKeys.length; i++) {
             animButtons.push(UI.MakeMenuActivateAnimButton(animKeys[i], animState, caMenu));
+            animButtonNames.push(animKeys[i].concat('PB'))
             animMenus.push(animState.anims[animKeys[i]].guiMenu);
         }
-        caMenu.addControls(animButtons);
+        caMenu.addControls(animButtonNames, animButtons);
         //add a property that holds the active sim button to change its color to highlight that its active
         caMenu.activeAnimButton = animButtons[0];
         caMenu.activeAnimButton.color = 'green';
         gui.mainMenu.addSubMenu(caMenu);
-        gui.mainMenu.addOneOfSubMenus(animMenus);
+        gui.mainMenu.addOneOfSubMenus('animSettings', animMenus);
         return caMenu;
     }
 
     static MakeSubMenuHeaderPanel(menuName, parent, gui) {
         // returns subMenu header panel obj
         // has backbutton and headertext in a panel horizontally
-        
         var headerPanel = UI.MakePanel(false);
         UI.AdaptContainerHeight(headerPanel);
         var backButton = UI.MakeBackButton(menuName.concat('BackButton'), parent, gui);
