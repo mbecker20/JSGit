@@ -1,4 +1,4 @@
-class Anim1 {
+class BouncyBall {
     constructor(scene, myMats, shadows, gui) {
         this.node = new BABYLON.TransformNode('anim1Node', scene);
 
@@ -244,7 +244,7 @@ class Anim3 {
     }
 }
 
-class Anim4 {
+class DancingTHandle {
     constructor(scene, myMats, shadows, gui) {
         this.node = new BABYLON.TransformNode('anim4Node', scene);
 
@@ -577,16 +577,7 @@ class PendTugOfWar {
         this.node = BF.MakeTransformNode('anim7Node', scene);
 
         // setup lagrangian update system
-        this.dt = .01;
-        this.stepsPerFrame = 2;
-        this.params = {l: 6, lDot: 3, theta: 1, thetaDot: 2, phi: 0, phiDot: 10};
-        this.pConst = {mSphere: 1.1, mCube: 1, g: 10, lTot: 10, rSphere: 1, sCube: 2};
-        this.damping = {lDot: .01, thetaDot: .01, phiDot: .01};
-        this.pConst.sphereIcm = this.pConst.mSphere * (2/5) * MF.Square(this.pConst.rSphere);
-        this.pConst.cubeIcm = this.pConst.mCube * (1/6) * MF.Square(this.pConst.sCube);
-
-        this.lagrangian = new SplitLagrangian(this.getLFuncs(), this.params, this.pConst, this.damping);
-        this.collisionVelocityMult = .6; // multiplied by -velocity on collision with pivot;
+        this.setupLagrangian();
 
         // setup meshes
         this.setupMeshs(scene);
@@ -594,17 +585,28 @@ class PendTugOfWar {
         // set materials
         this.setMaterials(myMats);
 
-        // connect meshs to shadows and force pre-compile materials
+        // connect meshs to shadows
         BF.ConnectMeshsToShadows([this.ground, this.sphere, this.cube, this.spherePiv, this.cubePiv, this.topRope, this.sphereRope, this.cubeRope], shadows);
-        BF.ForceCompileMaterials([this.topRope, this.ground, this.sphere, this.cube, this.spherePiv, this.cubePiv]);
-
+    
         // set BC
         this.lMin = this.spherePivR + this.pConst.rSphere;
         this.lMax = this.pConst.lTot - this.cubePivR - this.pConst.sCube/2;
+        this.collisionVelocityMult = .6; // multiplied by -velocity on collision with pivot;
 
         // set initial position of everything
         this.setPos();
         this.setupGUIMenu(gui, this);
+    }
+
+    setupLagrangian() {
+        this.dt = .01;
+        this.stepsPerFrame = 2;
+        this.params = {l: 6, lDot: 3, theta: 1, thetaDot: 2, phi: 0, phiDot: 10};
+        this.pConst = {mSphere: 1.1, mCube: 1, g: 10, lTot: 10, rSphere: 1, sCube: 2};
+        this.damping = {lDot: .01, thetaDot: .01, phiDot: .01};
+        this.pConst.sphereIcm = this.pConst.mSphere * (2/5) * MF.Square(this.pConst.rSphere);
+        this.pConst.cubeIcm = this.pConst.mCube * (1/6) * MF.Square(this.pConst.sCube);
+        this.lagrangian = new Lagrangian(this.getLFuncs(), this.params, this.pConst, this.damping);
     }
 
     setMaterials(myMats) {
@@ -616,6 +618,8 @@ class PendTugOfWar {
         this.topRope.material = myMats.wArrow;
         this.sphereRope.material = myMats.wArrow;
         this.cubeRope.material = myMats.wArrow;
+
+        BF.ForceCompileMaterials([this.topRope, this.ground, this.sphere, this.cube, this.spherePiv, this.cubePiv]);
     }
 
     getLFuncs() {
@@ -705,7 +709,7 @@ class PendTugOfWar {
 
     step() {
         //this.lagrangian.step(this.dt, this.stepsPerFrame);
-        this.lagrangian.stepCorrected(this.dt, this.stepsPerFrame);
+        this.lagrangian.step(this.dt, this.stepsPerFrame);
         this.imposeBC();
         this.setPos();
     }
@@ -714,10 +718,10 @@ class PendTugOfWar {
         // updates params based on boundary conditions
         if(this.params.l > this.lMax) {
             this.params.l = this.lMax;
-            this.params.lDot = -this.collisionVelocityMult * this.params.lDot + this.lagrangian.pDD.l * this.dt;
+            this.params.lDot = -this.collisionVelocityMult * this.params.lDot + this.lagrangian.activeMode.pDD.l * this.dt;
         } else if(this.params.l < this.lMin) {
             this.params.l = this.lMin;
-            this.params.lDot = -this.collisionVelocityMult * this.params.lDot + this.lagrangian.pDD.l * this.dt;
+            this.params.lDot = -this.collisionVelocityMult * this.params.lDot + this.lagrangian.activeMode.pDD.l * this.dt;
         }
     }
 
@@ -786,14 +790,14 @@ class SpinningRing {
         this.dt = .01;
         this.stepsPerFrame = 2;
 
-        this.params = {theta: 1, thetaDot: 2, phi: 0, phiDot: 0};
+        this.params = {theta: 1, thetaDot: 2, phi: 0, phiDot: 2};
         this.pConst = {mSphere: 1, rSphere: 1, mRing: 1, rRing: 6, g: 10, phi: 0, phiDot: 2.5};
         this.setConstants(this.pConst);
         this.damping = {thetaDot: 0.01, phiDot: 0.01};
 
         this.lagrangian = new Lagrangian(this.makeLFuncs(), this.params, this.pConst, this.damping);
-        this.lagrangian.addForcingMode('phiDotForcing');
-        this.lagrangian.switchMode('phiDotForcing');
+        this.lagrangian.addForcingMode('phiDotForcing', ['phi']);
+        this.lagrangian.switchForcingMode('phiDotForcing');
     }
 
     setConstants(pConst) {
@@ -827,15 +831,15 @@ class SpinningRing {
         return [l0, l1, l2, l3];
     }
 
-    switchToFreeMode(phiDotSP) {
+    switchToFreeMode(phiDotSP, phiDampSP) {
         this.lagrangian.switchForcingMode('free');
         phiDotSP.isVisible = false;
         phiDampSP.isVisible = true;
     }
 
-    switchToForcedMode(phiDotSP) {
+    switchToForcedMode(phiDotSP, phiDampSP) {
         this.lagrangian.switchForcingMode('phiDotForcing');
-        phiDotSP.children[1].value = this.p.phiDot;
+        phiDotSP.children[1].value = this.params.phiDot;
         phiDotSP.isVisible = true;
         phiDampSP.isVisible = false;
     }
@@ -867,16 +871,15 @@ class SpinningRing {
         BF.ForceCompileMaterials([this.ring, this.mass, this.ground]);
     }
 
-    setPos(p) {
+    setPos() {
         // updates position of mesh based on current params
-        this.massParent.rotation.z = p.theta;
-        this.ring.rotation.y = this.pConst.phi;
+        this.massParent.rotation.z = this.params.theta;
+        this.ring.rotation.y = this.params.phi;
     }
 
     step() {
         this.lagrangian.step(this.dt, this.stepsPerFrame);
-        this.pConst.phi += this.stepsPerFrame * this.pConst.phiDot * this.dt;
-        this.setPos(this.forcedParams);
+        this.setPos();
     }
 
     setupGUIMenu(gui, anim) {
@@ -887,8 +890,8 @@ class SpinningRing {
             anim.pConst.c3 = anim.pConst.mSphere * anim.pConst.g * anim.pConst.rRing;
         }); */
 
-        var phiDotSliderPanel = UI.MakeSliderPanel('ring spin speed', '', 0, 6, anim.pConst.phiDot, function(value) {
-            anim.pConst.phiDot = value;
+        var phiDotSliderPanel = UI.MakeSliderPanel('ring spin speed', '', 0, 6, anim.params.phiDot, function(value) {
+            anim.params.phiDot = value;
         })
 
         var thetaDampingSliderPanel = UI.MakeSliderPanelPrecise('theta damping', '', 0, .2, anim.damping.thetaDot, function(value) {

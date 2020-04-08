@@ -33,8 +33,8 @@ window.addEventListener('DOMContentLoaded', function(){
         var shadowQual = 1024;
         var cycle = new Cycle(scene, myMats, shadowQual);
 
-        var anim1 = new Anim1(scene, myMats, cycle.shadows, window.gui);
-        anim1.deactivate();
+        var bouncyBall = new BouncyBall(scene, myMats, cycle.shadows, window.gui);
+        bouncyBall.deactivate();
 
         //var anim2 = new Anim2(scene, myMats, shadows);
         //anim2.node.position = grid[1];
@@ -42,8 +42,8 @@ window.addEventListener('DOMContentLoaded', function(){
         //var anim3 = new Anim3(scene, myMats, shadows);
         //anim3.node.position = grid[0][0];
 
-        var anim4 = new Anim4(scene, myMats, cycle.shadows, window.gui);
-        anim4.deactivate();
+        var dancingTHandle = new DancingTHandle(scene, myMats, cycle.shadows, window.gui);
+        dancingTHandle.deactivate();
         //anim4.node.position = grid[1][1];
 
         //var anim5 = new Anim5(scene, myMats, shadows);
@@ -56,13 +56,14 @@ window.addEventListener('DOMContentLoaded', function(){
         //anim7.node.position = grid[1][0];
 
         var spinningRing = new SpinningRing(scene, myMats, cycle.shadows, window.gui);
-        anim8.deactivate();
+        spinningRing.deactivate();
 
         var anims = {
-            'pendulum tug of war': anim7, 
-            'mass on a ring': anim8, 
-            'bouncy ball': anim1,
-            'dancing t handle': anim4};
+            'pendulum tug of war': ptw, 
+            'mass on a ring': spinningRing, 
+            'bouncy ball': bouncyBall,
+            'dancing T handle': dancingTHandle
+        };
 
         var animState = {activeAnim: ptw, anims: anims};
 
