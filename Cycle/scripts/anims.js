@@ -951,3 +951,85 @@ class SpinningRing {
         this.guiMenu.parentButton.isVisible = false;
     }
 }
+
+class MultiPend {
+    constructor(scene, myMats, shadows, gui) {
+        // make node
+        this.node = BF.MakeTransformNode('multiPendNode', scene);
+
+        // setup lagrangian update system
+        this.setupLagrangian();
+
+        this.setupMeshs(scene);
+
+        this.setMaterials(myMats);
+
+        BF.ConnectMeshsToShadows([this.ring, this.mass, this.ground], shadows);
+
+        this.setPos();
+
+        this.setupGUIMenu(gui, this);
+    }
+
+    setupLagrangian() {
+        this.dt = .01;
+        this.stepsPerFrame = 2;
+
+        this.params = {theta: 1, thetaDot: 2, phi: 0, phiDot: 2};
+        this.pConst = {mSphere: 1, rSphere: 1, mRing: 1, rRing: 6, g: 10, phi: 0, phiDot: 2.5};
+        this.setConstants(this.pConst);
+        this.damping = {thetaDot: 0.01, phiDot: 0.01};
+
+        this.lagrangian = new Lagrangian(this.makeLFuncs(), this.params, this.pConst, this.damping);
+        
+    }
+
+    setConstants(pConst) {
+        
+    }
+
+    makeLFuncs() {
+        
+    }
+
+    setupMeshs(scene) {
+        this.ground = BABYLON.MeshBuilder.CreateGround('ground4', {width:20,height:20}, scene);
+        this.ground.receiveShadows = true;
+    }
+
+    setMaterials(myMats) {
+        this.ground.material = myMats.wArrow;
+        this.ring.material = myMats.wArrow;
+        this.mass.material = myMats.darkMoon;
+        BF.ForceCompileMaterials([this.ring, this.mass, this.ground]);
+    }
+
+    setPos() {
+        // updates position of mesh based on current params
+        
+    }
+
+    step() {
+        this.lagrangian.step(this.dt, this.stepsPerFrame);
+        this.setPos();
+    }
+
+    setupGUIMenu(gui, anim) {
+        this.guiMenu = UI.MakeSubMenu('sim settings', gui.mainMenu, gui);
+
+        var names = [];
+        var controls = [];
+
+        this.guiMenu.addControls(names, controls);
+    }
+
+    activate() {
+        this.node.setEnabled(true);
+        this.guiMenu.parentButton.isVisible = true;
+    }
+
+    deactivate() {
+        this.node.setEnabled(false);
+        this.guiMenu.parentButton.isVisible = false;
+    }
+}
