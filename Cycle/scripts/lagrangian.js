@@ -1,93 +1,101 @@
 class Lagrangian {
-    constructor(func, params, pConst, damping, dx = .01) {
-        // params is array of param obj properties (strings)
-        // params should have one key for variable, one key for variableDot
-        // ie has params.x and params.xDot;
-        // works by creating m, mDot (matrices) based on the partial derivs evaluated at current params
-        // then mDot * qDD = b - m * qDot = c
-        // b = [dL/dq1, dL/dq2, ...], qDot = [q1Dot, q2Dot, ...], qDD = [q1DoubleDot, q2DoubleDot, ...]
-        // params ordered {x: x0, xDot: xDot0, y: y0, yDot: yDot0, ...}
-        // damping is parameter object with keys xDot, yDot, etc.
-        // damping is velocity based to counter the energy addition inherent to the method
-        // vf = vi + (vDot - damping*vi)*dt
-        this.func = func;
-        this.params = params;
-        this.pConst = pConst;
-        this.pDD = {};
-        this.setParamKeys();
-        this.setPartialDerivFuncs(dx);
-        this.damping = damping;
+    // lagrangian update system
+    static MakeStepFunc(mode, params, damping) {
+        // slight velocity correction
+        // steps any forced params by its constant paramDot;
+        var step = function(dt) {
+            mode.setPDD();
+            for(var i = 0; i < mode.paramKeys.length; i++) {
+                const vNext = params[mode.paramDotKeys[i]] + (mode.pDD[mode.paramKeys[i]] - damping[mode.paramDotKeys[i]] * params[mode.paramDotKeys[i]]) * dt;
+                params[mode.paramKeys[i]] += .5 * (params[mode.paramDotKeys[i]] + vNext) * dt;
+                params[mode.paramDotKeys[i]] = vNext;
+            }
+            for(var i = 0; i < mode.forcedParamKeys.length; i++) {
+                params[mode.forcedParamKeys[i]] += params[mode.forcedParamDotKeys[i]] * dt;
+            }   
+        }
+        return step;
     }
 
-    step(dt, numTimes = 1) {
-        for(var j = 0; j < numTimes; j++) {
-            this.setPDD();
-            for(var i = 0; i < this.paramKeys.length; i++) {
-                this.params[this.paramKeys[i]] += this.params[this.paramDotKeys[i]] * dt;
-                this.params[this.paramDotKeys[i]] += (this.pDD[this.paramKeys[i]] - this.damping[this.paramDotKeys[i]] * this.params[this.paramDotKeys[i]]) * dt;
+    static MakeSetPDDFunc(mode, pdfs, params, pConst) {
+        var setPDD = function() {
+            // sets PDD at current params
+            var m = [];
+            var mDot = [];
+            var b = [];
+            for(var i = 0; i < mode.paramKeys.length; i++) {
+                var row = [];
+                var rowDot = [];
+                for(var j = 0; j < mode.allParamKeys.length; j++) {
+                    row.push(pdfs[mode.paramDotKeys[i]][mode.allParamKeys[j]](params, pConst));
+                }
+                for(var j = 0; j < mode.paramDotKeys.length; j++) {
+                    rowDot.push(pdfs[mode.paramDotKeys[i]][mode.paramDotKeys[j]](params, pConst));
+                }
+                b.push(pdfs[mode.paramKeys[i]](mode.params, mode.pConst));
+                m.push(row);
+                mDot.push(rowDot);
+            }
+            var c = math.add(b, math.multiply(math.multiply(m, mode.getQDot()), -1));
+            var qDD = math.transpose(math.lusolve(mDot, c))[0];
+            GF.SetObjWithKeyVal(mode.pDD, mode.paramKeys, qDD);
+        }
+        return setPDD;
+    }
+
+    static SetModeParamKeys(mode, params, forcedParams) {
+        mode.paramKeys = [];
+        mode.paramDotKeys = [];
+        mode.allParamKeys = [];
+        mode.allParamDotKeys = [];
+        mode.forcedParamKeys = forcedParams;
+        mode.forcedParamDotKeys = [];
+        var allKeys = Object.keys(params);
+        for(var i = 0; i < allKeys.length; i++) {
+            if(allKeys[i].slice(allKeys[i].length - 3) === 'Dot') {
+                mode.allParamDotKeys.push(allKeys[i]);
+                if(!GF.StringIn(allKeys[i].slice(0, allKeys[i].length - 3), forcedParams)) {
+                    mode.paramDotKeys.push(allKeys[i]);
+                } else {
+                    mode.forcedParamDotKeys.push(allKeys[i]);
+                }
+            } else {
+                mode.allParamKeys = allKeys[i];
+                if(!GF.StringIn(allKeys[i], forcedParams)) {
+                    mode.paramKeys.push(allKeys[i]);
+                }
             }
         }
     }
 
-    setPDD() {
-        // sets PDD at current params
-        var m = [];
-        var mDot = [];
-        var b = [];
-        for(var i = 0; i < this.paramKeys.length; i++) {
-            var row = [];
-            var rowDot = [];
-            for(var j = 0; j < this.paramKeys.length; j++) {
-                row.push(this.func[this.paramDotKeys[i]][this.paramKeys[j]](this.params, this.pConst));
-                rowDot.push(this.func[this.paramDotKeys[i]][this.paramDotKeys[j]](this.params, this.pConst))
+    static MakeMode(params, pConst, damping, forcedParams, pdfs) {
+        // forced params is array of all the paramKeys that are forced in this mode
+        var mode = {};
+        Lagrangian.SetModeParamKeys(mode, params, forcedParams);
+        mode.pDD = {};
+        mode.qDot = Lagrangian.MakeQDot(params, mode.allParamDotKeys);
+        mode.setPDD = Lagrangian.MakeSetPDDFunc(mode, pdfs, params, pConst);
+
+        mode.getQDot = function() {
+            for(var i = 0; i < mode.allParamDotKeys.length; i++) {
+                mode.qDot[i] = params[mode.allParamDotKeys[i]];
             }
-            b.push(this.func[this.paramKeys[i]](this.params, this.pConst));
-            m.push(row);
-            mDot.push(rowDot);
+            return qDot;
         }
-        var c = math.add(b, math.multiply(math.multiply(m, this.makeQDot()), -1));
-        var qDD = math.transpose(math.lusolve(mDot, c))[0];
-        GF.SetObjWithKeyVal(this.pDD, this.paramKeys, qDD);
+
+        mode.step = Lagrangian.MakeStepFunc(mode, params, damping);
+
+        return mode;
     }
 
-    makeQDot() {
-        // returns [q1Dot, q2Dot, ...]
+    static MakeQDot(params, allParamDotKeys) {
         var qDot = [];
-        for(var i = 0; i < this.paramKeys.length; i++) {
-            qDot.push(this.params[this.paramDotKeys[i]]);
+        for(var i = 0; i < allParamDotKeys.length; i++) {
+            qDot.push(params[allParamDotKeys[i]]);
         }
         return qDot;
     }
 
-    setPartialDerivFuncs(dx) {
-        // sets partial and double partial derivs
-        // adds functions as methods to main func object;
-        var allKeys = Object.keys(this.params);
-        for(var i = 0; i < this.paramKeys.length; i++) {
-            this.func[this.paramKeys[i]] = MF.MakePartialDerivFunc(this.func, this.paramKeys[i], dx);
-            this.func[this.paramDotKeys[i]] = MF.MakePartialDerivFunc(this.func, this.paramDotKeys[i], dx);
-            for(var j = 0; j < allKeys.length; j++) {
-                this.func[this.paramDotKeys[i]][allKeys[j]] = MF.MakePartialDerivFunc(this.func[this.paramDotKeys[i]], allKeys[j], dx);
-            }
-        }
-    }
-
-    setParamKeys() {
-        // sets this.paramKeys and this.paramDotKeys
-        this.paramKeys = [];
-        this.paramDotKeys = [];
-        var allKeys = Object.keys(this.params);
-        for(var i = 0; i < allKeys.length; i++) {
-            if(allKeys[i].slice(allKeys[i].length - 3) === 'Dot') {
-                this.paramDotKeys.push(allKeys[i]);
-            } else {
-                this.paramKeys.push(allKeys[i]);
-            }
-        }
-    }
-}
-
-class SplitLagrangian {
     constructor(funcs, params, pConst, damping, dx = .01) {
         // funcs is array of functions for terms in lagrangian
         // each func has property paramKeys
@@ -105,62 +113,28 @@ class SplitLagrangian {
         this.funcs = funcs;
         this.params = params;
         this.pConst = pConst;
-        this.pDD = {};
-        this.setParamKeys();
-        this.setPartialDerivFuncs(dx);
         this.damping = damping;
+        this.setPartialDerivFuncs(dx);
+        this.modes = {};
+        this.addForcingMode('free', []);
+        this.activeMode = this.modes['free'];
     }
 
     step(dt, numTimes = 1) {
-        for(var j = 0; j < numTimes; j++) {
-            this.setPDD();
-            for(var i = 0; i < this.paramKeys.length; i++) {
-                this.params[this.paramKeys[i]] += this.params[this.paramDotKeys[i]] * dt;
-                this.params[this.paramDotKeys[i]] += (this.pDD[this.paramKeys[i]] - this.damping[this.paramDotKeys[i]] * this.params[this.paramDotKeys[i]]) * dt;
-            }
+        for(var i = 0; i < numTimes; i++) {
+            this.activeMode.step(dt);
         }
     }
 
-    stepCorrected(dt, numTimes = 1) {
-        // slight correction by averaging current and next step velocity
-        for(var j = 0; j < numTimes; j++) {
-            this.setPDD();
-            for(var i = 0; i < this.paramKeys.length; i++) {
-                const vNext = this.params[this.paramDotKeys[i]] + (this.pDD[this.paramKeys[i]] - this.damping[this.paramDotKeys[i]] * this.params[this.paramDotKeys[i]]) * dt
-                this.params[this.paramKeys[i]] += .5 * (this.params[this.paramDotKeys[i]] + vNext) * dt;
-                this.params[this.paramDotKeys[i]] = vNext
-            }
-        }
+    addForcingMode(name, forcedParams) {
+        // name becomes the key of the mode obj in this.modes
+        // paramKey is the param that becomes forced
+        // updateWithDot is boolean indicated whether the param should be stepped by paramDot;
+        this.modes[name] = Lagrangian.MakeMode(this.params, this.pConst, this.damping, forcedParams, this.pdfs);
     }
 
-    setPDD() {
-        // sets PDD at current params
-        var m = [];
-        var mDot = [];
-        var b = [];
-        for(var i = 0; i < this.paramKeys.length; i++) {
-            var row = [];
-            var rowDot = [];
-            for(var j = 0; j < this.paramKeys.length; j++) {
-                row.push(this.pdfs[this.paramDotKeys[i]][this.paramKeys[j]](this.params, this.pConst));
-                rowDot.push(this.pdfs[this.paramDotKeys[i]][this.paramDotKeys[j]](this.params, this.pConst))
-            }
-            b.push(this.pdfs[this.paramKeys[i]](this.params, this.pConst));
-            m.push(row);
-            mDot.push(rowDot);
-        }
-        var c = math.add(b, math.multiply(math.multiply(m, this.makeQDot()), -1));
-        var qDD = math.transpose(math.lusolve(mDot, c))[0];
-        GF.SetObjWithKeyVal(this.pDD, this.paramKeys, qDD);
-    }
-
-    makeQDot() {
-        // returns [q1Dot, q2Dot, ...]
-        var qDot = [];
-        for(var i = 0; i < this.paramKeys.length; i++) {
-            qDot.push(this.params[this.paramDotKeys[i]]);
-        }
-        return qDot;
+    switchForcingMode(name) {
+        this.activeMode = this.modes[name];
     }
 
     setPartialDerivFuncs(dx) {
@@ -202,20 +176,6 @@ class SplitLagrangian {
                 }
                 this.pdfs[this.paramDotKeys[i]][this.paramKeys[j]] = MF.MakePartialDerivFuncMult(funcsWithDotAndStandardKey, this.paramKeys[j], dx);
                 this.pdfs[this.paramDotKeys[i]][this.paramDotKeys[j]] = MF.MakePartialDerivFuncMult(funcsWithDotAndDotKey, this.paramDotKeys[j], dx);
-            }
-        }
-    }
-
-    setParamKeys() {
-        // sets this.paramKeys and this.paramDotKeys
-        this.paramKeys = [];
-        this.paramDotKeys = [];
-        var allKeys = Object.keys(this.params);
-        for(var i = 0; i < allKeys.length; i++) {
-            if(allKeys[i].slice(allKeys[i].length - 3) === 'Dot') {
-                this.paramDotKeys.push(allKeys[i]);
-            } else {
-                this.paramKeys.push(allKeys[i]);
             }
         }
     }

@@ -427,7 +427,7 @@ class Anim5 {
     }
 }
 
-class Anim6 {
+class DoublePend {
     //double pendulum 
     constructor(scene, myMats, shadows) {
         // initialized node used as local origin for this anim
@@ -541,7 +541,7 @@ class Anim6 {
     }
 }
 
-class Anim7 {
+class PendTugOfWar {
     constructor(scene, myMats, shadows, gui) {
         // sphere swings, cube up and down
         this.node = BF.MakeTransformNode('anim7Node', scene);
@@ -720,7 +720,7 @@ class Anim7 {
     }
 }
 
-class Anim8 {
+class SpinningRing {
     // spinning ring
     constructor(scene, myMats, shadows, gui) {
         // make node
@@ -735,8 +735,7 @@ class Anim8 {
 
         BF.ConnectMeshsToShadows([this.ring, this.mass, this.ground], shadows);
 
-        this.step = this.stepForced;
-        this.setPos(this.forcedParams);
+        this.setPos();
 
         this.setupGUIMenu(gui, this);
     }
@@ -745,15 +744,14 @@ class Anim8 {
         this.dt = .01;
         this.stepsPerFrame = 2;
 
-        // forced lagrangian params. for when phiDot is set manually (a function of time in physics sense)
-        this.forcedParams = {theta: 1, thetaDot: 2};
-        this.freeParams = {theta: 1, thetaDot: 2, phi: 0, phiDot: 0}; // free Lagrangian params. phiDot included as a param
+        this.params = {theta: 1, thetaDot: 2, phi: 0, phiDot: 0};
         this.pConst = {mSphere: 1, rSphere: 1, mRing: 1, rRing: 6, g: 10, phi: 0, phiDot: 2.5};
         this.setConstants(this.pConst);
-        this.damping = {thetaDot: 0.01, phiDot: 0.01}; // can use one damping obj for both
+        this.damping = {thetaDot: 0.01, phiDot: 0.01};
 
-        this.forcedLagrangian = new SplitLagrangian(this.makeForcedLFuncs(), this.forcedParams, this.pConst, this.damping);
-        this.freeLagrangian = new SplitLagrangian(this.makeFreeLFuncs(), this.freeParams, this.pConst, this.damping);
+        this.lagrangian = new Lagrangian(this.makeLFuncs(), this.params, this.pConst, this.damping);
+        this.lagrangian.addForcingMode('phiDotForcing');
+        this.lagrangian.switchMode('phiDotForcing');
     }
 
     setConstants(pConst) {
@@ -763,60 +761,38 @@ class Anim8 {
         pConst.c3 = pConst.mSphere * pConst.g * pConst.rRing;
     }
 
-    makeForcedLFuncs() {
+    makeLFuncs() {
         function l0(p, pConst) {
             return pConst.c0 * MF.Square(p.thetaDot);
         }
         l0.paramKeys = ['thetaDot'];
 
         function l1(p, pConst) {
-            return pConst.c1 * MF.Square(Math.sin(p.theta) * pConst.phiDot);
-        }
-        l1.paramKeys = ['theta'];
-
-        function l2(p, pConst) {
-            return pConst.c3 * Math.cos(p.theta);
-        }
-        l2.paramKeys = ['theta'];
-
-        return [l0, l1, l2];
-    }
-
-    makeFreeLFuncs() {
-        function l0(p, pConst) {
-            return pConst.c0 * MF.Square(p.thetaDot);
-        }
-        l0.paramKeys = ['thetaDot'];
-
-        function l1(p, pConst) {
-            return (pConst.c1 * MF.Square(Math.sin(p.theta)) + pConst.c2) * MF.Square(p.phiDot);
+            return pConst.c1 * MF.Square(Math.sin(p.theta)) * MF.Square(p.phiDot);
         }
         l1.paramKeys = ['theta', 'phiDot'];
 
         function l2(p, pConst) {
+            return pConst.c2 * MF.Square(p.phiDot);
+        }
+        l2.paramKeys = ['phiDot'];
+
+        function l3(p, pConst) {
             return pConst.c3 * Math.cos(p.theta);
         }
-        l2.paramKeys = ['theta'];
+        l3.paramKeys = ['theta'];
 
-        return [l0, l1, l2];
+        return [l0, l1, l2, l3];
     }
 
     switchToFreeMode(phiDotSP) {
-        this.freeParams.theta = this.forcedParams.theta;
-        this.freeParams.thetaDot = this.forcedParams.thetaDot;
-        this.freeParams.phi = this.pConst.phi;
-        this.freeParams.phiDot = this.pConst.phiDot;
-        this.step = this.stepFree;
+        this.lagrangian.switchForcingMode('free');
         phiDotSP.isVisible = false;
     }
 
     switchToForcedMode(phiDotSP) {
-        this.forcedParams.theta = this.freeParams.theta;
-        this.forcedParams.thetaDot = this.freeParams.thetaDot;
-        this.pConst.phi = this.freeParams.phi;
-        this.pConst.phiDot = this.freeParams.phiDot;
-        this.step = this.stepForced;
-        phiDotSP.children[1].value = this.pConst.phiDot;
+        this.lagrangian.switchForcingMode('phiDotForcing');
+        phiDotSP.children[1].value = this.p.phiDot;
         phiDotSP.isVisible = true;
     }
 
@@ -847,19 +823,13 @@ class Anim8 {
     setPos(p) {
         // updates position of mesh based on current params
         BF.SetVec3(math.multiply([Math.sin(p.theta),-Math.cos(p.theta),0],this.pConst.rRing), this.mass.position);
-        this.ring.rotation.y = this.pConst.phi;
+        this.ring.rotation.y = p.phi;
     }
 
-    stepForced() {
-        this.forcedLagrangian.stepCorrected(this.dt, this.stepsPerFrame);
+    step() {
+        this.lagrangian.step(this.dt, this.stepsPerFrame);
         this.pConst.phi += this.stepsPerFrame * this.pConst.phiDot * this.dt;
         this.setPos(this.forcedParams);
-    }
-
-    stepFree() {
-        this.freeLagrangian.stepCorrected(this.dt, this.stepsPerFrame);
-        this.pConst.phi = this.freeParams.phi;
-        this.setPos(this.freeParams);
     }
 
     setupGUIMenu(gui, anim) {

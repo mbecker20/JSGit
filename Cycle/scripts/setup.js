@@ -51,15 +51,15 @@ window.addEventListener('DOMContentLoaded', function(){
         //var anim6 = new Anim6(scene, myMats, shadows);
         //anim6.node.position = BF.Vec3([0,0,20]);
 
-        var anim7 = new Anim7(scene, myMats, cycle.shadows, window.gui);
+        var ptw = new PendTugOfWar(scene, myMats, cycle.shadows, window.gui);
         //anim7.node.position = grid[1][0];
 
-        var anim8 = new Anim8(scene, myMats, cycle.shadows, window.gui);
+        var spinningRing = new SpinningRing(scene, myMats, cycle.shadows, window.gui);
         anim8.deactivate();
 
-        var anims = {'pendulum tug of war': anim7, 'mass on a ring': anim8, 'bouncy ball': anim1};
+        var anims = {'pendulum tug of war': ptw, 'mass on a ring': spinningRing, 'bouncy ball': anim1};
 
-        var animState = {activeAnim: anim7, anims: anims};
+        var animState = {activeAnim: ptw, anims: anims};
 
         var caMenu = UI.MakeChooseAnimMenu(animState, window.gui);
         window.gui.mainMenu.addSubMenu(caMenu);
