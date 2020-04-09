@@ -53,25 +53,25 @@ window.addEventListener('DOMContentLoaded', function(){
         //anim6.node.position = BF.Vec3([0,0,20]);
 
         var ptw = new PendTugOfWar(scene, myMats, cycle.shadows, window.gui);
-        //ptw.deactivate();
+        ptw.deactivate();
         //anim7.node.position = grid[1][0];
 
         var spinningRing = new SpinningRing(scene, myMats, cycle.shadows, window.gui);
         spinningRing.deactivate();
 
-        var multiPend = new MultiPend(scene, myMats, cycle.shadows, gui, 3);
+        var multiPend = new MultiPend(scene, myMats, cycle.shadows, gui, 16);
         multiPend.params.theta0 = 1;
-        multiPend.deactivate();
+        //multiPend.deactivate();
 
         var anims = {
+            'multi pendulum': multiPend, 
             'pendulum tug of war': ptw, 
             'mass on a ring': spinningRing,
-            'multi pendulum': multiPend, 
             'bouncy ball': bouncyBall,
             'dancing T handle': dancingTHandle
         };
 
-        var animState = {activeAnim: ptw, anims: anims};
+        var animState = {activeAnim: multiPend, anims: anims};
 
         UI.MakeChooseAnimMenu(animState, window.gui);
 
