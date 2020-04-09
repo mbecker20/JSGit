@@ -960,7 +960,7 @@ class MultiPend {
         this.numPend = numPend;
         this.l = 3;
         this.m = .3; // controls radius of cylinder
-        this.dampingVal = .5;
+        this.dampingVal = .35;
 
         // setup lagrangian update system
         this.setupLagrangian();
@@ -1003,6 +1003,11 @@ class MultiPend {
                 c += pConst['m' + j];
             }
             pConst['massSum' + i] = c;
+            pConst['tC' + i] = .5 * c;
+            pConst['uC' + i] = pConst.g * c * pConst['l' + i];
+            for(var j = 0; j < i; j++) {
+                pConst['tcC' + i + j] = c * pConst['l' + i] * pConst['l' + j];
+            }
         }
     }
 
@@ -1023,7 +1028,7 @@ class MultiPend {
 
     makeTFunc(i) {
         var tFunc = function(p, pConst) {
-            return .5 * pConst['massSum' + i] * MF.Square(pConst['l'+i] * p['theta'+i+'Dot']);
+            return pConst['tC' + i] * MF.Square(pConst['l'+i] * p['theta'+i+'Dot']);
         }   
         tFunc.paramKeys = ['theta'+i+'Dot'];
         return tFunc;
@@ -1031,7 +1036,7 @@ class MultiPend {
 
     makeTCrossFunc(i, j) {
         var tCrossFunc = function(p, pConst) {
-            return pConst['massSum'+i] * pConst['l'+i] * pConst['l'+j] * Math.cos(p['theta'+i] - p['theta'+j]) * p['theta'+i+'Dot'] * p['theta'+j+'Dot'];
+            return pConst['tcC'+i+j] * Math.cos(p['theta'+i] - p['theta'+j]) * p['theta'+i+'Dot'] * p['theta'+j+'Dot'];
         }
         tCrossFunc.paramKeys = ['theta'+i, 'theta'+j, 'theta'+i+'Dot', 'theta'+j+'Dot'];
         return tCrossFunc
@@ -1039,7 +1044,7 @@ class MultiPend {
 
     makeUFunc(i) {
         var uFunc = function(p, pConst) {
-            return pConst.g * pConst['massSum'+i] * pConst['l'+i] * Math.cos(p['theta'+i]);
+            return pConst['uC' + i] * Math.cos(p['theta'+i]);
         }
         uFunc.paramKeys = ['theta'+i];
         return uFunc;
@@ -1103,19 +1108,18 @@ class MultiPend {
 
     setPos() {
         // updates position of mesh based on current params
-        for(var i = 0; i < this.numPend; i++) {
-            BF.SetVec3(this.getPivP(i), this.pivots[i].position);
+        this.pivots[0].rotation.z = this.params.theta0;
+        var currP = [0,0,0];
+        for(var i = 1; i < this.numPend; i++) {
+            currP = this.getPivP(i, currP);
+            BF.SetVec3(currP, this.pivots[i].position);
             this.pivots[i].rotation.z = this.params['theta'+i];
         }
     }
 
-    getPivP(i) {
+    getPivP(i, prevP) {
         // returns an ar3
-        if(i === 0) {
-            return [0,0,0];
-        } else {
-            return math.add(this.getPivP(i-1), math.multiply([Math.sin(this.params['theta'+(i-1)]), -Math.cos(this.params['theta'+(i-1)]), 0], this.pConst['l'+(i-1)]));
-        }
+        return math.add(prevP, math.multiply([Math.sin(this.params['theta'+(i-1)]), -Math.cos(this.params['theta'+(i-1)]), 0], this.pConst['l'+(i-1)]));
     }
 
     step() {
