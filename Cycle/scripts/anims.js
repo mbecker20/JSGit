@@ -23,7 +23,7 @@ class BouncyBall {
         this.y=this.sphere.position.y;
         this.v=10;
         this.k=50;
-        this.dt=.01;
+        this.dt=.02;
         this.stepsPerFrame=1;
 
         this.oscY=0;
@@ -958,9 +958,9 @@ class MultiPend {
         this.node = BF.MakeTransformNode('multiPendNode', scene);
 
         this.numPend = numPend;
-        this.l = 4;
-        this.m = .7; // controls radius of cylinder
-        this.dampingVal = .1;
+        this.l = 3;
+        this.m = .3; // controls radius of cylinder
+        this.dampingVal = .5;
 
         // setup lagrangian update system
         this.setupLagrangian();
@@ -992,7 +992,8 @@ class MultiPend {
 
         this.setConstants(this.pConst);
 
-        this.lagrangian = new Lagrangian(this.makeLFuncs(), this.params, this.pConst, this.damping); 
+        var dx = .01;
+        this.lagrangian = new Lagrangian(this.makeLFuncs(), this.params, this.pConst, this.damping, dx); 
     }
 
     setConstants(pConst) {
@@ -1094,7 +1095,7 @@ class MultiPend {
         this.topSphere.material = myMats.darkMoon;
         BF.ForceCompileMaterials([this.ground, this.topSphere]);
         for(var i = 0; i < this.numPend; i++) {
-            this.masses[i].material = myMats.darkMoon;
+            this.masses[i].material = myMats.sun;
             this.rods[i].material = myMats.wArrow;
             BF.ForceCompileMaterials([this.masses[i], this.rods[i]]);
         }
@@ -1140,7 +1141,7 @@ class MultiPend {
         names.push('kick0');
         controls.push(kick0);
 
-        var dampingSlider = UI.MakeSliderPanelPrecise('damping', '', 0, .5, this.dampingVal, function(value) {
+        var dampingSlider = UI.MakeSliderPanelPrecise('damping', '', 0, 1, this.dampingVal, function(value) {
             anim.setDamping(value);
         });
         names.push('dampingSlider');
