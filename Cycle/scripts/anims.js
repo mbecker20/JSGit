@@ -804,7 +804,7 @@ class SpinningRing {
         this.stepsPerFrame = 2;
 
         this.params = {theta: 1, thetaDot: 2, phi: 0, phiDot: 2};
-        this.pConst = {mSphere: 1, rSphere: 1, mRing: 1, rRing: 6, g: 10, phi: 0, phiDot: 2.5};
+        this.pConst = {mSphere: 1, rSphere: 1, mRing: 1, rRing: 6, g: 10};
         this.setConstants(this.pConst);
         this.damping = {thetaDot: 0.01, phiDot: 0.01};
 
@@ -953,18 +953,21 @@ class SpinningRing {
 }
 
 class MultiPend {
-    constructor(scene, myMats, shadows, gui) {
+    constructor(scene, myMats, shadows, gui, numPend) {
         // make node
         this.node = BF.MakeTransformNode('multiPendNode', scene);
+
+        this.numPend = numPend;
+        this.l = 2;
+        this.m = 1;
+        this.damping = .01;
 
         // setup lagrangian update system
         this.setupLagrangian();
 
-        this.setupMeshs(scene);
+        this.setupMeshs(scene, shadows);
 
         this.setMaterials(myMats);
-
-        BF.ConnectMeshsToShadows([this.ring, this.mass, this.ground], shadows);
 
         this.setPos();
 
@@ -975,27 +978,86 @@ class MultiPend {
         this.dt = .01;
         this.stepsPerFrame = 2;
 
-        this.params = {theta: 1, thetaDot: 2, phi: 0, phiDot: 2};
-        this.pConst = {mSphere: 1, rSphere: 1, mRing: 1, rRing: 6, g: 10, phi: 0, phiDot: 2.5};
-        this.setConstants(this.pConst);
-        this.damping = {thetaDot: 0.01, phiDot: 0.01};
-
-        this.lagrangian = new Lagrangian(this.makeLFuncs(), this.params, this.pConst, this.damping);
+        this.params = {};
+        this.pConst = {};
+        this.damping = {g: 10};
         
+        for(var i = 0; i < this.numPend; i++) {
+            this.params['theta' + i] = 0;
+            this.params['theta' + i + 'Dot'] = 0;
+            this.pConst['l' + i] = this.l;
+            this.pConst['m' + i] = this.m;
+            this.damping['theta' + i + 'Dot'] = this.damping;
+        }
+
+        this.setConstants(this.pConst);
+
+        this.lagrangian = new Lagrangian(this.makeLFuncs(), this.params, this.pConst, this.damping); 
     }
 
     setConstants(pConst) {
-        
+        for(var i = 0; i < this.numPend; i++) {
+            var c = 0;
+            for(var j = i; j < this.numPend; j++) {
+                c += pConst['m' + j];
+            }
+            pConst['massSum' + i] = c;
+        }
     }
 
     makeLFuncs() {
-        
+        var lFuncs = [];
+
+        lFuncs.push(this.makeTFunc(0), this.makeUFunc(0));
+
+        for(var i = 1; i < this.numPend; i++) {
+            lFuncs.push(this.makeTFunc(i), this.makeUFunc(i));
+            for(var j = 0; j < i; j++) {
+                lFuncs.push(this.makeTCrossFunc(i, j));
+            }
+        }
+
+        return lFuncs;
     }
 
-    setupMeshs(scene) {
-        this.ground = BABYLON.MeshBuilder.CreateGround('ground4', {width:20,height:20}, scene);
-        this.ground.receiveShadows = true;
+    makeTFunc(i) {
+        var tFunc = function(p, pConst) {
+            return .5 * pConst['massSum' + i] * MF.Square(pConst['l'+i] * p['theta'+i+'Dot']);
+        }   
+        tFunc.paramKeys = ['theta'+i+'Dot'];
+        return tFunc;
     }
+
+    makeTCrossFunc(i, j) {
+        var tCrossFunc = function(p, pConst) {
+            return pConst['massSum'+i] * pConst['l'+i] * pConst['l'+j] * Math.cos(p['theta'+i] - p['theta'+j]) * p['theta'+i+'Dot'] * p['theta'+j+'Dot'];
+        }
+        tCrossFunc.paramKeys = ['theta'+i, 'theta'+j, 'theta'+i+'Dot', 'theta'+j+'Dot'];
+        return tCrossFunc
+    }
+
+    makeUFunc(i) {
+        var uFunc = function(p, pConst) {
+            pConst.g * pConst['massSum'+i] * pConst['l'+i] * Math.cos(p['theta'+i]);
+        }
+        uFunc.paramKeys = ['theta'+i];
+        return uFunc;
+    }
+
+    setupMeshs(scene, shadows, numPend) {
+        this.ground = BABYLON.MeshBuilder.CreateGround('multiPendGround', {width:20,height:20}, scene);
+        this.ground.receiveShadows = true;
+        var allMeshes = [this.ground];
+        var masses = [];
+        var rods = [];
+        for(var i = 1; i < this.numPend; i++) {
+
+        }
+
+        BF.ConnectMeshsToShadows([this.ground], shadows);
+    }
+
+
 
     setMaterials(myMats) {
         this.ground.material = myMats.wArrow;
