@@ -1047,22 +1047,39 @@ class MultiPend {
     setupMeshs(scene, shadows, numPend) {
         this.ground = BABYLON.MeshBuilder.CreateGround('multiPendGround', {width:20,height:20}, scene);
         this.ground.receiveShadows = true;
-        var allMeshes = [this.ground];
-        var masses = [];
-        var rods = [];
-        for(var i = 1; i < this.numPend; i++) {
 
+        var topSphereR = 1;
+        this.topSphere = BF.MakeSphere('multiPendTopSphere', scene, 2 * topSphereR)
+        BF.SetChildren(this.node, [this.ground, this.topSphere]);
+
+        var allMeshes = [this.ground, this.topSphere];
+        this.pivots = [];
+        this.masses = [];
+        this.rods = [];
+        for(var i = 0; i < this.numPend; i++) {
+            var piv = BF.MakeTransformNode('pivot'+i, scene);
+            var mass = this.makeMass(piv, i, scene);
+            var rod = this.makeRod(piv, i, scene);
+            pivots.push(piv);
+            masses.push(mass);
+            rods.push(rod);
+            allMeshes.push(mass, rod);
         }
 
-        BF.ConnectMeshsToShadows([this.ground], shadows);
+        BF.ConnectMeshsToShadows(allMeshes, shadows);
     }
 
+    makeMass(piv, i, scene) {
 
+    }
+
+    makeRod(piv, i, scene) {
+
+    }
 
     setMaterials(myMats) {
         this.ground.material = myMats.wArrow;
-        this.ring.material = myMats.wArrow;
-        this.mass.material = myMats.darkMoon;
+
         BF.ForceCompileMaterials([this.ring, this.mass, this.ground]);
     }
 
