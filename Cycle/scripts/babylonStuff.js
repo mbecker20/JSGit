@@ -161,7 +161,7 @@ class BF {
         var tip = BABYLON.MeshBuilder.CreateCylinder(name.concat(' tip'), {height: .15, diameterTop: 0, diameterBottom: arrowDiameter, tessellation: 24}, scene);
         tube.locallyTranslate(BF.Vec3([0,.425,0]));
         tube.bakeCurrentTransformIntoVertices();
-        tip.locallyTranslate(BF.Vec3([0,.85,0]));
+        tip.locallyTranslate(BF.Vec3([0,.925,0]));
         tip.bakeCurrentTransformIntoVertices();
         
         var arrow = new BABYLON.TransformNode(name, scene)
@@ -201,9 +201,9 @@ class BF {
     static MakeAxes(name, scene, length, mats = window.axesMats) {
         // mats is ar4[materials] for x y and z axes, and center sphere
         // parent axes 
-        var diameter = .25;
-        var arrowDiameter = .5;
-        var sphereDiameter = .6;
+        var diameter = .4;
+        var arrowDiameter = .6;
+        var sphereDiameter = .8;
 
         var axes = new BABYLON.TransformNode('axes', scene);
 

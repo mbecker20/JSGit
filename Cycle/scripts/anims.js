@@ -958,9 +958,9 @@ class MultiPend {
         this.node = BF.MakeTransformNode('multiPendNode', scene);
 
         this.numPend = numPend;
-        this.l = 2;
-        this.m = 1;
-        this.damping = .01;
+        this.l = 4;
+        this.m = .7; // controls radius of cylinder
+        this.dampingVal = .1;
 
         // setup lagrangian update system
         this.setupLagrangian();
@@ -979,15 +979,15 @@ class MultiPend {
         this.stepsPerFrame = 2;
 
         this.params = {};
-        this.pConst = {};
-        this.damping = {g: 10};
+        this.pConst = {g: 10};
+        this.damping = {};
         
         for(var i = 0; i < this.numPend; i++) {
             this.params['theta' + i] = 0;
             this.params['theta' + i + 'Dot'] = 0;
             this.pConst['l' + i] = this.l;
             this.pConst['m' + i] = this.m;
-            this.damping['theta' + i + 'Dot'] = this.damping;
+            this.damping['theta' + i + 'Dot'] = this.dampingVal;
         }
 
         this.setConstants(this.pConst);
@@ -1038,18 +1038,19 @@ class MultiPend {
 
     makeUFunc(i) {
         var uFunc = function(p, pConst) {
-            pConst.g * pConst['massSum'+i] * pConst['l'+i] * Math.cos(p['theta'+i]);
+            return pConst.g * pConst['massSum'+i] * pConst['l'+i] * Math.cos(p['theta'+i]);
         }
         uFunc.paramKeys = ['theta'+i];
         return uFunc;
     }
 
-    setupMeshs(scene, shadows, numPend) {
+    setupMeshs(scene, shadows) {
         this.ground = BABYLON.MeshBuilder.CreateGround('multiPendGround', {width:20,height:20}, scene);
         this.ground.receiveShadows = true;
 
-        var topSphereR = 1;
-        this.topSphere = BF.MakeSphere('multiPendTopSphere', scene, 2 * topSphereR)
+        var topSphereR = .5;
+        this.topSphere = BF.MakeSphere('multiPendTopSphere', scene, 2 * topSphereR);
+        this.topSphere.position = BF.Vec3([0, this.numPend*this.l + 1, 0]);
         BF.SetChildren(this.node, [this.ground, this.topSphere]);
 
         var allMeshes = [this.ground, this.topSphere];
@@ -1058,11 +1059,12 @@ class MultiPend {
         this.rods = [];
         for(var i = 0; i < this.numPend; i++) {
             var piv = BF.MakeTransformNode('pivot'+i, scene);
+            piv.parent = this.topSphere;
             var mass = this.makeMass(piv, i, scene);
             var rod = this.makeRod(piv, i, scene);
-            pivots.push(piv);
-            masses.push(mass);
-            rods.push(rod);
+            this.pivots.push(piv);
+            this.masses.push(mass);
+            this.rods.push(rod);
             allMeshes.push(mass, rod);
         }
 
@@ -1070,22 +1072,49 @@ class MultiPend {
     }
 
     makeMass(piv, i, scene) {
-
+        var mass = BF.MakeCylinder('mass'+i, scene, .5, 2*Math.sqrt(this.pConst['m'+i]));
+        mass.rotation.x = Math.PI/2;
+        BF.BakeMeshs([mass]);
+        mass.parent = piv;
+        mass.position.y = -this.pConst['l'+i];
+        return mass;
     }
 
     makeRod(piv, i, scene) {
-
+        var rod = BF.MakeTube('rod'+i, scene, .25);
+        rod.scaling.x = this.pConst['l'+i];
+        rod.rotation.z = -Math.PI/2;
+        BF.BakeMeshs([rod]);
+        rod.parent = piv;
+        return rod;
     }
 
     setMaterials(myMats) {
         this.ground.material = myMats.wArrow;
-
-        BF.ForceCompileMaterials([this.ring, this.mass, this.ground]);
+        this.topSphere.material = myMats.darkMoon;
+        BF.ForceCompileMaterials([this.ground, this.topSphere]);
+        for(var i = 0; i < this.numPend; i++) {
+            this.masses[i].material = myMats.darkMoon;
+            this.rods[i].material = myMats.wArrow;
+            BF.ForceCompileMaterials([this.masses[i], this.rods[i]]);
+        }
     }
 
     setPos() {
         // updates position of mesh based on current params
-        
+        for(var i = 0; i < this.numPend; i++) {
+            BF.SetVec3(this.getPivP(i), this.pivots[i].position);
+            this.pivots[i].rotation.z = this.params['theta'+i];
+        }
+    }
+
+    getPivP(i) {
+        // returns an ar3
+        if(i === 0) {
+            return [0,0,0];
+        } else {
+            return math.add(this.getPivP(i-1), math.multiply([Math.sin(this.params['theta'+(i-1)]), -Math.cos(this.params['theta'+(i-1)]), 0], this.pConst['l'+(i-1)]));
+        }
     }
 
     step() {
@@ -1093,11 +1122,29 @@ class MultiPend {
         this.setPos();
     }
 
+    setDamping(dampingVal) {
+        for(var i = 0; i < this.numPend; i++) {
+            this.damping['theta'+i+'Dot'] = dampingVal;
+        }
+    }
+
     setupGUIMenu(gui, anim) {
         this.guiMenu = UI.MakeSubMenu('sim settings', gui.mainMenu, gui);
 
         var names = [];
         var controls = [];
+
+        var kick0 = UI.MakeButton('kick0', 'kick', function() {
+            anim.params.theta0Dot += 2;
+        });
+        names.push('kick0');
+        controls.push(kick0);
+
+        var dampingSlider = UI.MakeSliderPanelPrecise('damping', '', 0, .5, this.dampingVal, function(value) {
+            anim.setDamping(value);
+        });
+        names.push('dampingSlider');
+        controls.push(dampingSlider);
 
         this.guiMenu.addControls(names, controls);
     }
