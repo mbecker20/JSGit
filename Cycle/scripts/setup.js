@@ -60,7 +60,7 @@ window.addEventListener('DOMContentLoaded', function(){
         spinningRing.deactivate();
 
         var multiPend = new MultiPend(scene, myMats, cycle.shadows, gui, 8);
-        multiPend.params.theta0 = 1;
+        multiPend.params.theta0 = 2;
         //multiPend.deactivate();
 
         var anims = {
