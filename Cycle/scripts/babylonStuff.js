@@ -304,20 +304,55 @@ class BF {
         }
         return grid;
     }
+
+    static Hide(mesh) {
+        mesh.setEnabled(false);
+    }
+
+    static Show(mesh) {
+        mesh.setEnabled(true);
+    }
+
+    static HideMeshs(meshs) {
+        for(var i = 0; i < meshs.length; i++) {
+            meshs[i].setEnabled(false);
+        }
+    }
+
+    static ShowMeshs(meshs) {
+        for(var i = 0; i < meshs.length; i++) {
+            meshs[i].setEnabled(true);
+        }
+    }
+
+    static SetMaterial(material, meshs, preCompile = true) {
+        for(var i = 0; i < meshs.length; i++) {
+            meshs[i].material = material;
+        }
+        if(preCompile) {
+            BF.ForceCompileMaterials(meshs);
+        }
+    }
 }
 
 class MyMats {
     // a collection of initialized Babylon Materials used in various anims
     constructor(scene) {
         //
-        this.blue = new BABYLON.StandardMaterial('blue', scene);
-        this.blue.diffuseColor = new BABYLON.Color3(.2,.6,.9);
+        this.lightBlue = new BABYLON.StandardMaterial('lightBlue', scene);
+        this.lightBlue.diffuseColor = new BABYLON.Color3(.2,.6,.9);
 
         this.olive = new BABYLON.StandardMaterial('olive', scene);
         this.olive.diffuseColor = Colors.RGB(128,128,0);
 
         this.yellow = new BABYLON.StandardMaterial('yellow', scene);
         this.yellow.diffuseColor = Colors.RGB(255,255,0);
+
+        this.red = new BABYLON.StandardMaterial('red', scene);
+        this.red.diffuseColor = Colors.RGB(255,0,0);
+
+        this.blue = new BABYLON.StandardMaterial('blue', scene);
+        this.blue.diffuseColor = Colors.RGB(0,0,255);
 
         this.chill = new BABYLON.StandardMaterial("chill", scene);
         this.chill.diffuseTexture = new BABYLON.Texture("https://images.squarespace-cdn.com/content/537cfc28e4b0785074d4ae25/1471358583532-I9LQ4LV67S3I8Y4XH7DA/?content-type=image%2Fpng", scene);
@@ -369,6 +404,8 @@ class MyMats {
         this.skyBox.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
         this.skyBox.diffuseColor = new BABYLON.Color3(0, 0, 0);
         this.skyBox.specularColor = new BABYLON.Color3(0, 0, 0);
+
+        this.attractor = 
 
         window.axesMats = [this.xAxis, this.yAxis, this.zAxis, this.axesSphere];
     }

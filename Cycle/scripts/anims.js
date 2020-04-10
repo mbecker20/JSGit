@@ -847,14 +847,21 @@ class SpinningRing {
     switchToFreeMode() {
         this.lagrangian.switchForcingMode('free');
         this.guiMenu.hideControl('phiDotSP');
+        this.guiMenu.hideControl('showSSBut');
         this.guiMenu.showControl('phiDampSP');
+        this.hideSteadyStates();
     }
 
     switchToForcedMode(phiDotSP) {
         this.lagrangian.switchForcingMode('phiDotForcing');
         phiDotSP.children[1].value = this.params.phiDot;
         this.guiMenu.showControl('phiDotSP');
+        this.guiMenu.showControl('showSSBut');
         this.guiMenu.hideControl('phiDampSP');
+        this.setSteadyStatePos();
+        if(this.showingSS) {
+            this.showSteadyStates();
+        }
     }
 
     setupMeshs(scene) {
@@ -867,6 +874,8 @@ class SpinningRing {
         this.ring.position = BF.Vec3([0,this.pConst.rRing + 2,0]);
         this.ring.receiveShadows = true;
 
+        BF.SetChildren(this.node, [this.ground, this.ring]);
+
         this.massParent = BF.MakeTransformNode('massParent', scene);
         this.mass = BABYLON.MeshBuilder.CreateSphere('ringMass', {segments:16, diameter: 2*this.pConst.rSphere}, scene);
         this.massParent.parent = this.ring;
@@ -874,20 +883,63 @@ class SpinningRing {
         BF.SetVec3([0,-this.pConst.rRing, 0], this.mass.position);
         this.mass.receiveShadows = true;
 
-        BF.SetChildren(this.node, [this.ground, this.ring]);
+        // make steady state spheres
+        this.showingSS = false;
+        this.zeroSteadyState = BF.MakeSphere('zeroSS', scene, 1);
+        this.piSteadyState = BF.MakeSphere('piSS', scene, 1);
+        BF.SetChildren(this.ring, [this.zeroSteadyState, this.piSteadyState]);
+        this.zeroSteadyState.position.y = -this.pConst.rRing;
+        this.piSteadyState.position.y = this.pConst.rRing;
+
+        this.plusSteadyState = BF.MakeSphere('plusSS', scene, 1);
+        this.minusSteadyState = BF.MakeSphere('minusSS', scene, 1);
+
+        this.plusSSPivot = BF.MakeTransformNode('plusSSPiv', scene);
+        this.plusSteadyState.parent = this.plusSSPivot;
+        this.plusSteadyState.position.y = -this.pConst.rRing;
+
+        this.minusSSPivot = BF.MakeTransformNode('minusSSPiv', scene);
+        this.minusSteadyState.parent = this.minusSSPivot;
+        this.minusSteadyState.position.y = -this.pConst.rRing;
+
+        this.steadyStates = [this.zeroSteadyState, this.piSteadyState, this.plusSteadyState, this.minusSteadyState];
+        this.setSteadyStatePos();
+        this.hideSteadyStates();
+
+        BF.SetChildren(this.ring, [this.plusSSPivot, this.minusSSPivot]);
     }
 
     setMaterials(myMats) {
-        this.ground.material = myMats.wArrow;
-        this.ring.material = myMats.wArrow;
-        this.mass.material = myMats.darkMoon;
-        BF.ForceCompileMaterials([this.ring, this.mass, this.ground]);
+        BF.SetMaterial(myMats.wArrow, [this.ground, this.ring])
+        BF.SetMaterial(myMats.darkMoon, [this.mass]);
+        BF.SetMaterial(myMats.red, [this.zeroSteadyState, this.piSteadyState]);
+        BF.SetMaterial(myMats.blue, [this.plusSteadyState, this.minusSteadyState]);
     }
 
     setPos() {
         // updates position of mesh based on current params
         this.massParent.rotation.z = this.params.theta;
         this.ring.rotation.y = this.params.phi;
+    }
+
+    setSteadyStatePos() {
+        var c = this.pConst.g / (this.pConst.rRing * MF.Square(this.params.phiDot));
+        if(c < 1) {
+            var ss = math.acos(c);
+            this.plusSSPivot.rotation.z = ss;
+            this.minusSSPivot.rotation.z = -ss;
+        } else {
+            this.plusSSPivot.rotation.z = 0;
+            this.minusSSPivot.rotation.z = 0;
+        }
+    }
+
+    showSteadyStates() {
+        BF.ShowMeshs(this.steadyStates);
+    }
+
+    hideSteadyStates() {
+        BF.HideMeshs(this.steadyStates);
     }
 
     step() {
@@ -906,23 +958,34 @@ class SpinningRing {
             anim.pConst.c3 = anim.pConst.mSphere * anim.pConst.g * anim.pConst.rRing;
         }); */
 
-        var phiDotSliderPanel = UI.MakeSliderPanel('ring spin speed', '', 0, 6, anim.params.phiDot, function(value) {
+        var phiDotSliderPanel = UI.MakeSliderPanel('ring spin speed', '', 0, 4, anim.params.phiDot, function(value) {
             anim.params.phiDot = value;
+            anim.setSteadyStatePos();
         })
         names.push('phiDotSP');
         controls.push(phiDotSliderPanel);
 
+        var showSSButton = UI.MakeDualButton('showSSBut', 'show steady states', 'hide steady states', function() {
+            anim.hideSteadyStates();
+            anim.showingSS = false;
+        }, function() {
+            anim.showSteadyStates();
+            anim.showingSS = true;
+        });
+        names.push('showSSBut');
+        controls.push(showSSButton);
+
         var modeSwitchButton = UI.MakeDualButton('modeSwitch', 'switch to free ring', 'switch to forced ring', function() {
-            anim.switchToForcedMode(phiDotSliderPanel);
+            anim.switchToForcedMode(phiDotSliderPanel, showSSButton);
         }, function() {
             anim.switchToFreeMode();
         });
         names.push('modeSwitchButton');
         controls.push(modeSwitchButton);
-        UI.SetControlsWidthHeight([modeSwitchButton], '200px', '50px');
-        modeSwitchButton.color = 'white';
+        // UI.SetControlsWidthHeight([modeSwitchButton], '200px', '50px');
+        //modeSwitchButton.color = 'white';
 
-        var thetaDampingSliderPanel = UI.MakeSliderPanelPrecise('theta damping', '', 0, .2, anim.damping.thetaDot, function(value) {
+        var thetaDampingSliderPanel = UI.MakeSliderPanelPrecise('theta damping', '', 0, .4, anim.damping.thetaDot, function(value) {
             anim.damping.thetaDot = value;
         });
         names.push('thetaDampSP');
