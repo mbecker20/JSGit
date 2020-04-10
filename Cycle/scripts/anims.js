@@ -599,8 +599,8 @@ class PendTugOfWar {
     }
 
     setupLagrangian() {
-        this.dt = .01;
-        this.stepsPerFrame = 2;
+        this.dt = .02;
+        this.stepsPerFrame = 1;
         this.params = {l: 6, lDot: 3, theta: 1, thetaDot: 2, phi: 0, phiDot: 10};
         this.pConst = {mSphere: 1.1, mCube: 1, g: 10, lTot: 10, rSphere: 1, sCube: 2};
         this.damping = {lDot: .01, thetaDot: .01, phiDot: .01};
@@ -801,8 +801,8 @@ class SpinningRing {
     }
 
     setupLagrangian() {
-        this.dt = .01;
-        this.stepsPerFrame = 2;
+        this.dt = .02;
+        this.stepsPerFrame = 1;
 
         this.params = {theta: 1, thetaDot: 2, phi: 0, phiDot: 2};
         this.pConst = {mSphere: 1, rSphere: 1, mRing: 1, rRing: 6, g: 10};
@@ -1053,8 +1053,8 @@ class MultiPend {
     }
 
     setupLagrangian() {
-        this.dt = .01;
-        this.stepsPerFrame = 2;
+        this.dt = .02;
+        this.stepsPerFrame = 1;
 
         this.params = {};
         this.pConst = {g: 10};
