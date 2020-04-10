@@ -794,6 +794,7 @@ class SpinningRing {
 
         BF.ConnectMeshsToShadows([this.ring, this.mass, this.ground], shadows);
 
+        this.setPos = this.setPosShowRot;
         this.setPos();
 
         this.setupGUIMenu(gui, this);
@@ -916,10 +917,15 @@ class SpinningRing {
         BF.SetMaterial(myMats.blue, [this.plusSteadyState, this.minusSteadyState]);
     }
 
-    setPos() {
+    setPosShowRot() {
         // updates position of mesh based on current params
         this.massParent.rotation.z = this.params.theta;
-        this.ring.rotation.y = this.params.phi;
+        this.ring.rotation.y += this.params.phiDot * this.dt * this.stepsPerFrame;
+    }
+
+    setPosNoRot() {
+        // updates position of mesh based on current params
+        this.massParent.rotation.z = this.params.theta;
     }
 
     setSteadyStatePos() {
@@ -958,12 +964,14 @@ class SpinningRing {
             anim.pConst.c3 = anim.pConst.mSphere * anim.pConst.g * anim.pConst.rRing;
         }); */
 
-        var phiDotSliderPanel = UI.MakeSliderPanel('ring spin speed', '', 0, 4, anim.params.phiDot, function(value) {
-            anim.params.phiDot = value;
-            anim.setSteadyStatePos();
-        })
-        names.push('phiDotSP');
-        controls.push(phiDotSliderPanel);
+        var showRotButton = UI.MakeDualButton('showRotBut', "don't show ring rotation", 'show ring rotation', function() {
+            anim.setPos = anim.setPosShowRot;
+        }, function() {
+            anim.setPos = anim.setPosNoRot;
+        });
+        names.push('showRotBut');
+        controls.push(showRotButton);
+
 
         var showSSButton = UI.MakeDualButton('showSSBut', 'show steady states', 'hide steady states', function() {
             anim.hideSteadyStates();
@@ -974,6 +982,13 @@ class SpinningRing {
         });
         names.push('showSSBut');
         controls.push(showSSButton);
+
+        var phiDotSliderPanel = UI.MakeSliderPanel('ring spin speed', '', 0, 4, anim.params.phiDot, function(value) {
+            anim.params.phiDot = value;
+            anim.setSteadyStatePos();
+        })
+        names.push('phiDotSP');
+        controls.push(phiDotSliderPanel);
 
         var modeSwitchButton = UI.MakeDualButton('modeSwitch', 'switch to free ring', 'switch to forced ring', function() {
             anim.switchToForcedMode(phiDotSliderPanel, showSSButton);
