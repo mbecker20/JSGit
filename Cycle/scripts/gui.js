@@ -6,7 +6,10 @@ class UI {
     static STANDARDH = '40px';
 
     static SMALLW = '110px';
-    static SMALLH = '30px'
+    static SMALLH = '30px';
+
+    static SVWIDTH = '270px';
+    static SVHEIGHT = '300px';
 
     // makes the main gui object
     static MakeGUI(canvas) {
@@ -39,11 +42,8 @@ class UI {
         //name is string
         let mainMenu = {};
         mainMenu.name = 'main menu';
-        mainMenu.panel = UI.MakePanel();
+        mainMenu.panel = UI.MakePanel(true, true);
         gui.texture.addControl(mainMenu.panel);
-
-        UI.AdaptContainerWidth(mainMenu.panel);
-        UI.AlignControlsTopLeft([mainMenu.panel]);
 
         mainMenu.panel.top = 30;
         mainMenu.panel.background = 'black'
@@ -112,19 +112,25 @@ class UI {
 
         menu.parentButton = UI.MakeParentButton(name.concat('parentButton'), pbText, menu, gui);
 
+        menu.panel = UI.MakePanel(true, true);
+
+        menu.headerPanel = UI.MakeSubMenuHeaderPanel(name, parentMenu, gui);
+        UI.AddControlsToTarget([UI.MakeVertSpacer(), menu.headerPanel], menu.panel);
+
         menu.sv = UI.MakeScrollViewer();
-        menu.panel = UI.MakePanel();
-        menu.sv.addControl(menu.panel);
-        UI.AdaptContainerWidth(menu.panel);
-        UI.AlignControlsTopLeft([menu.panel]);
-        menu.sv.top = 30;
+        menu.panel.addControl(menu.sv);
+        
+        menu.svPanel = UI.MakePanel(true, false);
+        menu.sv.addControl(menu.svPanel);
+
+        menu.panel.top = 30;
         menu.controls = {};
         menu.panel.background = 'black'
 
         menu.addControl = function(name, control) {
             menu.controls[name] = UI.MakePanel();
             UI.AddControlsToTarget([UI.MakeVertSpacer(), control], menu.controls[name]);
-            menu.panel.addControl(menu.controls[name]);
+            menu.svPanel.addControl(menu.controls[name]);
         }
 
         menu.addControls = function(names, controls) {
@@ -147,11 +153,11 @@ class UI {
         }
 
         menu.show = function() {
-            menu.sv.isVisible = true;
+            menu.panel.isVisible = true;
         }
 
         menu.hide = function() {
-            menu.sv.isVisible = false;
+            menu.panel.isVisible = false;
         }
 
         menu.showControl = function(name) {
@@ -166,10 +172,8 @@ class UI {
             menu.controls[name].isVisible = isVisible;
         }
 
-        menu.headerPanel = UI.MakeSubMenuHeaderPanel(name, parentMenu, gui);
-        menu.addControl('headerPanel', menu.headerPanel);
         menu.hide();
-        gui.addControl(menu.sv);
+        gui.addControl(menu.panel);
 
         return menu;
     }
@@ -342,7 +346,6 @@ class UI {
             animState.activeAnim.activate();
             parentPanel.isVisible = false;
         });
-        aaButton.color = 'white';
         return aaButton;
     }
 
@@ -356,6 +359,7 @@ class UI {
             caMenu.activeAnimButton.color = 'green';
         });
         aaButton.color = 'white';
+        aaButton.horizontalAlignment = BABYLON.GUI.HORIZONTAL_ALIGNMENT_CENTER;
         return aaButton;
     }
 
@@ -463,11 +467,10 @@ class UI {
 
     static MakeScrollViewer(name = '') {
         var sv = new BABYLON.GUI.ScrollViewer(name);
-        sv.width = '270px'
-        sv.height = '340px'
-        UI.AlignControlsTopLeft([sv]);
+        sv.width = UI.SVWIDTH;
+        sv.height = UI.SVHEIGHT;
         sv.barSize = 20;
-        sv.color = 'black'
+        sv.color = 'white'
         return sv;
     }
 
