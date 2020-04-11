@@ -315,9 +315,9 @@ class UI {
         });
         slider.height = '30px';
         slider.width = '250px';
-        slider.color = 'grey'
-        slider.background = 'black'
-        slider.borderColor = 'white'
+        slider.color = 'grey';
+        slider.background = 'black';
+        slider.borderColor = 'white';
         slider.isThumbCircle = true;
         slider.thumbWidth = 30;
 
