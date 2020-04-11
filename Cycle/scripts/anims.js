@@ -982,7 +982,8 @@ class MultiPend {
         this.maxNumPend = 8;
         this.l = 3;
         this.m = .3; // controls radius of cylinder
-        this.dampingVal = .2;
+        this.dampingVal = .35;
+        this.collisionVelocityMult = .8;
 
         // setup lagrangian update system
         this.setupLagrangian();
@@ -994,6 +995,8 @@ class MultiPend {
         this.setPos();
 
         this.setupGUIMenu(gui, this);
+
+        this.imposeBC = GF.DoNothing;
     }
 
     setupLagrangian() {
@@ -1041,6 +1044,14 @@ class MultiPend {
         for(var i = 0; i < this.maxNumPend; i++) {
             var numPend = i + 1;
             this.pConsts['pc' + i] = this.makePConst(mainPConst, numPend);
+        }
+    }
+
+    imposeBCOn() {
+        for (var i = 1; i < this.numPend; i++) {
+            if (Math.cos(this.params['theta' + i] - this.params['theta' + (i - 1)]) < -.9) {
+                this.params['theta'+i+'Dot'] = -this.collisionVelocityMult * this.params['theta'+i+'Dot'];
+            }
         }
     }
 
@@ -1167,6 +1178,7 @@ class MultiPend {
 
     step() {
         this.activeLagrangian.step(this.dt, this.stepsPerFrame);
+        this.imposeBC();
         this.setPos();
     }
 
@@ -1200,8 +1212,24 @@ class MultiPend {
         names.push('numPendSlider');
         controls.push(numPendSlider);
 
+        var bcButton = UI.MakeDualButton('bcBut', 'turn on BC', 'turn off BC', function() {
+            anim.imposeBC = GF.DoNothing;
+            anim.guiMenu.hideControl('colMultSP');
+        }, function() {
+            anim.imposeBC = anim.imposeBCOn;
+            anim.guiMenu.showControl('colMultSP');
+        })
+        names.push('bcButton');
+        controls.push(bcButton);
+
+        var colMultSP = UI.MakeSliderPanelPrecise('col velocity mult', '', 0, 1, this.collisionVelocityMult, function(value) {
+            anim.collisionVelocityMult = value;
+        });
+        names.push('colMultSP');
+        controls.push(colMultSP);
+
         var kick0 = UI.MakeButton('kick0', 'kick', function() {
-            anim.params.theta0Dot += 1;
+            anim.params.theta0Dot += 1.5;
         });
         names.push('kick0');
         controls.push(kick0);
@@ -1213,6 +1241,7 @@ class MultiPend {
         controls.push(dampingSlider);
 
         this.guiMenu.addControls(names, controls);
+        this.guiMenu.hideControl('colMultSP');
     }
 
     activate() {

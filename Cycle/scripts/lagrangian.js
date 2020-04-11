@@ -119,11 +119,13 @@ class Lagrangian {
         this.modes = {};
         this.addForcingMode('free', []);
         this.activeMode = this.modes['free'];
+        this.bcFunc = GF.DoNothing;
     }
 
     step(dt, numTimes = 1) {
         for(var i = 0; i < numTimes; i++) {
             this.activeMode.step(dt);
+            this.bcFunc();
         }
     }
 
@@ -192,5 +194,13 @@ class Lagrangian {
                 this.allParamKeys.push(allKeys[i]);
             }
         }
+    }
+
+    addBCFunc(bcFunc) {
+        this.bcFunc = bcFunc;
+    }
+
+    removeBCFunc() {
+        this.bcFunc = GF.DoNothing;
     }
 }
