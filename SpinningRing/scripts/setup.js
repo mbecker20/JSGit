@@ -27,53 +27,19 @@ window.addEventListener('DOMContentLoaded', function(){
         //setup gui
         window.gui = UI.MakeGUI(canvas);
 
-        var grid = BF.MakeGridXZ([-10,0,-10], 20, 2, 2);
-
         //initialize animation classes
         var shadowQual = 1024;
         var cycle = new Cycle(scene, myMats, shadowQual);
 
-        var bouncyBall = new BouncyBall(scene, myMats, cycle.shadows, window.gui);
-        bouncyBall.deactivate();
-
-        //var anim2 = new Anim2(scene, myMats, shadows);
-        //anim2.node.position = grid[1];
-
-        //var anim3 = new Anim3(scene, myMats, shadows);
-        //anim3.node.position = grid[0][0];
-
-        var dancingTHandle = new DancingTHandle(scene, myMats, cycle.shadows, window.gui);
-        dancingTHandle.deactivate();
-        //anim4.node.position = grid[1][1];
-
-        //var anim5 = new Anim5(scene, myMats, shadows);
-        //anim5.node.position = grid[1][0];
-
-        //var anim6 = new Anim6(scene, myMats, shadows);
-        //anim6.node.position = BF.Vec3([0,0,20]);
-
-        var ptw = new PendTugOfWar(scene, myMats, cycle.shadows, window.gui);
-        ptw.deactivate();
-        //anim7.node.position = grid[1][0];
-
         var spinningRing = new SpinningRing(scene, myMats, cycle.shadows, window.gui);
-        spinningRing.deactivate();
-
-        var multiPend = new MultiPend(scene, myMats, cycle.shadows, gui, 5);
-        multiPend.params.theta0 = 2;
-        //multiPend.deactivate();
 
         var anims = {
-            'multi pendulum': multiPend, 
-            'pendulum tug of war': ptw, 
-            'mass on a ring': spinningRing,
-            'bouncy ball': bouncyBall,
-            'dancing T handle': dancingTHandle
+            'mass on a ring': spinningRing
         };
 
-        var animState = {activeAnim: multiPend, anims: anims};
+        var animState = {activeAnim: spinningRing, anims: anims};
 
-        UI.MakeChooseAnimMenu(animState, window.gui);
+        window.gui.mainMenu.addControl('settingsButton', spinningRing.guiMenu.parentButton);
 
         scene.registerAfterRender(function () {
             cycle.step();

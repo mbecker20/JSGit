@@ -9,7 +9,7 @@ class UI {
     static SMALLH = '30px';
 
     static SVWIDTH = '270px';
-    static SVHEIGHT = '300px';
+    static SVHEIGHT = '350px';
     static SVBARSIZE = 15;
 
     static SUBMENUW = '250px';
