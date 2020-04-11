@@ -1212,6 +1212,7 @@ class MultiPend {
         names.push('numPendSlider');
         controls.push(numPendSlider);
 
+        /*
         var bcButton = UI.MakeDualButton('bcBut', 'turn on BC', 'turn off BC', function() {
             anim.imposeBC = GF.DoNothing;
             anim.guiMenu.hideControl('colMultSP');
@@ -1221,6 +1222,7 @@ class MultiPend {
         })
         names.push('bcButton');
         controls.push(bcButton);
+        */
 
         var colMultSP = UI.MakeSliderPanelPrecise('col velocity mult', '', 0, 1, this.collisionVelocityMult, function(value) {
             anim.collisionVelocityMult = value;
