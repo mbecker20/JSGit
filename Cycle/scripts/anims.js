@@ -463,6 +463,19 @@ class PendVsMass {
         names.push('kick');
         controls.push(kick);
 
+        // mass sliders
+        var mSphereSliderPanel = UI.MakeSliderPanel('sphere mass', '', .1, 5, anim.pConst.mSphere, function(value) {
+            anim.pConst.mSphere = value;
+        });
+        names.push('mSphereSP');
+        controls.push(mSphereSliderPanel);
+
+        var mCubeSliderPanel = UI.MakeSliderPanel('cube mass', '', .1, 5, anim.pConst.mCube, function(value) {
+            anim.pConst.mCube = value;
+        });
+        names.push('mCubeSP');
+        controls.push(mCubeSliderPanel);
+
         //theta damping slider
         var thetaDS = UI.MakeSliderPanelPrecise('theta damping', '', 0, .5, this.damping.thetaDot, function(value) {
             anim.damping.thetaDot = value;
