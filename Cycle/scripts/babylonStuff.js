@@ -364,7 +364,10 @@ class MyMats {
         this.blueWavy.diffuseTexture = new BABYLON.Texture("https://i.imgur.com/CRfSAXN.png", scene);
 
         this.wArrow = new BABYLON.StandardMaterial("wArrow", scene);
-        this.wArrow.diffuseTexture = new BABYLON.Texture("https://i.imgur.com/kczDhDm.png", scene);
+        this.wArrow.diffuseTexture = new BABYLON.Texture("https://i.imgur.com/HhdoVoA.png", scene);
+
+        this.wArrow2 = new BABYLON.StandardMaterial("wArrow2", scene);
+        this.wArrow2.diffuseTexture = new BABYLON.Texture("https://i.imgur.com/kczDhDm.png", scene);
 
         this.xAxis = new BABYLON.StandardMaterial("xAxis", scene);
         this.xAxis.diffuseColor = new BABYLON.Color3(1,0,0);
@@ -390,7 +393,11 @@ class MyMats {
 
         this.darkMoon = new BABYLON.StandardMaterial('darkMoon', scene);
         this.darkMoon.diffuseTexture = this.moon.diffuseTexture;
-        this.darkMoon.emissiveColor = Colors.RGB(0,50,30);
+        this.darkMoon.emissiveColor = Colors.RGB(0,10,10);
+
+        this.galaxy = new BABYLON.StandardMaterial('galaxy', scene);
+        this.galaxy.diffuseTexture = new BABYLON.Texture('https://i.imgur.com/eZiIipX.png', scene);
+        this.galaxy.emissiveColor = Colors.RGB(100,100,100);
 
         this.jupiter = new BABYLON.StandardMaterial('jupiter', scene);
         this.jupiter.diffuseTexture = new BABYLON.Texture('https://i.imgur.com/wAGQBuU.png', scene);

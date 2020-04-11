@@ -2,7 +2,7 @@ class BouncyBall {
     constructor(scene, myMats, shadows, gui) {
         this.node = new BABYLON.TransformNode('anim1Node', scene);
 
-        this.r=3;
+        this.r=4;
         this.sphere = BABYLON.MeshBuilder.CreateSphere('sphere1', {segments:16, diameter:2}, scene);
         this.sphere.position = BF.Vec3([0, 2*this.r, 0]);
         this.sphere.material = myMats.darkMoon;
@@ -267,7 +267,7 @@ class DancingTHandle {
         this.dt = .008;
         this.g = 0;
 
-        makePhysBody(scene, this.tHandle, BF.ZeroVec3(), [80,80,1200], .1, this.dt);
+        makePhysBody(scene, this.tHandle, BF.ZeroVec3(), [-80,-80,-1200], .1, this.dt);
         this.tHandle.p = BF.Vec3([0, 7, 0]);
         this.tHandle.position = this.tHandle.p;
         this.tHandle.wArrow.pointer.material = myMats.wArrow;
@@ -316,26 +316,13 @@ class DancingTHandle {
     }
 }
 
-class Anim5 {
-    constructor(scene, myMats, shadows) {
+class PendVsMass {
+    constructor(scene, myMats, shadows, gui) {
         // sphere swings, cube up and down
         this.node = new BABYLON.TransformNode('anim4Node', scene);
 
         // setup lagrangian update system
-        function lFunc(p, pConst) {
-            var t1 = (1/2)*(pConst.mSphere + pConst.mCube)*MF.Square(p.lDot);
-            var t2 = (1/2)*pConst.mSphere*MF.Square(p.l*p.thetaDot);
-            var t3 = pConst.g*p.l*(pConst.mSphere*Math.cos(p.theta) - pConst.mCube);
-            return t1 + t2 + t3;
-        }
-
-        this.dt = .01;
-        this.stepsPerFrame = 2;
-        this.params = {l: 8, lDot: 3, theta: 1, thetaDot: 2};
-        this.pConst = {mSphere: 1.3, mCube: 1.5, g: 10};
-        this.lTot = 10;
-        this.damping = {lDot: .01, thetaDot: .01};
-        this.lagrangian = new SplitLagrangian(this.getLFuncs(), this.params, this.pConst, this.damping);
+        this.setupLagrangian();
 
         // setup meshes
         this.setupMeshs(scene);
@@ -353,25 +340,38 @@ class Anim5 {
 
         // set initial position of everything
         this.setPos();
+
+        this.setupGUIMenu(gui, this);
     }
 
     getLFuncs() {
         function t0(p, pConst) {
-            this.paramKeys = ['lDot'];
             return .5*(pConst.mSphere + pConst.mCube)*MF.Square(p.lDot);
         }
+        t0.paramKeys = ['lDot'];
 
         function t1(p, pConst) {
-            this.paramKeys = ['l', 'thetaDot'];
             return .5*pConst.mSphere*MF.Square(p.l*p.thetaDot);
         }
+        t1.paramKeys = ['l', 'thetaDot'];
 
         function t2(p, pConst) {
-            this.paramKeys = ['l', 'theta'];
             return pConst.g*p.l*(pConst.mSphere*Math.cos(p.theta) - pConst.mCube);
         }
+        t2.paramKeys = ['l', 'theta'];
 
         return [t0, t1, t2];
+    }
+
+    setupLagrangian() {
+        this.dt = .02;
+        this.stepsPerFrame = 1;
+        this.collisionVelocityMult = .2;
+        this.params = {l: 8, lDot: 3, theta: 1, thetaDot: 2};
+        this.pConst = {mSphere: 1.3, mCube: 1.5, g: 10};
+        this.lTot = 14;
+        this.damping = {lDot: .01, thetaDot: .01};
+        this.lagrangian = new Lagrangian(this.getLFuncs(), this.params, this.pConst, this.damping);
     }
 
     setPos() {
@@ -396,36 +396,37 @@ class Anim5 {
         // updates params based on boundary conditions
         if(this.params.l > this.lMax) {
             this.params.l = this.lMax;
-            this.params.lDot = this.lagrangian.pDD.l * this.dt;
+            this.params.lDot = - this.collisionVelocityMult * this.params.lDot;
         } else if(this.params.l < this.lMin) {
             this.params.l = this.lMin;
-            this.params.lDot = this.lagrangian.pDD.l * this.dt;
+            this.params.lDot = - this.collisionVelocityMult * this.params.lDot;
         }
     }
 
     setupMeshs(scene) {
-        this.ground = BABYLON.MeshBuilder.CreateGround('ground4', {width:10,height:10}, scene);
+        this.ground = BABYLON.MeshBuilder.CreateGround('ground4', {width:20,height:20}, scene);
         this.ground.receiveShadows = true;
 
-        this.sphereR = 1;
+        this.sphereR = 1.5;
         this.sphere = BF.MakeSphere('sphere5', scene, 2 * this.sphereR);
 
-        this.cubeR = 1;
+        this.cubeR = 1.5;
         this.cube = BABYLON.MeshBuilder.CreateBox('cube5', {size: 2 * this.cubeR}, scene);
         this.cube.receiveShadows = true;
 
-        this.spherePivR = .5
+        this.spherePivR = .75
         this.spherePiv = BF.MakeCylinder('spherePiv', scene, .5, 2 * this.spherePivR);
         this.spherePiv.rotation.x = Math.PI/2;
         
-        this.cubePivR = .5;
+        this.cubePivR = .75;
         this.cubePiv = BF.MakeCylinder('cubePiv', scene, .5, 2 * this.cubePivR);
         this.cubePiv.rotation.x = Math.PI/2;
 
         BF.BakeMeshs([this.spherePiv, this.cubePiv]);
 
-        this.spherePiv.position = BF.Vec3([0, 12, -2]);
-        this.cubePiv.position = BF.Vec3([0, 12, 2]);
+        var pivHeight = 15
+        this.spherePiv.position = BF.Vec3([0, pivHeight, -2]);
+        this.cubePiv.position = BF.Vec3([0, pivHeight, 2]);
         
         this.topRope = BF.MakeTube('topRope', scene, .25);
         this.topRope.scaling.x = 4;
@@ -446,128 +447,40 @@ class Anim5 {
     }
 
     setMaterials(myMats) {
-        this.ground.material = myMats.wArrow;
-        this.sphere.material = myMats.darkMoon;
-        this.cube.material = myMats.darkMoon;
-        this.spherePiv.material = myMats.darkMoon;
-        this.cubePiv.material = myMats.darkMoon;
-        this.topRope.material = myMats.wArrow;
-        this.sphereRope.material = myMats.wArrow;
-        this.cubeRope.material = myMats.wArrow;
-    }
-}
-
-class DoublePend {
-    //double pendulum 
-    constructor(scene, myMats, shadows) {
-        // initialized node used as local origin for this anim
-        this.node = BF.MakeTransformNode('node6', scene);
-
-        // set up Lagrangian Physics update system by defining the lagrangian function
-        function lFunc(p, pConst) {
-            var t1 = (1/2)*(pConst.m1 + pConst.m2)*MF.Square(pConst.l1*p.thetaDot);
-            var t2 = (1/2)*pConst.m2*(MF.Square(pConst.l2*p.phiDot) + 2*pConst.l1*pConst.l2*Math.cos(p.theta-p.phi)*p.thetaDot*p.phiDot);
-            var t3 = (pConst.m1 + pConst.m2)*pConst.g*pConst.l1*Math.cos(p.theta);
-            var t4 = pConst.m2*pConst.g*pConst.l2*Math.cos(p.phi);
-            return t1 + t2 + t3 + t4;
-        }
-
-        //setup parameters used by Lagrangian system;
-        this.params = {theta: 4, thetaDot: -1, phi: 5, phiDot: 0};
-        this.pConst = {m1: 2, m2: 2, l1: 5, l2: 4, g:10};
-        this.damping = {thetaDot: 0, phiDot: 0};
-        this.lagrangian = new SplitLagrangian(this.getLFuncs(), this.params, this.pConst, this.damping, .01);
-
-        this.dt = .008;
-        this.stepsPerFrame = 2;
-
-        // initialize meshes
-        this.setupMeshs(scene);
-
-        // set materials
-        this.setMaterials(myMats);
-
-        BF.ForceCompileMaterials([this.sphere, this.m1, this.m2, this.l1, this.l2]);
-        BF.ConnectMeshsToShadows([this.sphere, this.m1, this.m2, this.l1, this.l2], shadows);
-
-        this.setPos();
+        BF.SetMaterial(myMats.wArrow, [this.ground, this.topRope, this.sphereRope, this.cubeRope]);
+        BF.SetMaterial(myMats.galaxy, [this.sphere, this.cube, this.spherePiv, this.cubePiv]);
     }
 
-    step() {
-        this.lagrangian.stepCorrected(this.dt, this.stepsPerFrame);
-        this.setPos();
+    setupGUIMenu(gui, anim) {
+        this.guiMenu = UI.MakeSubMenu('sim settings', gui.mainMenu, gui);
+
+        var names = [];
+        var controls = [];
+
+        var kick = UI.MakeButton('kick', 'kick', function() {
+            anim.params.thetaDot += 2;
+        });
+        names.push('kick');
+        controls.push(kick);
+
+        //theta damping slider
+        var thetaDS = UI.MakeSliderPanelPrecise('theta damping', '', 0, .5, this.damping.thetaDot, function(value) {
+            anim.damping.thetaDot = value;
+        });
+        names.push('thetaDS');
+        controls.push(thetaDS);
+
+        this.guiMenu.addControls(names, controls);
     }
 
-    getLFuncs() {
-        function l0(p, pConst) {
-            return .5*(pConst.m1 + pConst.m2)*MF.Square(pConst.l1*p.thetaDot);
-        }
-        l0.paramKeys = ['thetaDot'];
-        function l1(p, pConst) {
-            return .5*pConst.m2*MF.Square(pConst.l2*p.phiDot);
-        }
-        l1.paramKeys = ['phiDot'];
-        function l2(p, pConst) {
-            return pConst.m2*pConst.l1*pConst.l2*Math.cos(p.theta-p.phi)*p.thetaDot*p.phiDot;
-        }
-        l2.paramKeys = ['theta', 'phi', 'thetaDot', 'phiDot'];
-        function l3(p, pConst) {
-            return (pConst.m1 + pConst.m2)*pConst.g*pConst.l1*Math.cos(p.theta);
-        }
-        l3.paramKeys = ['theta'];
-        function l4(p, pConst) {
-            return pConst.m2*pConst.g*pConst.l2*Math.cos(p.phi);
-        }
-        l4.paramKeys = ['phi'];
-
-        return [l0, l1, l2, l3, l4]
+    activate() {
+        this.node.setEnabled(true);
+        this.guiMenu.parentButton.isVisible = true;
     }
 
-    setPos() {
-        var m1Pos = math.multiply([Math.sin(this.params.theta), -Math.cos(this.params.theta), 0], this.pConst.l1);
-        var m2RelPos = math.multiply([Math.sin(this.params.phi), -Math.cos(this.params.phi), 0], this.pConst.l2);
-        var m2Pos = math.add(m1Pos, m2RelPos);
-        this.m1.position = BF.Vec3(m1Pos);
-        this.m1.rotation.z = this.params.theta;
-        this.l1.rotation.z = this.params.theta;
-
-        this.m2.position = BF.Vec3(m2Pos);
-        this.m2.rotation.z = this.params.phi;
-        this.l2.position = this.m1.position;
-        this.l2.rotation.z = this.params.phi;
-    }
-
-    setupMeshs(scene) {
-        this.sphere = BF.MakeSphere('sphere6', scene, 1); // the anchor of the double pend
-        this.sphere.position.y = 15;
-
-        this.m1 = BF.MakeCylinder('cylinder61', scene, .5, Math.sqrt(this.pConst.m1));
-        this.m1.rotation.x = Math.PI/2;
-
-        this.m2 = BF.MakeCylinder('cylinder61', scene, .5, Math.sqrt(this.pConst.m2));
-        this.m2.rotation.x = Math.PI/2;
-
-        this.l1 = BF.MakeTube('l1', scene, .25);
-        this.l1.scaling.x = this.pConst.l1;
-        this.l1.rotation.z = -Math.PI/2;
-
-        this.l2 = BF.MakeTube('l2', scene, .25);
-        this.l2.scaling.x = this.pConst.l2;
-        this.l2.rotation.z = -Math.PI/2; // orients tube along -y axis;
-
-        BF.BakeMeshs([this.m1, this.m2, this.l1, this.l2]);
-
-        // use sphere as origin for rest of objects, force compile materials, connect meshs to shadows
-        BF.SetChildren(this.node, [this.sphere]);
-        BF.SetChildren(this.sphere, [this.m1, this.m2, this.l1, this.l2]);
-    }
-
-    setMaterials(myMats) {
-        this.sphere.material = myMats.darkMoon;
-        this.m1.material = myMats.darkMoon;
-        this.m2.material = myMats.darkMoon;
-        this.l1.material = myMats.wArrow;
-        this.l2.material = myMats.wArrow;
+    deactivate() {
+        this.node.setEnabled(false);
+        this.guiMenu.parentButton.isVisible = false;
     }
 }
 
@@ -601,8 +514,8 @@ class PendTugOfWar {
     setupLagrangian() {
         this.dt = .02;
         this.stepsPerFrame = 1;
-        this.params = {l: 6, lDot: 3, theta: 1, thetaDot: 2, phi: 0, phiDot: 10};
-        this.pConst = {mSphere: 1.1, mCube: 1, g: 10, lTot: 10, rSphere: 1, sCube: 2};
+        this.params = {l: 6, lDot: 3, theta: 1, thetaDot: 2, phi: 0, phiDot: 3};
+        this.pConst = {mSphere: 1.1, mCube: 1, g: 10, lTot: 14, rSphere: 1.5, sCube: 3};
         this.damping = {lDot: .01, thetaDot: .01, phiDot: .01};
         this.pConst.sphereIcm = this.pConst.mSphere * (2/5) * MF.Square(this.pConst.rSphere);
         this.pConst.cubeIcm = this.pConst.mCube * (1/6) * MF.Square(this.pConst.sCube);
@@ -663,18 +576,19 @@ class PendTugOfWar {
         this.cube = BABYLON.MeshBuilder.CreateBox('cube5', {size: this.pConst.sCube}, scene);
         this.cube.receiveShadows = true;
 
-        this.spherePivR = .5
+        this.spherePivR = .75
         this.spherePiv = BF.MakeCylinder('spherePiv', scene, .5, 2 * this.spherePivR);
         this.spherePiv.rotation.x = Math.PI/2;
         
-        this.cubePivR = .5;
+        this.cubePivR = .75;
         this.cubePiv = BF.MakeCylinder('cubePiv', scene, .5, 2 * this.cubePivR);
         this.cubePiv.rotation.x = Math.PI/2;
 
         BF.BakeMeshs([this.spherePiv, this.cubePiv]);
 
-        this.spherePiv.position = BF.Vec3([0, 12, -3]);
-        this.cubePiv.position = BF.Vec3([0, 12, 3]);
+        var pivHeight = 15;
+        this.spherePiv.position = BF.Vec3([0, pivHeight, -3]);
+        this.cubePiv.position = BF.Vec3([0, pivHeight, 3]);
         
         this.topRope = BF.MakeTube('topRope', scene, .25);
         this.topRope.scaling.x = 6;
@@ -805,7 +719,7 @@ class SpinningRing {
         this.stepsPerFrame = 1;
 
         this.params = {theta: 1, thetaDot: 2, phi: 0, phiDot: 2};
-        this.pConst = {mSphere: 1, rSphere: 1, mRing: 1, rRing: 6, g: 10};
+        this.pConst = {mSphere: 1, rSphere: 1, mRing: 1, rRing: 7, g: 10};
         this.setConstants(this.pConst);
         this.damping = {thetaDot: 0.01, phiDot: 0.01};
 

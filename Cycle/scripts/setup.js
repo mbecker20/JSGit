@@ -14,7 +14,7 @@ window.addEventListener('DOMContentLoaded', function(){
         var camPos = BF.Vec3([22, 16, -22]);
         window.camera = new BABYLON.FlyCamera('camera1', camPos, scene);
         window.camera=setUpFlyCam(window.camera, canvas);
-        window.camera.setTarget(BF.Vec3([0,4,0]));
+        window.camera.setTarget(BF.Vec3([0,7,0]));
         //window.camera.setTarget(BF.Vec3([0,7,20]));
 
         //setup scene environment
@@ -27,7 +27,7 @@ window.addEventListener('DOMContentLoaded', function(){
         //setup gui
         window.gui = UI.MakeGUI(canvas);
 
-        var grid = BF.MakeGridXZ([-10,0,-10], 20, 2, 2);
+        //var grid = BF.MakeGridXZ([-10,0,-10], 20, 2, 2);
 
         //initialize animation classes
         var shadowQual = 1024;
@@ -46,7 +46,8 @@ window.addEventListener('DOMContentLoaded', function(){
         dancingTHandle.deactivate();
         //anim4.node.position = grid[1][1];
 
-        //var anim5 = new Anim5(scene, myMats, shadows);
+        var pendVsMass = new PendVsMass(scene, myMats, cycle.shadows, window.gui);
+        pendVsMass.deactivate();
         //anim5.node.position = grid[1][0];
 
         //var anim6 = new Anim6(scene, myMats, shadows);
@@ -64,7 +65,8 @@ window.addEventListener('DOMContentLoaded', function(){
         //multiPend.deactivate();
 
         var anims = {
-            'multi pendulum': multiPend, 
+            'multi pendulum': multiPend,
+            'pend vs mass': pendVsMass, 
             'pendulum tug of war': ptw, 
             'mass on a ring': spinningRing,
             'bouncy ball': bouncyBall,
