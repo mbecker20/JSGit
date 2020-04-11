@@ -291,6 +291,43 @@ class UI {
         return sliderPanel
     }
 
+    static MakeIntSliderPanel(headerText, unit, minVal, maxVal, initVal, valChangeFn) {
+        // makes slider panel. header above slider.
+        // header becomes 'headerText: val unit'
+        // unit is string representing units ('degrees' or 'radians')
+        // valChangeFn is function(value) that updates whatever the slider updates
+        // valChangeFn does not need to change header as this is done here
+        var sliderPanel = UI.MakePanel();
+        UI.AdaptContainerWidth(sliderPanel);
+
+        var header = UI.MakeTextBlock(headerText + ': ' + initVal + ' ' + unit, 20);
+        header.height = '30px';
+        header.width = '250px';
+
+
+        var slider = new BABYLON.GUI.Slider();
+        slider.minimum = minVal;
+        slider.maximum = maxVal;
+        slider.value = initVal;
+        slider.onValueChangedObservable.add(function(value) {
+            header.text = headerText + ': ' + Math.round(value) + ' ' + unit;
+            valChangeFn(Math.round(value));
+        });
+        slider.height = '30px';
+        slider.width = '250px';
+        slider.color = 'grey'
+        slider.background = 'black'
+        slider.borderColor = 'white'
+        slider.isThumbCircle = true;
+        slider.thumbWidth = 30;
+
+
+        UI.SetControlsPadding([header, slider], 2);
+        UI.AddControlsToTarget([header, slider], sliderPanel);
+
+        return sliderPanel
+    }
+
     static MakeChooseAnimPanel(animState) {
         var caPanel = UI.MakePanel();
         var caSubPanel = UI.MakePanel();
@@ -470,7 +507,7 @@ class UI {
         return panel;
     }
 
-    static MakeScrollViewer(name = '') {
+    static MakeScrollViewer(name = 'sv') {
         var sv = new BABYLON.GUI.ScrollViewer(name);
         sv.width = UI.SVWIDTH;
         sv.height = UI.SVHEIGHT;

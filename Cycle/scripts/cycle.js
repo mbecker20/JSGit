@@ -55,7 +55,7 @@ class Cycle {
     }
 
     ambientIntensity(t, w) {
-        return .4*(1+.6*Math.sin(w*t)) //sun rising at t = 0;
+        return .5*(1+.4*Math.sin(w*t)) //sun rising at t = 0;
     }
 
     setupMeshs(scene, myMats, shadows) {

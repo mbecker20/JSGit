@@ -393,11 +393,11 @@ class MyMats {
 
         this.darkMoon = new BABYLON.StandardMaterial('darkMoon', scene);
         this.darkMoon.diffuseTexture = this.moon.diffuseTexture;
-        this.darkMoon.emissiveColor = Colors.RGB(0,10,10);
+        this.darkMoon.emissiveColor = Colors.RGB(100,100,100);
 
         this.galaxy = new BABYLON.StandardMaterial('galaxy', scene);
         this.galaxy.diffuseTexture = new BABYLON.Texture('https://i.imgur.com/eZiIipX.png', scene);
-        this.galaxy.emissiveColor = Colors.RGB(100,100,100);
+        this.galaxy.emissiveColor = Colors.RGB(150,150,150);
 
         this.jupiter = new BABYLON.StandardMaterial('jupiter', scene);
         this.jupiter.diffuseTexture = new BABYLON.Texture('https://i.imgur.com/wAGQBuU.png', scene);

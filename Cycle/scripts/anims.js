@@ -140,7 +140,7 @@ class BouncyBall {
     }
 }
 
-class Anim2 {
+class RotatingBlock {
     constructor(scene, myMats, shadows) {
         this.node = new BABYLON.TransformNode('anim2Node', scene);
 
@@ -180,7 +180,7 @@ class Anim2 {
     }
 }
 
-class Anim3 {
+class SpinningRingDerived {
     // rotating ring with derived diff eq
     constructor(scene, myMats, shadows) {
         // make local origin of anim
@@ -974,14 +974,15 @@ class SpinningRing {
 }
 
 class MultiPend {
-    constructor(scene, myMats, shadows, gui, numPend) {
+    constructor(scene, myMats, shadows, gui) {
         // make node
         this.node = BF.MakeTransformNode('multiPendNode', scene);
 
-        this.numPend = numPend;
+        this.numPend = 4;
+        this.maxNumPend = 8;
         this.l = 3;
         this.m = .3; // controls radius of cylinder
-        this.dampingVal = .35;
+        this.dampingVal = .2;
 
         // setup lagrangian update system
         this.setupLagrangian();
@@ -1003,7 +1004,7 @@ class MultiPend {
         this.pConst = {g: 10};
         this.damping = {};
         
-        for(var i = 0; i < this.numPend; i++) {
+        for(var i = 0; i < this.maxNumPend; i++) {
             this.params['theta' + i] = 0;
             this.params['theta' + i + 'Dot'] = 0;
             this.pConst['l' + i] = this.l;
@@ -1011,33 +1012,52 @@ class MultiPend {
             this.damping['theta' + i + 'Dot'] = this.dampingVal;
         }
 
-        this.setConstants(this.pConst);
+        this.setPConsts(this.pConst);
 
         var dx = .01;
-        this.lagrangian = new Lagrangian(this.makeLFuncs(), this.params, this.pConst, this.damping, dx); 
+        this.makeLagrangians(dx);
+        this.activeLagrangian = this.lagrangians['l' + (this.numPend - 1)];
     }
 
-    setConstants(pConst) {
-        for(var i = 0; i < this.numPend; i++) {
+    makePConst(mainPConst, numPend) {
+        var pConst = {};
+        for(var i = 0; i < numPend; i++) {
             var c = 0;
-            for(var j = i; j < this.numPend; j++) {
-                c += pConst['m' + j];
+            for(var j = i; j < numPend; j++) {
+                c += mainPConst['m' + j];
             }
             pConst['massSum' + i] = c;
-            pConst['tC' + i] = .5 * c;
-            pConst['uC' + i] = pConst.g * c * pConst['l' + i];
+            pConst['tC' + i] = .5 * c * MF.Square(mainPConst['l' + i]);
+            pConst['uC' + i] = mainPConst.g * c * mainPConst['l' + i];
             for(var j = 0; j < i; j++) {
-                pConst['tcC' + i + j] = c * pConst['l' + i] * pConst['l' + j];
+                pConst['tcC' + i + j] = c * mainPConst['l' + i] * mainPConst['l' + j];
             }
+        }
+        return pConst;
+    }
+
+    setPConsts(mainPConst) {
+        this.pConsts = {};
+        for(var i = 0; i < this.maxNumPend; i++) {
+            var numPend = i + 1;
+            this.pConsts['pc' + i] = this.makePConst(mainPConst, numPend);
         }
     }
 
-    makeLFuncs() {
+    makeLagrangians(dx) {
+        this.lagrangians = {};
+        for(var i = 0; i < this.maxNumPend; i++) {
+            var numPend = i + 1;
+            this.lagrangians['l' + i] = new Lagrangian(this.makeLFuncs(numPend), this.params, this.pConsts['pc' + i], this.damping, dx); 
+        }
+    }
+
+    makeLFuncs(numPend) {
         var lFuncs = [];
 
         lFuncs.push(this.makeTFunc(0), this.makeUFunc(0));
 
-        for(var i = 1; i < this.numPend; i++) {
+        for(var i = 1; i < numPend; i++) {
             lFuncs.push(this.makeTFunc(i), this.makeUFunc(i));
             for(var j = 0; j < i; j++) {
                 lFuncs.push(this.makeTCrossFunc(i, j));
@@ -1049,7 +1069,7 @@ class MultiPend {
 
     makeTFunc(i) {
         var tFunc = function(p, pConst) {
-            return pConst['tC' + i] * MF.Square(pConst['l'+i] * p['theta'+i+'Dot']);
+            return pConst['tC' + i] * MF.Square(p['theta'+i+'Dot']);
         }   
         tFunc.paramKeys = ['theta'+i+'Dot'];
         return tFunc;
@@ -1077,14 +1097,14 @@ class MultiPend {
 
         var topSphereR = .5;
         this.topSphere = BF.MakeSphere('multiPendTopSphere', scene, 2 * topSphereR);
-        this.topSphere.position = BF.Vec3([0, this.numPend*this.l + 1, 0]);
+        this.topSphere.position.y = this.numPend*this.l + 1;
         BF.SetChildren(this.node, [this.ground, this.topSphere]);
 
         var allMeshes = [this.ground, this.topSphere];
         this.pivots = [];
         this.masses = [];
         this.rods = [];
-        for(var i = 0; i < this.numPend; i++) {
+        for(var i = 0; i < this.maxNumPend; i++) {
             var piv = BF.MakeTransformNode('pivot'+i, scene);
             piv.parent = this.topSphere;
             var mass = this.makeMass(piv, i, scene);
@@ -1096,6 +1116,8 @@ class MultiPend {
         }
 
         BF.ConnectMeshsToShadows(allMeshes, shadows);
+
+        this.setPendVisibility(this.numPend);
     }
 
     makeMass(piv, i, scene) {
@@ -1120,7 +1142,7 @@ class MultiPend {
         this.ground.material = myMats.wArrow;
         this.topSphere.material = myMats.darkMoon;
         BF.ForceCompileMaterials([this.ground, this.topSphere]);
-        for(var i = 0; i < this.numPend; i++) {
+        for(var i = 0; i < this.maxNumPend; i++) {
             this.masses[i].material = myMats.sun;
             this.rods[i].material = myMats.wArrow;
             BF.ForceCompileMaterials([this.masses[i], this.rods[i]]);
@@ -1144,7 +1166,7 @@ class MultiPend {
     }
 
     step() {
-        this.lagrangian.step(this.dt, this.stepsPerFrame);
+        this.activeLagrangian.step(this.dt, this.stepsPerFrame);
         this.setPos();
     }
 
@@ -1154,14 +1176,32 @@ class MultiPend {
         }
     }
 
+    setPendVisibility(numPend) {
+        BF.ShowMeshs(this.pivots.slice(1,numPend));
+        BF.HideMeshs(this.pivots.slice(numPend));
+    }
+
+    updateNumberOfPends(numPend) {
+        this.numPend = numPend;
+        this.topSphere.position.y = this.numPend * this.l + 1;
+        this.setPendVisibility(numPend);
+        this.activeLagrangian = this.lagrangians['l' + (numPend - 1)];
+    }
+
     setupGUIMenu(gui, anim) {
         this.guiMenu = UI.MakeSubMenu('sim settings', gui.mainMenu, gui);
 
         var names = [];
         var controls = [];
 
+        var numPendSlider = UI.MakeIntSliderPanel('number of masses', '', 1, this.maxNumPend, this.numPend, function(value) {
+            anim.updateNumberOfPends(value);
+        });
+        names.push('numPendSlider');
+        controls.push(numPendSlider);
+
         var kick0 = UI.MakeButton('kick0', 'kick', function() {
-            anim.params.theta0Dot += 2;
+            anim.params.theta0Dot += 1;
         });
         names.push('kick0');
         controls.push(kick0);
