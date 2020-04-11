@@ -10,6 +10,9 @@ class UI {
 
     static SVWIDTH = '270px';
     static SVHEIGHT = '300px';
+    static SVBARSIZE = 15;
+
+    static SUBMENUW = '250px';
 
     // makes the main gui object
     static MakeGUI(canvas) {
@@ -120,7 +123,9 @@ class UI {
         menu.sv = UI.MakeScrollViewer();
         menu.panel.addControl(menu.sv);
         
-        menu.svPanel = UI.MakePanel(true, false);
+        menu.svPanel = UI.MakePanel(true, false, false);
+        //menu.svPanel.background = 'white';
+        menu.svPanel.width = UI.SUBMENUW;
         menu.sv.addControl(menu.svPanel);
 
         menu.panel.top = 30;
@@ -469,8 +474,8 @@ class UI {
         var sv = new BABYLON.GUI.ScrollViewer(name);
         sv.width = UI.SVWIDTH;
         sv.height = UI.SVHEIGHT;
-        sv.barSize = 20;
-        sv.color = 'white'
+        sv.barSize = UI.SVBARSIZE;
+        sv.color = 'black';
         return sv;
     }
 
