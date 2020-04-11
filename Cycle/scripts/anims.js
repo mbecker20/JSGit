@@ -457,11 +457,13 @@ class PendVsMass {
         var names = [];
         var controls = [];
 
-        var kick = UI.MakeButton('kick', 'kick', function() {
-            anim.params.thetaDot += 2;
+        var kickSpherePanel = UI.MakeTwoButtonPanel('kickSphere+', 'kick sphere +', function() {
+            anim.params.thetaDot += 1;
+        }, 'kickSphere-', 'kick sphere -', function() {
+            anim.params.thetaDot -= 1;
         });
-        names.push('kick');
-        controls.push(kick);
+        names.push('kickSphereP');
+        controls.push(kickSpherePanel);
 
         // mass sliders
         var mSphereSliderPanel = UI.MakeSliderPanel('sphere mass', '', .1, 5, anim.pConst.mSphere, function(value) {
@@ -475,6 +477,13 @@ class PendVsMass {
         });
         names.push('mCubeSP');
         controls.push(mCubeSliderPanel);
+
+        //collision mult slider
+        var colMultSP = UI.MakeSliderPanelPrecise('collision elasticity', '', .05, .95, this.collisionVelocityMult, function(value) {
+            anim.collisionVelocityMult = value;
+        });
+        names.push('colMultSP');
+        controls.push(colMultSP);
 
         //theta damping slider
         var thetaDS = UI.MakeSliderPanelPrecise('theta damping', '', 0, .5, this.damping.thetaDot, function(value) {
@@ -673,18 +682,25 @@ class PendTugOfWar {
         names.push('mCubeSP');
         controls.push(mCubeSliderPanel);
 
+        //collision mult slider
+        var colMultSP = UI.MakeSliderPanelPrecise('collision elasticity', '', .05, .95, this.collisionVelocityMult, function(value) {
+            anim.collisionVelocityMult = value;
+        });
+        names.push('colMultSP');
+        controls.push(colMultSP);
+
         var kickSpherePanel = UI.MakeTwoButtonPanel('kickSphere+', 'kick sphere +', function() {
-            anim.params.thetaDot += 2;
+            anim.params.thetaDot += 1;
         }, 'kickSphere-', 'kick sphere -', function() {
-            anim.params.thetaDot -= 2;
+            anim.params.thetaDot -= 1;
         });
         names.push('kickSphereP');
         controls.push(kickSpherePanel);
 
         var kickCubePanel = UI.MakeTwoButtonPanel('kickCube+', 'kick cube +', function() {
-            anim.params.phiDot += 2;
+            anim.params.phiDot += 1;
         }, 'kickCube-', 'kick cube -', function() {
-            anim.params.phiDot -= 2;
+            anim.params.phiDot -= 1;
         });
         names.push('kickCubeP');
         controls.push(kickCubePanel);
