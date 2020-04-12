@@ -487,6 +487,10 @@ class GF {
     static BothStringsIn(str1, str2, ar) {
         return (GF.StringIn(str1, ar) && GF.StringIn(str2, ar));
     }
+
+    static DoNothing() {
+        // does nothing
+    }
 }
 
 class FuncBuffer {

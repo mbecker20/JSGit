@@ -14,7 +14,7 @@ window.addEventListener('DOMContentLoaded', function(){
         var camPos = BF.Vec3([22, 16, -22]);
         window.camera = new BABYLON.FlyCamera('camera1', camPos, scene);
         window.camera=setUpFlyCam(window.camera, canvas);
-        window.camera.setTarget(BF.Vec3([0,4,0]));
+        window.camera.setTarget(BF.Vec3([0,7,0]));
         //window.camera.setTarget(BF.Vec3([0,7,20]));
 
         //setup scene environment
@@ -27,19 +27,22 @@ window.addEventListener('DOMContentLoaded', function(){
         //setup gui
         window.gui = UI.MakeGUI(canvas);
 
+        //var grid = BF.MakeGridXZ([-10,0,-10], 20, 2, 2);
+
         //initialize animation classes
         var shadowQual = 1024;
         var cycle = new Cycle(scene, myMats, shadowQual);
 
         var spinningRing = new SpinningRing(scene, myMats, cycle.shadows, window.gui);
 
-        var anims = {
+        var anims = { 
             'mass on a ring': spinningRing
         };
 
         var animState = {activeAnim: spinningRing, anims: anims};
 
-        window.gui.mainMenu.addControl('settingsButton', spinningRing.guiMenu.parentButton);
+        window.gui.mainMenu.addControl(spinningRing.guiMenu.parentButton);
+        UI.MakeHowToMenu(window.gui);
 
         scene.registerAfterRender(function () {
             cycle.step();

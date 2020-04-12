@@ -24,7 +24,7 @@ class SpinningRing {
         this.stepsPerFrame = 1;
 
         this.params = {theta: 1, thetaDot: 2, phi: 0, phiDot: 2};
-        this.pConst = {mSphere: 1, rSphere: 1, mRing: 1, rRing: 6, g: 10};
+        this.pConst = {mSphere: 1, rSphere: 1, mRing: 1, rRing: 7, g: 10};
         this.setConstants(this.pConst);
         this.damping = {thetaDot: 0.01, phiDot: 0.01};
 
@@ -130,10 +130,12 @@ class SpinningRing {
     }
 
     setMaterials(myMats) {
-        BF.SetMaterial(myMats.wArrow, [this.ground, this.ring])
+        BF.SetMaterial(myMats.galaxy, [this.ground]);
+        BF.SetMaterial(myMats.wArrow, [this.ring]);
         BF.SetMaterial(myMats.darkMoon, [this.mass]);
         BF.SetMaterial(myMats.red, [this.zeroSteadyState, this.piSteadyState]);
         BF.SetMaterial(myMats.blue, [this.plusSteadyState, this.minusSteadyState]);
+        BF.ForceCompileMaterials([this.ground, this.ring, this.mass, this.zeroSteadyState, this.piSteadyState, this.plusSteadyState, this.minusSteadyState]);
     }
 
     setPosShowRot() {
