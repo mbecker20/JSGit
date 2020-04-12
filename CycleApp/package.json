@@ -14,7 +14,7 @@
   "keywords": [],
   "author": {
     "name": "mbecker20",
-    "email": "49575486+mbecker20@users.noreply.github.com"
+    "email": "becker.maxh@gmail.com"
   },
   "license": "MIT",
   "config": {
@@ -45,8 +45,7 @@
     }
   },
   "dependencies": {
-    "electron-squirrel-startup": "^1.0.0",
-    "mathjs": "^6.6.3"
+    "electron-squirrel-startup": "^1.0.0"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.50",

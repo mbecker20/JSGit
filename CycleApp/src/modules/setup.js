@@ -1,8 +1,8 @@
-import { setUpFlyCam } from './modules/camera.js';
-import { UI } from './modules/gui.js';
-import { Cycle } from './modules/cycle.js';
-import { BouncyBall, DancingTHandle, PendVsMass, PendTugOfWar, SpinningRing, MultiPend } from './modules/anims/all.js';
-import { BF, MyMats, Colors } from './modules/babylonStuff.js';
+import { setUpFlyCam } from './camera.js';
+import { UI } from './gui.js';
+import { Cycle } from './cycle.js';
+import { BouncyBall, DancingTHandle, PendVsMass, PendTugOfWar, SpinningRing, MultiPend } from './anims/all.js';
+import { BF, MyMats, Colors } from './babylonStuff.js';
 
 window.addEventListener('DOMContentLoaded', function(){
     // get the canvas DOM element
