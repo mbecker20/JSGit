@@ -9,7 +9,7 @@ class UI {
     static SMALLH = '30px';
 
     static SVWIDTH = '270px';
-    static SVHEIGHT = '300px';
+    static SVHEIGHT = '350px';
     static SVBARSIZE = 15;
 
     static SUBMENUW = '250px';
@@ -241,11 +241,6 @@ class UI {
         var htText21 = UI.MakeTextBlock('9 and 0 (zero) keys', UI.HOWTOTEXTSIZE);
         htMenu.addControls(['spacer', 'htText20', 'htText21'], [UI.MakeVertSpacer(), htText20, htText21], false);
         controls.push(htText20, htText21);
-
-        var htText30 = UI.MakeTextBlock('experiment with sim settings', UI.HOWTOTEXTSIZE);
-        var htText31 = UI.MakeTextBlock('for each simulation', UI.HOWTOTEXTSIZE);
-        htMenu.addControls(['spacer', 'htText30', 'htText31'], [UI.MakeVertSpacer(), htText30, htText31], false);
-        controls.push(htText30, htText31);
 
         UI.SetControlsWidthHeight(controls, UI.HOWTOTEXTW, UI.HOWTOTEXTH);
 

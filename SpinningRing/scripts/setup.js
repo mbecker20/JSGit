@@ -41,7 +41,7 @@ window.addEventListener('DOMContentLoaded', function(){
 
         var animState = {activeAnim: spinningRing, anims: anims};
 
-        window.gui.mainMenu.addControl(spinningRing.guiMenu.parentButton);
+        window.gui.mainMenu.addSubMenu(spinningRing.guiMenu);
         UI.MakeHowToMenu(window.gui);
 
         scene.registerAfterRender(function () {
