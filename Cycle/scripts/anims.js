@@ -545,15 +545,9 @@ class PendTugOfWar {
     }
 
     setMaterials(myMats) {
-        this.ground.material = myMats.wArrow;
-        this.sphere.material = myMats.darkMoon;
-        this.cube.material = myMats.darkMoon;
-        this.spherePiv.material = myMats.darkMoon;
-        this.cubePiv.material = myMats.darkMoon;
-        this.topRope.material = myMats.wArrow;
-        this.sphereRope.material = myMats.wArrow;
-        this.cubeRope.material = myMats.wArrow;
-
+        BF.SetMaterial(myMats.galaxy, [this.ground]);
+        BF.SetMaterial(myMats.darkMoon, [this.sphere, this.cube, this.spherePiv, this.cubePiv]);
+        BF.SetMaterial(myMats.wArrow, [this.topRope, this.sphereRope, this.cubeRope]);
         BF.ForceCompileMaterials([this.topRope, this.ground, this.sphere, this.cube, this.spherePiv, this.cubePiv]);
     }
 
@@ -854,10 +848,12 @@ class SpinningRing {
     }
 
     setMaterials(myMats) {
-        BF.SetMaterial(myMats.wArrow, [this.ground, this.ring])
+        BF.SetMaterial(myMats.galaxy, [this.ground]);
+        BF.SetMaterial(myMats.wArrow, [this.ring]);
         BF.SetMaterial(myMats.darkMoon, [this.mass]);
         BF.SetMaterial(myMats.red, [this.zeroSteadyState, this.piSteadyState]);
         BF.SetMaterial(myMats.blue, [this.plusSteadyState, this.minusSteadyState]);
+        BF.ForceCompileMaterials([this.ground, this.ring, this.mass, this.zeroSteadyState, this.piSteadyState, this.plusSteadyState, this.minusSteadyState]);
     }
 
     setPosShowRot() {
@@ -1150,7 +1146,7 @@ class MultiPend {
     }
 
     setMaterials(myMats) {
-        this.ground.material = myMats.wArrow;
+        this.ground.material = myMats.bluePlanet;
         this.topSphere.material = myMats.darkMoon;
         BF.ForceCompileMaterials([this.ground, this.topSphere]);
         for(var i = 0; i < this.maxNumPend; i++) {

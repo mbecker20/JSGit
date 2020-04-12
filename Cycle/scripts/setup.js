@@ -76,6 +76,7 @@ window.addEventListener('DOMContentLoaded', function(){
         var animState = {activeAnim: multiPend, anims: anims};
 
         UI.MakeChooseAnimMenu(animState, window.gui);
+        UI.MakeHowToMenu(window.gui);
 
         scene.registerAfterRender(function () {
             cycle.step();

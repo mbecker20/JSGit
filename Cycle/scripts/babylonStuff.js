@@ -399,6 +399,10 @@ class MyMats {
         this.galaxy.diffuseTexture = new BABYLON.Texture('https://i.imgur.com/eZiIipX.png', scene);
         this.galaxy.emissiveColor = Colors.RGB(150,150,150);
 
+        this.bluePlanet = new BABYLON.StandardMaterial('bluePlanet', scene);
+        this.bluePlanet.diffuseTexture = new BABYLON.Texture('https://i.imgur.com/WuDcHxN.png', scene);
+        this.bluePlanet.emissiveColor = Colors.RGB(150,150,150);
+
         this.jupiter = new BABYLON.StandardMaterial('jupiter', scene);
         this.jupiter.diffuseTexture = new BABYLON.Texture('https://i.imgur.com/wAGQBuU.png', scene);
 
@@ -411,8 +415,6 @@ class MyMats {
         this.skyBox.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
         this.skyBox.diffuseColor = new BABYLON.Color3(0, 0, 0);
         this.skyBox.specularColor = new BABYLON.Color3(0, 0, 0);
-
-        this.attractor = 
 
         window.axesMats = [this.xAxis, this.yAxis, this.zAxis, this.axesSphere];
     }

@@ -14,6 +14,10 @@ class UI {
 
     static SUBMENUW = '250px';
 
+    static HOWTOTEXTW = '250px';
+    static HOWTOTEXTH = '22px';
+    static HOWTOTEXTSIZE = 18;
+
     // makes the main gui object
     static MakeGUI(canvas) {
         var gui = {}
@@ -53,15 +57,21 @@ class UI {
 
         mainMenu.controls = {}; // all controls are panels including spacer
 
-        mainMenu.addControl = function(name, control) {
-            mainMenu.controls[name] = UI.MakePanel();
-            UI.AddControlsToTarget([UI.MakeVertSpacer(), control], mainMenu.controls[name]);
-            mainMenu.panel.addControl(mainMenu.controls[name]);
+        mainMenu.addControl = function(name, control, spacing = true) {
+            if (spacing) {
+                mainMenu.controls[name] = UI.MakePanel();
+                UI.AddControlsToTarget([UI.MakeVertSpacer(), control], mainMenu.controls[name]);
+                mainMenu.panel.addControl(mainMenu.controls[name]);
+            } else {
+                mainMenu.controls[name] = UI.MakePanel();
+                UI.AddControlsToTarget([control], mainMenu.controls[name]);
+                mainMenu.panel.addControl(mainMenu.controls[name]);
+            }
         }
 
-        mainMenu.addControls = function(names, controls) {
+        mainMenu.addControls = function(names, controls, spacing = true) {
             for(var i = 0; i < controls.length; i++) {
-                mainMenu.addControl(names[i], controls[i]);
+                mainMenu.addControl(names[i], controls[i], spacing);
             }
         }
 
@@ -132,15 +142,21 @@ class UI {
         menu.controls = {};
         menu.panel.background = 'black'
 
-        menu.addControl = function(name, control) {
-            menu.controls[name] = UI.MakePanel();
-            UI.AddControlsToTarget([UI.MakeVertSpacer(), control], menu.controls[name]);
-            menu.svPanel.addControl(menu.controls[name]);
+        menu.addControl = function(name, control, spacing = true) {
+            if (spacing) {
+                menu.controls[name] = UI.MakePanel();
+                UI.AddControlsToTarget([UI.MakeVertSpacer(), control], menu.controls[name]);
+                menu.svPanel.addControl(menu.controls[name]);
+            } else {
+                menu.controls[name] = UI.MakePanel();
+                UI.AddControlsToTarget([control], menu.controls[name]);
+                menu.svPanel.addControl(menu.controls[name]);
+            }
         }
 
-        menu.addControls = function(names, controls) {
+        menu.addControls = function(names, controls, spacing = true) {
             for(var i = 0; i < controls.length; i++) {
-                menu.addControl(names[i], controls[i]);
+                menu.addControl(names[i], controls[i], spacing);
             }
         }
 
@@ -202,6 +218,38 @@ class UI {
         gui.mainMenu.addSubMenu(caMenu);
         gui.mainMenu.addOneOfSubMenus('animSettings', animMenus);
         return caMenu;
+    }
+
+    static MakeHowToMenu(gui) {
+        var htMenu = UI.MakeSubMenu('how to use', gui.mainMenu, gui, 'how to use');
+        var controls = [];
+
+        var htText00 = UI.MakeTextBlock('move the viewer with', UI.HOWTOTEXTSIZE);
+        var htText01 = UI.MakeTextBlock('W, A, S, and D keys', UI.HOWTOTEXTSIZE);
+        var htText02 = UI.MakeTextBlock('spacebar moves viewer up', UI.HOWTOTEXTSIZE);
+        var htText03 = UI.MakeTextBlock('and shift moves down', UI.HOWTOTEXTSIZE);
+        htMenu.addControls(['spacer', 'htText00', 'htText01'], [UI.MakeVertSpacer(), htText00, htText01], false);
+        htMenu.addControls(['spacer', 'htText02', 'htText03'], [UI.MakeVertSpacer(), htText02, htText03], false);
+        controls.push(htText00, htText01, htText02, htText03);
+
+        var htText10 = UI.MakeTextBlock('look around with', UI.HOWTOTEXTSIZE);
+        var htText11 = UI.MakeTextBlock('I, J, K, and L keys', UI.HOWTOTEXTSIZE);
+        htMenu.addControls(['spacer', 'htText10', 'htText11'], [UI.MakeVertSpacer(), htText10, htText11], false);
+        controls.push(htText10, htText11);
+
+        var htText20 = UI.MakeTextBlock('control field of view with', UI.HOWTOTEXTSIZE);
+        var htText21 = UI.MakeTextBlock('9 and 0 (zero) keys', UI.HOWTOTEXTSIZE);
+        htMenu.addControls(['spacer', 'htText20', 'htText21'], [UI.MakeVertSpacer(), htText20, htText21], false);
+        controls.push(htText20, htText21);
+
+        var htText30 = UI.MakeTextBlock('experiment with sim settings', UI.HOWTOTEXTSIZE);
+        var htText31 = UI.MakeTextBlock('for each simulation', UI.HOWTOTEXTSIZE);
+        htMenu.addControls(['spacer', 'htText30', 'htText31'], [UI.MakeVertSpacer(), htText30, htText31], false);
+        controls.push(htText30, htText31);
+
+        UI.SetControlsWidthHeight(controls, UI.HOWTOTEXTW, UI.HOWTOTEXTH);
+
+        gui.mainMenu.addSubMenu(htMenu);
     }
 
     static MakeSubMenuHeaderPanel(menuName, parent, gui) {

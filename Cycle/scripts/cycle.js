@@ -5,7 +5,7 @@ class Cycle {
         this.orbitR = 35;
         this.orbitW = .2;
         this.moonW = .5;
-        this.skyW = .02;
+        this.skyW = .005;
 
         this.setupLightsShadows(scene, shadowQual);
 
