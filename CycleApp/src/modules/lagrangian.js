@@ -1,3 +1,5 @@
+import { MF, GF } from './funcClasses.js';
+
 export class Lagrangian {
     // lagrangian update system
     static MakeStepFunc(mode, params, damping) {

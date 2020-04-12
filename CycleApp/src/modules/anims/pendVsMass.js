@@ -1,3 +1,8 @@
+import { BF } from '../babylonStuff.js';
+import { Lagrangian } from '../lagrangian.js';
+import { MF } from '../funcClasses.js';
+import { UI } from '../gui.js';
+
 export class PendVsMass {
     constructor(scene, myMats, shadows, gui) {
         // sphere swings, cube up and down

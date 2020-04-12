@@ -1,3 +1,9 @@
+import { setUpFlyCam } from './modules/camera.js';
+import { UI } from './modules/gui.js';
+import { Cycle } from './modules/cycle.js';
+import { BouncyBall, DancingTHandle, PendVsMass, PendTugOfWar, SpinningRing, MultiPend } from './modules/anims/all.js';
+import { BF, MyMats, Colors } from './modules/babylonStuff.js';
+
 window.addEventListener('DOMContentLoaded', function(){
     // get the canvas DOM element
     var canvas = document.getElementById('renderCanvas');
@@ -11,8 +17,6 @@ window.addEventListener('DOMContentLoaded', function(){
         
         //setup camera
         //var camPos = BF.Vec3([37, 20, -22]);
-        import { setUpFlyCam } from './modules/camera.js';
-
         var camPos = BF.Vec3([22, 16, -22]);
         window.camera = new BABYLON.FlyCamera('camera1', camPos, scene);
         window.camera=setUpFlyCam(window.camera, canvas);
@@ -22,19 +26,15 @@ window.addEventListener('DOMContentLoaded', function(){
         //setup scene environment
         scene.ambientColor = Colors.RGB(255,255,255);
         scene.clearColor = Colors.RGB(0,0,0);
-        import { MyMats } from './modules/babylonStuff.js';
+
         //initialize materials object
         var myMats = new MyMats(scene);
 
         //setup gui
-        import { UI } from './modules/gui.js'
 
         window.gui = UI.MakeGUI(canvas);
 
         //var grid = BF.MakeGridXZ([-10,0,-10], 20, 2, 2);
-
-        import { Cycle } from './modules/cycle.js';
-        import { BouncyBall, DancingTHandle } from './modules/anims/all.js';
         //initialize animation classes
         var shadowQual = 1024;
         var cycle = new Cycle(scene, myMats, shadowQual);

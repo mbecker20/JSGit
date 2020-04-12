@@ -1,3 +1,8 @@
+import { BF } from '../babylonStuff.js';
+import { Lagrangian } from '../lagrangian.js';
+import { MF } from '../funcClasses.js';
+import { UI } from '../gui.js';
+
 export class SpinningRing {
     // spinning ring
     constructor(scene, myMats, shadows, gui) {

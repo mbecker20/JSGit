@@ -1,5 +1,6 @@
-import { UI } from './modules/gui.js';
-import { VF } from './modules/funcClasses.js';
+import { UI } from '../gui.js';
+import { VF } from '../funcClasses.js';
+import { BF } from '../babylonStuff.js';
 
 export class BouncyBall {
     constructor(scene, myMats, shadows, gui) {

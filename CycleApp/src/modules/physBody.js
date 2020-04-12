@@ -1,5 +1,5 @@
-import { BF } from './modules/babylonStuff';
-import { VF, PF } from './modules/funcClasses.js';
+import { BF } from './babylonStuff.js';
+import { VF, PF } from './funcClasses.js';
 
 export function makePhysBody(scene, mesh, v, angMom, density, dt) {
     // returns the mesh with added functions and properties

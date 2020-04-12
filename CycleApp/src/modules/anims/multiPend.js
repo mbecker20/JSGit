@@ -1,3 +1,8 @@
+import { BF } from '../babylonStuff.js';
+import { Lagrangian } from '../lagrangian.js';
+import { GF, MF } from '../funcClasses.js';
+import { UI } from '../gui.js';
+
 export class MultiPend {
     constructor(scene, myMats, shadows, gui) {
         // make node

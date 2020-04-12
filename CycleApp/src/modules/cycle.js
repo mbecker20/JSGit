@@ -1,4 +1,7 @@
-class Cycle {
+import { BF, Colors } from './babylonStuff.js';
+
+
+export class Cycle {
     constructor(scene, myMats, shadowQual) {
         this.time = 0;
         this.dt = .01;

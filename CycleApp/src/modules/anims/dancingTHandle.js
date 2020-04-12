@@ -1,5 +1,6 @@
-import { BF } from 'modules/babylonStuff.js';
-import { makePhysBody } from 'modules/physBody.js';
+import { BF } from '../babylonStuff.js';
+import { UI } from '../gui.js';
+import { makePhysBody } from '../physBody.js';
 
 export class DancingTHandle {
     constructor(scene, myMats, shadows, gui) {

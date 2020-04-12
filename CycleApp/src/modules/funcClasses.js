@@ -1,3 +1,5 @@
+import { BF } from './babylonStuff.js';
+
 export class VF {
     // Vector Functions
     static Mag(vec) {

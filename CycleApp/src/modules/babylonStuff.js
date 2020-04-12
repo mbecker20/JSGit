@@ -1,4 +1,6 @@
-class BF {
+import { VF } from './funcClasses.js';
+
+export class BF {
     static GetOTens(mesh) {
         mesh.computeWorldMatrix(false);
         const ar = mesh.getWorldMatrix()._m;
@@ -335,7 +337,7 @@ class BF {
     }
 }
 
-class MyMats {
+export class MyMats {
     // a collection of initialized Babylon Materials used in various anims
     constructor(scene) {
         //
@@ -420,7 +422,7 @@ class MyMats {
     }
 }
 
-class Colors {
+export class Colors {
     static RGB(r,g,b) {
         // 0 to 255 instead of 0 to 1;
         return new BABYLON.Color3(r/255, g/255, b/255);
