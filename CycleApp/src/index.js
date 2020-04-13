@@ -13,11 +13,11 @@ const createWindow = () => {
     height: 600,
   });
 
-  // and load the index.html of the app.
+  // load the index.html of the app.
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
   // Open the DevTools.
-  //mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   mainWindow.removeMenu();
 };

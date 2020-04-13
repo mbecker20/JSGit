@@ -1,118 +1,7 @@
 import { VF } from './funcClasses.js';
 
 export class BF {
-    static GetOTens(mesh) {
-        mesh.computeWorldMatrix(false);
-        const ar = mesh.getWorldMatrix()._m;
-        return [[ar[0],ar[1],ar[2]],[ar[4],ar[5],ar[6]],[ar[8],ar[9],ar[10]]];
-    }
-
-    static GetRotMat2(matrix) {
-        const ar=matrix._m;
-        return [[ar[0],ar[1],ar[2]],[ar[4],ar[5],ar[6]],[ar[8],ar[9],ar[10]]];
-    }
-
-    static MakeWorldMat(oTens,position) {
-        //oTens is ar3x3, position is babylon vec3
-        let mat = BABYLON.Matrix.Identity();
-        mat.setRow(0,BF.Vec4_2(oTens[0],0));
-        mat.setRow(1,BF.Vec4_2(oTens[1],0));
-        mat.setRow(2,BF.Vec4_2(oTens[2],0));
-        mat.setRow(3,BF.Vec4_2([position.x,position.y,position.z],1))
-        return mat;
-    }
-
-    static SetWorldMat(oTens,position,target,rows) {
-        //oTens is ar3x3, position is babylon vec3
-        //target is the initialized matrix to become worldMat
-        //rows is initialized ar4[BABYLON.Vector4];
-        target.setRow(0,BF.SetVec4_2(oTens[0], 0, rows[0]));
-        target.setRow(1,BF.SetVec4_2(oTens[1], 0, rows[1]));
-        target.setRow(2,BF.SetVec4_2(oTens[2], 0, rows[2]));
-        target.setRow(3,BF.SetVec4_2([position.x,position.y,position.z], 1, rows[3]))
-    }
-
-
-    static MatTo2DArray(mat4) {
-        const ar=mat4._m;
-        return [[ar[0],ar[1],ar[2],ar[3]],[ar[4],ar[5],ar[6],ar[7]],[ar[8],ar[9],ar[10],ar[11]],[ar[12],ar[13],ar[14],ar[15]]];
-    }
-
-    static Array2DToRotMat(mat3) {
-        //converts 3x3 array to babylon rotation matrix
-        let mat = BABYLON.Matrix.Identity();
-        mat.setRow(0,BF.Vec4_2(mat3[0],0));
-        mat.setRow(1,BF.Vec4_2(mat3[1],0));
-        mat.setRow(2,BF.Vec4_2(mat3[2],0));
-        return mat;
-    }
-
-    static Vec3(ar3) {
-        return new BABYLON.Vector3(ar3[0],ar3[1],ar3[2]);
-    }
-
-    static SetVec3(ar3, target) {
-        target.set(ar3[0],ar3[1],ar3[2]);
-        return target;
-    }
-
-    static Vec4(ar4) {
-        //converts array of length 4 to babylon vec4
-        return new BABYLON.Vector4(ar4[0],ar4[1],ar4[2],ar4[3]);
-    }
-
-    static ZeroVec3() {
-        return BF.Vec3([0,0,0]);
-    }
-
-    static ZeroVec4() {
-        return BF.Vec4([0,0,0,0]);
-    }
-    
-    static Vec4_2(ar3,w) {
-        //converts array of length 3 and one additional number to babylon vec4
-        return new BABYLON.Vector4(ar3[0],ar3[1],ar3[2],w);
-    }
-
-    static SetVec4_2(ar3,w,target) {
-        //converts array of length 3 and one additional number to babylon vec4
-        //target is already initialized
-        return target.set(ar3[0],ar3[1],ar3[2],w);
-    }
-
-    static MakeWorldMatRows() {
-        // initializes vec4 to be used to make world mat
-        var rows = [];
-        for(var i = 0; i < 4; i++) {
-            rows.push(BF.ZeroVec4());
-        }
-        return rows;
-    }
-
-    static Mat4(row1,row2,row3,row4) {
-        let mat=new BABYLON.Matrix();
-        mat.setRow(0,BF.Vec4(row1[0],row1[1],row1[2],row1[3]));
-        mat.setRow(1,BF.Vec4(row2[0],row2[1],row2[2],row2[3]));
-        mat.setRow(2,BF.Vec4(row3[0],row3[1],row3[2],row3[3]));
-        mat.setRow(3,BF.Vec4(row4[0],row4[1],row4[2],row4[3]));
-        return mat;
-    }
-
-    static Vec3ToAr(vec3) {
-        return [vec3.x, vec3.y, vec3.z];
-    }
-
-    static AddScaleArToVec3(ar1, ar1Scale, ar2, ar2Scale) {
-        // adds 2 ar3 and puts result in Babylon Vec3
-        // arrays are scaled before addition
-        return BF.Vec3(math.add(math.multiply(ar1,ar1Scale), math.multiply(ar2, ar2Scale)));
-    }
-
-    static ListToVec3(arOfAr){
-        // [[x1,y1,z1],[x2,y2,z2]] => [BABYLON.Vec3,...]
-        arOfAr.forEach(ar => BF.Vec3(ar));
-    }
-
+    // mesh constructors
     static MakeBox(name, scene, width, height, depth, otherParams = {}, receiveShadows = true) {
         // params: length, width, height,...
         // lwh is ar3 ([length, width, height])
@@ -145,13 +34,6 @@ export class BF {
         var cyl = BABYLON.MeshBuilder.CreateCylinder(name, otherParams, scene);
         cyl.receiveShadows = receiveShadows;
         return cyl;
-    }
-
-    static BakeMeshs(meshs) {
-        // meshs is ar(mesh)
-        for(var i = 0; i < meshs.length; i++) {
-            meshs[i].bakeCurrentTransformIntoVertices();
-        }
     }
 
     static MakeArrow(name, scene, direction, diameter, arrowDiameter) {
@@ -247,6 +129,140 @@ export class BF {
         return tHandle;
     }
 
+    static MakeTube(name, scene, diameter, receiveShadows = true) {
+        //name is string
+        //pointing [1,0,0];
+        //tail at origin;
+        //direction is ar3
+        var tube = BABYLON.MeshBuilder.CreateCylinder(name, {height: 1, diameter: diameter, tessellation: 24}, scene);
+        tube.locallyTranslate(BF.Vec3([0,.5,0]));
+        tube.bakeCurrentTransformIntoVertices();
+        tube.rotation.z = -Math.PI/2;
+        tube.bakeCurrentTransformIntoVertices();
+        tube.receiveShadows = receiveShadows;
+
+        return tube;
+    }
+
+    // other helpers
+    static GetOTens(mesh) {
+        mesh.computeWorldMatrix(false);
+        const ar = mesh.getWorldMatrix()._m;
+        return [[ar[0],ar[1],ar[2]],[ar[4],ar[5],ar[6]],[ar[8],ar[9],ar[10]]];
+    }
+
+    static GetRotMat2(matrix) {
+        const ar=matrix._m;
+        return [[ar[0],ar[1],ar[2]],[ar[4],ar[5],ar[6]],[ar[8],ar[9],ar[10]]];
+    }
+
+    static MakeWorldMat(oTens,position) {
+        //oTens is ar3x3, position is babylon vec3
+        let mat = BABYLON.Matrix.Identity();
+        mat.setRow(0,BF.Vec4_2(oTens[0],0));
+        mat.setRow(1,BF.Vec4_2(oTens[1],0));
+        mat.setRow(2,BF.Vec4_2(oTens[2],0));
+        mat.setRow(3,BF.Vec4_2([position.x,position.y,position.z],1))
+        return mat;
+    }
+
+    static SetWorldMat(oTens,position,target,rows) {
+        //oTens is ar3x3, position is babylon vec3
+        //target is the initialized matrix to become worldMat
+        //rows is initialized ar4[BABYLON.Vector4];
+        target.setRow(0,BF.SetVec4_2(oTens[0], 0, rows[0]));
+        target.setRow(1,BF.SetVec4_2(oTens[1], 0, rows[1]));
+        target.setRow(2,BF.SetVec4_2(oTens[2], 0, rows[2]));
+        target.setRow(3,BF.SetVec4_2([position.x,position.y,position.z], 1, rows[3]))
+    }
+
+    static MatTo2DArray(mat4) {
+        const ar=mat4._m;
+        return [[ar[0],ar[1],ar[2],ar[3]],[ar[4],ar[5],ar[6],ar[7]],[ar[8],ar[9],ar[10],ar[11]],[ar[12],ar[13],ar[14],ar[15]]];
+    }
+
+    static Array2DToRotMat(mat3) {
+        //converts 3x3 array to babylon rotation matrix
+        let mat = BABYLON.Matrix.Identity();
+        mat.setRow(0,BF.Vec4_2(mat3[0],0));
+        mat.setRow(1,BF.Vec4_2(mat3[1],0));
+        mat.setRow(2,BF.Vec4_2(mat3[2],0));
+        return mat;
+    }
+
+    static Vec3(ar3) {
+        return new BABYLON.Vector3(ar3[0],ar3[1],ar3[2]);
+    }
+
+    static SetVec3(ar3, target) {
+        target.set(ar3[0],ar3[1],ar3[2]);
+        return target;
+    }
+
+    static Vec4(ar4) {
+        //converts array of length 4 to babylon vec4
+        return new BABYLON.Vector4(ar4[0],ar4[1],ar4[2],ar4[3]);
+    }
+
+    static ZeroVec3() {
+        return BF.Vec3([0,0,0]);
+    }
+
+    static ZeroVec4() {
+        return BF.Vec4([0,0,0,0]);
+    }
+    
+    static Vec4_2(ar3,w) {
+        //converts array of length 3 and one additional number to babylon vec4
+        return new BABYLON.Vector4(ar3[0],ar3[1],ar3[2],w);
+    }
+
+    static SetVec4_2(ar3,w,target) {
+        //converts array of length 3 and one additional number to babylon vec4
+        //target is already initialized
+        return target.set(ar3[0],ar3[1],ar3[2],w);
+    }
+
+    static MakeWorldMatRows() {
+        // initializes vec4 to be used to make world mat
+        var rows = [];
+        for(var i = 0; i < 4; i++) {
+            rows.push(BF.ZeroVec4());
+        }
+        return rows;
+    }
+
+    static Mat4(row1,row2,row3,row4) {
+        let mat=new BABYLON.Matrix();
+        mat.setRow(0,BF.Vec4(row1[0],row1[1],row1[2],row1[3]));
+        mat.setRow(1,BF.Vec4(row2[0],row2[1],row2[2],row2[3]));
+        mat.setRow(2,BF.Vec4(row3[0],row3[1],row3[2],row3[3]));
+        mat.setRow(3,BF.Vec4(row4[0],row4[1],row4[2],row4[3]));
+        return mat;
+    }
+
+    static Vec3ToAr(vec3) {
+        return [vec3.x, vec3.y, vec3.z];
+    }
+
+    static AddScaleArToVec3(ar1, ar1Scale, ar2, ar2Scale) {
+        // adds 2 ar3 and puts result in Babylon Vec3
+        // arrays are scaled before addition
+        return BF.Vec3(math.add(math.multiply(ar1,ar1Scale), math.multiply(ar2, ar2Scale)));
+    }
+
+    static ListToVec3(arOfAr){
+        // [[x1,y1,z1],[x2,y2,z2]] => [BABYLON.Vec3,...]
+        arOfAr.forEach(ar => BF.Vec3(ar));
+    }
+
+    static BakeMeshs(meshs) {
+        // meshs is ar(mesh)
+        for(var i = 0; i < meshs.length; i++) {
+            meshs[i].bakeCurrentTransformIntoVertices();
+        }
+    }
+
     static ForceCompileMaterials(meshs) {
         // meshs is array of Babylon meshs
         // forces computation of materials applied to meshs
@@ -275,21 +291,6 @@ export class BF {
         for(var i = 0; i < children.length; i++) {
             children[i].parent = parent;
         }
-    }
-
-    static MakeTube(name, scene, diameter, receiveShadows = true) {
-        //name is string
-        //pointing [1,0,0];
-        //tail at origin;
-        //direction is ar3
-        var tube = BABYLON.MeshBuilder.CreateCylinder(name, {height: 1, diameter: diameter, tessellation: 24}, scene);
-        tube.locallyTranslate(BF.Vec3([0,.5,0]));
-        tube.bakeCurrentTransformIntoVertices();
-        tube.rotation.z = -Math.PI/2;
-        tube.bakeCurrentTransformIntoVertices();
-        tube.receiveShadows = receiveShadows;
-
-        return tube;
     }
 
     static MakeGridXZ(corner, distance, numX, numZ) {
