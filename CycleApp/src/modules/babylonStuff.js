@@ -48,26 +48,32 @@ export class BF {
         tip.locallyTranslate(BF.Vec3([0,.925,0]));
         tip.bakeCurrentTransformIntoVertices();
         
-        var arrow = new BABYLON.TransformNode(name, scene)
+        var arrow = BF.MakeTransformNode(name, scene); // this is the top level rotator (last to be rotated);
+        arrow.secondRot = BF.MakeTransformNode(name.concat(' secondRot'), scene); // second to be rotated
+        arrow.secondRot.parent = arrow;
 
-        arrow.pointer = BABYLON.Mesh.MergeMeshes([tube,tip]);
+        arrow.pointer = BABYLON.Mesh.MergeMeshes([tube,tip]); // first to be rotated (about x axis);
         arrow.pointer.rotation.z = -Math.PI/2; // aligns with x axis;
         arrow.pointer.bakeCurrentTransformIntoVertices();
-        arrow.pointer.parent = arrow;
+        arrow.pointer.parent = arrow.secondRot;
 
         arrow.setDirLength = function(ar3) {
             const length = VF.Mag(ar3);
             const unit = VF.Unit2(ar3, length);
-            if(Math.abs(unit[1]) < .6) { // xz ground altitude and azimuth if unit not close to +/- y axis
+            if(Math.abs(unit[1]) < .7) { // xz ground altitude and azimuth if unit not close to +/- y axis
                 const altAzim = VF.GetAltAzimXZ(unit);
-                arrow.scaling.x = length;
-                arrow.rotation.z = altAzim[0];
+                arrow.pointer.scaling.x = length;
+                arrow.secondRot.rotation.z = altAzim[0];
+                arrow.secondRot.rotation.y = 0;
                 arrow.rotation.y = altAzim[1];
+                arrow.rotation.z = 0;
             } else { // xy ground altitude and azimuth
                 const altAzim = VF.GetAltAzimXY(unit);
-                arrow.scaling.x = length;
-                arrow.rotation.y = altAzim[0];
+                arrow.pointer.scaling.x = length;
+                arrow.secondRot.rotation.y = altAzim[0];
+                arrow.secondRot.rotation.z = 0;
                 arrow.rotation.z = altAzim[1];
+                arrow.rotation.y = 0;
             }
             
         }

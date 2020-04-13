@@ -40,7 +40,6 @@ window.addEventListener('DOMContentLoaded', function(){
         var cycle = new Cycle(scene, myMats, shadowQual);
 
         var bouncyBall = new BouncyBall(scene, myMats, cycle.shadows, window.gui);
-        bouncyBall.deactivate();
 
         //var anim2 = new Anim2(scene, myMats, shadows);
         //anim2.node.position = grid[1];
@@ -49,39 +48,36 @@ window.addEventListener('DOMContentLoaded', function(){
         //anim3.node.position = grid[0][0];
 
         var dancingTHandle = new DancingTHandle(scene, myMats, cycle.shadows, window.gui);
-        dancingTHandle.deactivate();
         //anim4.node.position = grid[1][1];
 
         var pendVsMass = new PendVsMass(scene, myMats, cycle.shadows, window.gui);
-        pendVsMass.deactivate();
         //anim5.node.position = grid[1][0];
 
         //var anim6 = new Anim6(scene, myMats, shadows);
         //anim6.node.position = BF.Vec3([0,0,20]);
 
         var ptw = new PendTugOfWar(scene, myMats, cycle.shadows, window.gui);
-        ptw.deactivate();
         //anim7.node.position = grid[1][0];
 
         var spinningRing = new SpinningRing(scene, myMats, cycle.shadows, window.gui);
-        spinningRing.deactivate();
 
         var multiPend = new MultiPend(scene, myMats, cycle.shadows, gui, 5);
         multiPend.params.theta0 = 2;
-        //multiPend.deactivate();
+
+        var oAxes = BF.MakeAxes('oAxes', scene, 4);
+        oAxes.position.y += .5;
 
         var anims = {
+            'dancing T handle': dancingTHandle,
             'multi pendulum': multiPend,
             'pend vs mass': pendVsMass, 
             'pendulum tug of war': ptw, 
             'mass on a ring': spinningRing,
-            'bouncy ball': bouncyBall,
-            'dancing T handle': dancingTHandle
+            'bouncy ball': bouncyBall
         };
 
-        var animState = {activeAnim: multiPend, anims: anims};
+        var animState = UI.MakeAnimStateChooseAnimMenu(anims, window.gui);
 
-        UI.MakeChooseAnimMenu(animState, window.gui);
         UI.MakeHowToMenu(window.gui);
 
         scene.registerAfterRender(function () {

@@ -199,14 +199,20 @@ export class UI {
         return menu;
     }
 
-    static MakeChooseAnimMenu(animState, gui) {
+    static MakeAnimStateChooseAnimMenu(anims, gui) {
         // adds the caMenu to gui texture and adds the choose anim button to main menu
         var caMenu = UI.MakeSubMenu('simulations', gui.mainMenu, gui, 'choose simulation');
-        var animKeys = Object.keys(animState.anims);
+        var animKeys = Object.keys(anims);
+        var animState = {anims: anims};
         var animButtons = [];
         var animButtonNames = [];
         var animMenus = [];
         for(var i = 0; i < animKeys.length; i++) {
+            if (i === 0) {
+                animState.activeAnim = anims[animKeys[i]];
+            } else {
+                anims[animKeys[i]].deactivate();
+            }
             animButtons.push(UI.MakeMenuActivateAnimButton(animKeys[i], animState, caMenu));
             animButtonNames.push(animKeys[i].concat('PB'))
             animMenus.push(animState.anims[animKeys[i]].guiMenu);
@@ -217,7 +223,7 @@ export class UI {
         caMenu.activeAnimButton.color = 'green';
         gui.mainMenu.addSubMenu(caMenu);
         gui.mainMenu.addOneOfSubMenus('animSettings', animMenus);
-        return caMenu;
+        return animState;
     }
 
     static MakeHowToMenu(gui) {

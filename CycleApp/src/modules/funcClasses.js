@@ -59,7 +59,7 @@ export class VF {
             if(vec[2]>0) {
                 return math.atan2(vec[2],-vec[0]) - Math.PI;
             } else if(vec[2]<0) {
-                return Math.PI - math.atan2(vec[2],vec[0]);
+                return Math.PI - math.atan2(-vec[2],-vec[0]);
             } else {
                 return Math.PI;
             }
@@ -70,7 +70,7 @@ export class VF {
                 return Math.PI/2;
             } else {
                 return null;
-                console.log('cant get azim of zero vector');
+                console.log('cant get azim of yHat');
             }
         }
     }
@@ -93,7 +93,7 @@ export class VF {
             if(vec[1]>0) {
                 return Math.PI - math.atan2(vec[1],-vec[0]);
             } else if(vec[1]<0) {
-                return math.atan2(vec[1],vec[0]) - Math.PI;
+                return math.atan2(-vec[1],-vec[0]) - Math.PI;
             } else {
                 return Math.PI;
             }
