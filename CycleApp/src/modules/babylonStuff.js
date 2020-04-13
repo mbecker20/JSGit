@@ -60,22 +60,28 @@ export class BF {
         arrow.setDirLength = function(ar3) {
             const length = VF.Mag(ar3);
             const unit = VF.Unit2(ar3, length);
+            arrow.pointer.scaling.x = length;
             if(Math.abs(unit[1]) < .7) { // xz ground altitude and azimuth if unit not close to +/- y axis
-                const altAzim = VF.GetAltAzimXZ(unit);
-                arrow.pointer.scaling.x = length;
-                arrow.secondRot.rotation.z = altAzim[0];
-                arrow.secondRot.rotation.y = 0;
-                arrow.rotation.y = altAzim[1];
-                arrow.rotation.z = 0;
+                arrow.setDirLengthXZ(unit);
             } else { // xy ground altitude and azimuth
-                const altAzim = VF.GetAltAzimXY(unit);
-                arrow.pointer.scaling.x = length;
-                arrow.secondRot.rotation.y = altAzim[0];
-                arrow.secondRot.rotation.z = 0;
-                arrow.rotation.z = altAzim[1];
-                arrow.rotation.y = 0;
+                arrow.setDirLengthXY(unit);
             }
-            
+        }
+
+        arrow.setDirLengthXZ = function(unit) {
+            const altAzim = VF.GetAltAzimXZ(unit);
+            arrow.secondRot.rotation.z = altAzim[0];
+            arrow.rotation.y = altAzim[1];
+            arrow.secondRot.rotation.y = 0;
+            arrow.rotation.z = 0;
+        }
+
+        arrow.setDirLengthXY = function(unit) {
+            const altAzim = VF.GetAltAzimXY(unit);
+            arrow.secondRot.rotation.y = altAzim[0];
+            arrow.rotation.z = altAzim[1];
+            arrow.secondRot.rotation.z = 0;
+            arrow.rotation.y = 0;
         }
 
         arrow.addRot = function(deltaRot) {
