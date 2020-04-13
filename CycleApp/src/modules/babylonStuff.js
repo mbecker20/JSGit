@@ -51,7 +51,7 @@ export class BF {
         var arrow = new BABYLON.TransformNode(name, scene)
 
         arrow.pointer = BABYLON.Mesh.MergeMeshes([tube,tip]);
-        arrow.pointer.rotation.z = -Math.PI/2;
+        arrow.pointer.rotation.z = -Math.PI/2; // aligns with x axis;
         arrow.pointer.bakeCurrentTransformIntoVertices();
         arrow.pointer.parent = arrow;
 
