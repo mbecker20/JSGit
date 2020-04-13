@@ -63,9 +63,10 @@ window.addEventListener('DOMContentLoaded', function(){
 
         var multiPend = new MultiPend(scene, myMats, cycle.shadows, gui, 5);
         multiPend.params.theta0 = 2;
-
-        var oAxes = BF.MakeAxes('oAxes', scene, 4);
-        oAxes.position.y += .5;
+        
+        //world axes for reference (red = x, green = y, blue = z)
+        //var oAxes = BF.MakeAxes('oAxes', scene, 4);
+        //oAxes.position.y += .5;
 
         var anims = {
             'dancing T handle': dancingTHandle,
