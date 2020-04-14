@@ -383,27 +383,12 @@ export class UI {
         return sliderPanel
     }
 
-    static MakeChooseAnimPanel(animState) {
-        var caPanel = UI.MakePanel();
-        var caSubPanel = UI.MakePanel();
-        var headerButton = UI.MakeButton('chooseAnimBut', 'choose simulation', function() {
-            caSubPanel.isVisible = !caSubPanel.isVisible;
-        });
-        var animKeys = Object.keys(animState.anims);
-        var animButtons = [UI.MakeVertSpacer()];
-        for(var i = 0; i < animKeys.length; i++) {
-            animButtons.push(UI.MakeActivateAnimButton(animKeys[i], animState, caSubPanel));
-        }
-        caSubPanel.isVisible = false;
-        UI.AddControlsToTarget(animButtons, caSubPanel);
-        UI.AddControlsToTarget([headerButton, caSubPanel], caPanel);
-        return caPanel;
-    }
-
     static MakeTwoButtonPanel(name0, text0, f0, name1, text1, f1) {
         var tbPanel = UI.MakePanel(false);
-        var but0 = UI.MakeButton(name0, text0, f0, UI.SMALLW, UI.STANDARDH);
-        var but1 = UI.MakeButton(name1, text1, f1, UI.SMALLW, UI.STANDARDH);
+        var but0 = UI.MakeButton(name0, text0, f0);
+        but0.width = UI.SMALLW;
+        var but1 = UI.MakeButton(name1, text1, f1);
+        but1.width = UI.SMALLW;
         UI.AddControlsToTarget([but0, UI.MakeHorizSpacer(), but1], tbPanel);
 
         return tbPanel;
@@ -447,20 +432,8 @@ export class UI {
             if(screenfull.isEnabled) {
                 screenfull.request(canvas);
             }
-        });
+        }, window.sounds.uiClick);
         return fsButton;
-    }
-
-    static MakeActivateAnimButton(text, animState, parentPanel) {
-        var aaButton = UI.MakeButton('', text, function() {
-            console.log(BABYLON.Engine.audioEngine.audioContext);
-            window.sounds.animChange.play();
-            animState.activeAnim.deactivate();
-            animState.activeAnim = animState.anims[text];
-            animState.activeAnim.activate();
-            parentPanel.isVisible = false;
-        });
-        return aaButton;
     }
 
     static MakeMenuActivateAnimButton(text, animState, caMenu) {
@@ -478,7 +451,7 @@ export class UI {
         return aaButton;
     }
 
-    static MakeDualTextButton(name, text0, text1, onPressedFn) {
+    static MakeDualTextButton(name, text0, text1, onPressedFn, sound = null) {
         // button acts like a checkbox (hide/show settings button)
         // text0 is initial (true) state;
         // onPressedFn0 is run when state switches to true
@@ -488,12 +461,12 @@ export class UI {
             state = (state + 1) % 2;
             button.children[0].text = texts[state];
             onPressedFn();
-        });
+        }, sound);
 
         return button;
     }
 
-    static MakeDualButton(name, text0, text1, onPressedFn0, onPressedFn1) {
+    static MakeDualButton(name, text0, text1, onPressedFn0, onPressedFn1, sound = null) {
         // button acts like a checkbox (hide/show settings button)
         // text0 is initial 0 state;
         // onPressedFn0 is run when state switches to 0
@@ -504,7 +477,7 @@ export class UI {
             state = (state + 1) % 2;
             button.children[0].text = texts[state];
             fns[state]();
-        });
+        }, sound);
 
         return button;
     }
@@ -512,7 +485,7 @@ export class UI {
     static MakeParentButton(name, text, subMenu, gui) {
         var parentButton = UI.MakeButton(name, text, function() {
             gui.setActiveMenu(subMenu);
-        });
+        }, window.sounds.uiClick);
         parentButton.color = 'white'
         return parentButton;
     }
@@ -520,6 +493,7 @@ export class UI {
     static MakeBackButton(name, parent, gui) {
         // parent is menu that back button returns to
         var backButton = UI.MakeButton(name, '<', function() {
+            window.sounds.uiClick.play();
             gui.setActiveMenu(parent);
         });
         backButton.color = 'white'
@@ -546,10 +520,17 @@ export class UI {
         return spacer;
     }
 
-    static MakeButton(name, text, onPressedFn, width = UI.STANDARDW, height = UI.STANDARDH) {
+    static MakeButton(name, text, onPressedFn, sound = null) {
         var button = BABYLON.GUI.Button.CreateSimpleButton(name, text);
-        button.onPointerClickObservable.add(onPressedFn);
-        UI.SetControlsWidthHeight([button], width, height);
+        if(sound) {
+            button.onPointerClickObservable.add(function() {
+                sound.play();
+                onPressedFn();
+            });
+        } else {
+            button.onPointerClickObservable.add(onPressedFn);
+        }
+        UI.SetControlsWidthHeight([button], UI.STANDARDW, UI.STANDARDH);
         button.color = 'white';
         return button;
     }
