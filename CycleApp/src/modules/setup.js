@@ -2,7 +2,7 @@ import { setUpFlyCam } from './camera.js';
 import { UI } from './gui.js';
 import { Cycle } from './cycle.js';
 import { BouncyBall, DancingTHandle, PendVsMass, PendTugOfWar, SpinningRing, MultiPend } from './anims/all.js';
-import { BF, MyMats, Colors } from './babylonStuff.js';
+import { BF, Cam, MyMats, Colors, MySounds } from './babylonStuff.js';
 
 window.addEventListener('DOMContentLoaded', function(){
     // get the canvas DOM element
@@ -19,9 +19,8 @@ window.addEventListener('DOMContentLoaded', function(){
         //var camPos = BF.Vec3([37, 20, -22]);
         var camPos = BF.Vec3([22, 16, -22]);
         window.camera = new BABYLON.FlyCamera('camera1', camPos, scene);
-        window.camera=setUpFlyCam(window.camera, canvas);
+        window.camera=Cam.setUpFlyCam(window.camera, canvas);
         window.camera.setTarget(BF.Vec3([0,7,0]));
-        //window.camera.setTarget(BF.Vec3([0,7,20]));
 
         //setup scene environment
         scene.ambientColor = Colors.RGB(255,255,255);
@@ -29,6 +28,10 @@ window.addEventListener('DOMContentLoaded', function(){
 
         //initialize materials object
         var myMats = new MyMats(scene);
+
+        //initialize sounds object
+        window.mySounds = new MySounds(scene);
+        console.log(scene.audioEnabled);
 
         //setup gui
 
@@ -77,7 +80,7 @@ window.addEventListener('DOMContentLoaded', function(){
             'bouncy ball': bouncyBall
         };
 
-        var animState = UI.MakeAnimStateChooseAnimMenu(anims, window.gui);
+        var animState = UI.MakeAnimStateChooseAnimMenu(anims, window.gui, window.mySounds);
 
         UI.MakeHowToMenu(window.gui);
 

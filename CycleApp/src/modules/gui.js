@@ -199,7 +199,7 @@ export class UI {
         return menu;
     }
 
-    static MakeAnimStateChooseAnimMenu(anims, gui) {
+    static MakeAnimStateChooseAnimMenu(anims, gui, mySounds) {
         // adds the caMenu to gui texture and adds the choose anim button to main menu
         var caMenu = UI.MakeSubMenu('simulations', gui.mainMenu, gui, 'choose simulation');
         var animKeys = Object.keys(anims);
@@ -213,7 +213,7 @@ export class UI {
             } else {
                 anims[animKeys[i]].deactivate();
             }
-            animButtons.push(UI.MakeMenuActivateAnimButton(animKeys[i], animState, caMenu));
+            animButtons.push(UI.MakeMenuActivateAnimButton(animKeys[i], animState, caMenu, mySounds));
             animButtonNames.push(animKeys[i].concat('PB'))
             animMenus.push(animState.anims[animKeys[i]].guiMenu);
         }
@@ -435,8 +435,9 @@ export class UI {
         return fsButton;
     }
 
-    static MakeActivateAnimButton(text, animState, parentPanel) {
+    static MakeActivateAnimButton(text, animState, parentPanel, mySounds) {
         var aaButton = UI.MakeButton('', text, function() {
+            mySounds.animChange.play();
             animState.activeAnim.deactivate();
             animState.activeAnim = animState.anims[text];
             animState.activeAnim.activate();
