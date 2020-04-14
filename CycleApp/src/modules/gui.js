@@ -20,6 +20,9 @@ export class UI {
     static HOWTOTEXTH = '22px';
     static HOWTOTEXTSIZE = 18;
 
+    static SLIDERHEADERH = '26px';
+    static SLIDERH = '30px';
+
     // makes the main gui object
     static MakeGUI(canvas) {
         var gui = {}
@@ -291,7 +294,7 @@ export class UI {
         UI.AdaptContainerWidth(sliderPanel);
 
         var header = UI.MakeTextBlock(headerText + ': ' + initVal + ' ' + unit, 20);
-        header.height = '30px';
+        header.height = UI.SLIDERHEADERH;
         header.width = '250px';
 
 
@@ -303,7 +306,7 @@ export class UI {
             header.text = headerText + ': ' + math.round(10*value)/10 + ' ' + unit;
             valChangeFn(value);
         });
-        slider.height = '30px';
+        slider.height = UI.SLIDERH;
         slider.width = '250px';
         slider.color = 'grey'
         slider.background = 'black'
@@ -321,6 +324,11 @@ export class UI {
 
         sliderPanel.setSliderValue = function(val) {
             slider.value = val;
+        }
+
+        sliderPanel.setWidth = function(width) {
+            header.width = width;
+            slider.width = width;
         }
 
         return sliderPanel
@@ -336,7 +344,7 @@ export class UI {
         UI.AdaptContainerWidth(sliderPanel);
 
         var header = UI.MakeTextBlock(headerText + ': ' + initVal + ' ' + unit, 20);
-        header.height = '30px';
+        header.height = UI.SLIDERHEADERH;
         header.width = '250px';
 
 
@@ -348,7 +356,7 @@ export class UI {
             header.text = headerText + ': ' + math.round(100*value)/100 + ' ' + unit;
             valChangeFn(value);
         });
-        slider.height = '30px';
+        slider.height = UI.SLIDERH;
         slider.width = '250px';
         slider.color = 'grey'
         slider.background = 'black'
@@ -368,6 +376,11 @@ export class UI {
             slider.value = val;
         }
 
+        sliderPanel.setWidth = function(width) {
+            header.width = width;
+            slider.width = width;
+        }
+
         return sliderPanel
     }
 
@@ -381,7 +394,7 @@ export class UI {
         UI.AdaptContainerWidth(sliderPanel);
 
         var header = UI.MakeTextBlock(headerText + ': ' + initVal + ' ' + unit, 20);
-        header.height = '30px';
+        header.height = UI.SLIDERHEADERH;
         header.width = '250px';
 
 
@@ -393,7 +406,7 @@ export class UI {
             header.text = headerText + ': ' + Math.round(value) + ' ' + unit;
             valChangeFn(Math.round(value));
         });
-        slider.height = '30px';
+        slider.height = UI.SLIDERH;
         slider.width = '250px';
         slider.color = 'grey';
         slider.background = 'black';
@@ -413,6 +426,11 @@ export class UI {
             slider.value = val;
         }
 
+        sliderPanel.setWidth = function(width) {
+            header.width = width;
+            slider.width = width;
+        }
+
         return sliderPanel
     }
 
@@ -420,6 +438,7 @@ export class UI {
         var volSP = UI.MakeSliderPanel('volume', '', 0, 1, BABYLON.Engine.audioEngine.getGlobalVolume(), function(value) {
             BABYLON.Engine.audioEngine.setGlobalVolume(value);
         });
+        volSP.setWidth('200px');
         gui.mainMenu.addControl('volumeSP', volSP);
         gui.mainMenu.hideControl('volumeSP');
     }
