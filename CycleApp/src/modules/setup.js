@@ -1,4 +1,3 @@
-import { setUpFlyCam } from './camera.js';
 import { UI } from './gui.js';
 import { Cycle } from './cycle.js';
 import { BouncyBall, DancingTHandle, PendVsMass, PendTugOfWar, SpinningRing, MultiPend } from './anims/all.js';
@@ -19,7 +18,7 @@ window.addEventListener('DOMContentLoaded', function(){
         //var camPos = BF.Vec3([37, 20, -22]);
         var camPos = BF.Vec3([22, 16, -22]);
         window.camera = new BABYLON.FlyCamera('camera1', camPos, scene);
-        window.camera=Cam.setUpFlyCam(window.camera, canvas);
+        window.camera = Cam.setUpFlyCam(window.camera, canvas);
         window.camera.setTarget(BF.Vec3([0,7,0]));
 
         //setup scene environment
@@ -30,8 +29,7 @@ window.addEventListener('DOMContentLoaded', function(){
         var myMats = new MyMats(scene);
 
         //initialize sounds object
-        window.mySounds = new MySounds(scene);
-        console.log(scene.audioEnabled);
+        window.sounds = new MySounds(scene);
 
         //setup gui
 

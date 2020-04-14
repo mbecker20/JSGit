@@ -25,6 +25,7 @@ export class UI {
     
         // make show/hide button
         gui.shButton = UI.MakeShowHideButton(gui);
+        gui.muteButton = UI.MakeMuteButton(gui);
 
         // make main menu (can add submenus to main menu afterwords)
         gui.mainMenu = UI.MakeMainMenu(gui, canvas);
@@ -213,7 +214,7 @@ export class UI {
             } else {
                 anims[animKeys[i]].deactivate();
             }
-            animButtons.push(UI.MakeMenuActivateAnimButton(animKeys[i], animState, caMenu, mySounds));
+            animButtons.push(UI.MakeMenuActivateAnimButton(animKeys[i], animState, caMenu));
             animButtonNames.push(animKeys[i].concat('PB'))
             animMenus.push(animState.anims[animKeys[i]].guiMenu);
         }
@@ -422,6 +423,21 @@ export class UI {
         return shButton;
     }
 
+    static MakeMuteButton(gui) {
+        var muteButton = UI.MakeDualButton('muteButton', 'unmute', 'mute', function() {
+
+        }, function() {
+            BABYLON.Engine.audioEngine.audioContext.resume();
+            window.sounds.animChange.play();
+        });
+        UI.AlignControlsTopLeft([muteButton]);
+        muteButton.width = '60px';
+        muteButton.height = '30px';
+        muteButton.left = '80px';
+        gui.texture.addControl(muteButton);
+        return muteButton;
+    }
+
     static MakeFullscreenButton(canvas) { 
         var fsButton = UI.MakeDualButton('fsButton', 'enter fullscreen', 'exit fullscreen', function() {
             if(screenfull.isEnabled) {
@@ -435,9 +451,10 @@ export class UI {
         return fsButton;
     }
 
-    static MakeActivateAnimButton(text, animState, parentPanel, mySounds) {
+    static MakeActivateAnimButton(text, animState, parentPanel) {
         var aaButton = UI.MakeButton('', text, function() {
-            mySounds.animChange.play();
+            console.log(BABYLON.Engine.audioEngine.audioContext);
+            window.sounds.animChange.play();
             animState.activeAnim.deactivate();
             animState.activeAnim = animState.anims[text];
             animState.activeAnim.activate();
@@ -448,6 +465,7 @@ export class UI {
 
     static MakeMenuActivateAnimButton(text, animState, caMenu) {
         var aaButton = UI.MakeButton('', text, function() {
+            window.sounds.animChange.play();
             animState.activeAnim.deactivate();
             animState.activeAnim = animState.anims[text];
             animState.activeAnim.activate();
