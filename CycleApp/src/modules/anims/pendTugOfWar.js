@@ -102,7 +102,9 @@ export class PendTugOfWar {
         var pivHeight = 15;
         this.spherePiv.position = BF.Vec3([0, pivHeight, -3]);
         this.cubePiv.position = BF.Vec3([0, pivHeight, 3]);
-        
+        this.blockHitSound = BF.MakeSound('blockHit', '/resources/blockHit.mp3', scene, null, {spatialSound: true});
+        this.blockHitSound.setPosition(BF.Vec3([0,pivHeight,0]));
+
         this.topRope = BF.MakeTube('topRope', scene, .25);
         this.topRope.scaling.x = 6;
         this.topRope.rotation.y = -Math.PI/2;
@@ -141,12 +143,22 @@ export class PendTugOfWar {
         this.setPos();
     }
 
+    setBlockHitVol() {
+        var volScale = 1/30;
+        var vol = volScale * this.params.lDot;
+        this.blockHitSound.setVolume(vol);
+    }
+
     imposeBC() {
         // updates params based on boundary conditions
         if(this.params.l > this.lMax) {
+            this.setBlockHitVol();
+            this.blockHitSound.play();
             this.params.l = this.lMax;
             this.params.lDot = -this.collisionVelocityMult * this.params.lDot + this.lagrangian.activeMode.pDD.l * this.dt;
         } else if(this.params.l < this.lMin) {
+            this.setBlockHitVol();
+            this.blockHitSound.play();
             this.params.l = this.lMin;
             this.params.lDot = -this.collisionVelocityMult * this.params.lDot + this.lagrangian.activeMode.pDD.l * this.dt;
         }
