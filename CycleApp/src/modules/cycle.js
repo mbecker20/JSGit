@@ -1,4 +1,4 @@
-import { BF, Colors } from './babylonStuff.js';
+import { BF } from './babylonStuff.js';
 
 
 export class Cycle {
@@ -36,7 +36,7 @@ export class Cycle {
         this.moonPos = BF.ZeroVec3();
         this.moonLight = new BABYLON.PointLight('moonLight', this.moonPos, scene);
         this.moonLight.intensity = .5
-        this.moonLight.diffuse = Colors.RGB(100,100,100);
+        this.moonLight.diffuse = BF.ColorRGB(100,100,100);
  
         this.shadowQual = 1024 // 512 or 1024 for laptop, 2048 for desktop
 
@@ -48,7 +48,7 @@ export class Cycle {
         this.sunPos = BF.ZeroVec3()
         this.sunLight = new BABYLON.PointLight('sunLight', this.sunPos, scene);
         this.sunLight.intensity = .7;
-        this.sunLight.diffuse = Colors.RGB(255,255,153);
+        this.sunLight.diffuse = BF.ColorRGB(255,255,153);
 
         var sunShadows = new BABYLON.ShadowGenerator(shadowQual, this.sunLight);
         sunShadows.usePoissonSampling = true;

@@ -1,3 +1,5 @@
+import { BF } from './babylonStuff.js';
+
 export class UI {
     static SPACING = '15px';
     
@@ -59,12 +61,12 @@ export class UI {
         mainMenu.controls = {}; // all controls are panels including spacer
 
         mainMenu.addControl = function(name, control, spacing = true) {
+            mainMenu.controls[name] = UI.MakePanel();
+            mainMenu.controls[name].control = control;
             if (spacing) {
-                mainMenu.controls[name] = UI.MakePanel();
                 UI.AddControlsToTarget([UI.MakeVertSpacer(), control], mainMenu.controls[name]);
                 mainMenu.panel.addControl(mainMenu.controls[name]);
             } else {
-                mainMenu.controls[name] = UI.MakePanel();
                 UI.AddControlsToTarget([control], mainMenu.controls[name]);
                 mainMenu.panel.addControl(mainMenu.controls[name]);
             }
@@ -74,6 +76,10 @@ export class UI {
             for(var i = 0; i < controls.length; i++) {
                 mainMenu.addControl(names[i], controls[i], spacing);
             }
+        }
+
+        mainMenu.getControl = function(name) {
+            return mainMenu.controls[name].control;
         }
 
         mainMenu.addSubMenu = function(subMenu) {
@@ -144,21 +150,24 @@ export class UI {
         menu.panel.background = 'black'
 
         menu.addControl = function(name, control, spacing = true) {
+            menu.controls[name] = UI.MakePanel();
+            menu.controls[name].control = control;
             if (spacing) {
-                menu.controls[name] = UI.MakePanel();
                 UI.AddControlsToTarget([UI.MakeVertSpacer(), control], menu.controls[name]);
-                menu.svPanel.addControl(menu.controls[name]);
             } else {
-                menu.controls[name] = UI.MakePanel();
                 UI.AddControlsToTarget([control], menu.controls[name]);
-                menu.svPanel.addControl(menu.controls[name]);
             }
+            menu.svPanel.addControl(menu.controls[name]);
         }
 
         menu.addControls = function(names, controls, spacing = true) {
             for(var i = 0; i < controls.length; i++) {
                 menu.addControl(names[i], controls[i], spacing);
             }
+        }
+
+        menu.getControl = function(name) {
+            return menu.controls[name].control;
         }
 
         menu.addSubMenu = function(subMenu) {
@@ -306,6 +315,14 @@ export class UI {
         UI.SetControlsPadding([header, slider], 2);
         UI.AddControlsToTarget([header, slider], sliderPanel);
 
+        sliderPanel.getSliderValue = function() {
+            return slider.value;
+        }
+
+        sliderPanel.setSliderValue = function(val) {
+            slider.value = val;
+        }
+
         return sliderPanel
     }
 
@@ -342,6 +359,14 @@ export class UI {
 
         UI.SetControlsPadding([header, slider], 2);
         UI.AddControlsToTarget([header, slider], sliderPanel);
+
+        sliderPanel.getSliderValue = function() {
+            return slider.value;
+        }
+
+        sliderPanel.setSliderValue = function(val) {
+            slider.value = val;
+        }
 
         return sliderPanel
     }
@@ -380,7 +405,23 @@ export class UI {
         UI.SetControlsPadding([header, slider], 2);
         UI.AddControlsToTarget([header, slider], sliderPanel);
 
+        sliderPanel.getSliderValue = function() {
+            return slider.value;
+        }
+
+        sliderPanel.setSliderValue = function(val) {
+            slider.value = val;
+        }
+
         return sliderPanel
+    }
+
+    static MakeVolumeSliderPanel(gui) {
+        var volSP = UI.MakeSliderPanel('volume', '', 0, 1, BABYLON.Engine.audioEngine.getGlobalVolume(), function(value) {
+            BABYLON.Engine.audioEngine.setGlobalVolume(value);
+        });
+        gui.mainMenu.addControl('volumeSP', volSP);
+        gui.mainMenu.hideControl('volumeSP');
     }
 
     static MakeTwoButtonPanel(name0, text0, f0, name1, text1, f1) {
@@ -399,7 +440,7 @@ export class UI {
             gui.activeMenu.hide();
         }, function() {
             gui.activeMenu.show();
-        });
+        }, window.sounds.uiClick);
         UI.AlignControlsTopLeft([shButton]);
         shButton.width = '60px';
         shButton.height = '30px';
@@ -410,15 +451,18 @@ export class UI {
 
     static MakeMuteButton(gui) {
         var muteButton = UI.MakeDualButton('muteButton', 'unmute', 'mute', function() {
-
+            BF.SetGlobalVolume(0);
+            gui.mainMenu.hideControl('volumeSP');
         }, function() {
             BABYLON.Engine.audioEngine.audioContext.resume();
+            BF.SetGlobalVolume(gui.mainMenu.getControl('volumeSP').getSliderValue());
             window.sounds.animChange.play();
+            gui.mainMenu.showControl('volumeSP');
         });
         UI.AlignControlsTopLeft([muteButton]);
-        muteButton.width = '60px';
+        muteButton.width = '66px';
         muteButton.height = '30px';
-        muteButton.left = '80px';
+        muteButton.left = '68px';
         gui.texture.addControl(muteButton);
         return muteButton;
     }
@@ -432,7 +476,7 @@ export class UI {
             if(screenfull.isEnabled) {
                 screenfull.request(canvas);
             }
-        }, window.sounds.uiClick);
+        }, window.sounds.animChange);
         return fsButton;
     }
 

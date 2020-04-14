@@ -1,7 +1,8 @@
 import { UI } from './gui.js';
 import { Cycle } from './cycle.js';
 import { BouncyBall, DancingTHandle, PendVsMass, PendTugOfWar, SpinningRing, MultiPend } from './anims/all.js';
-import { BF, Cam, MyMats, Colors, MySounds } from './babylonStuff.js';
+import { BF, Cam } from './babylonStuff.js';
+import { MyMats, MySounds } from './resources.js';
 
 window.addEventListener('DOMContentLoaded', function(){
     // get the canvas DOM element
@@ -22,8 +23,8 @@ window.addEventListener('DOMContentLoaded', function(){
         window.camera.setTarget(BF.Vec3([0,7,0]));
 
         //setup scene environment
-        scene.ambientColor = Colors.RGB(255,255,255);
-        scene.clearColor = Colors.RGB(0,0,0);
+        scene.ambientColor = BF.ColorRGB(255,255,255);
+        scene.clearColor = BF.ColorRGB(0,0,0);
 
         //initialize materials object
         var myMats = new MyMats(scene);
@@ -81,6 +82,7 @@ window.addEventListener('DOMContentLoaded', function(){
         var animState = UI.MakeAnimStateChooseAnimMenu(anims, window.gui, window.mySounds);
 
         UI.MakeHowToMenu(window.gui);
+        UI.MakeVolumeSliderPanel(window.gui);
 
         scene.registerAfterRender(function () {
             cycle.step();
