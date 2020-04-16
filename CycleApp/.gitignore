@@ -45,10 +45,10 @@ openCycle
 
 # add these when reaedy
 # MakeAppDesktop.lnk
-# MakeAppLaptop.lnk
+MakeAppLaptop.lnk
 
 # StartAppDesktop.lnk
-# StartAppLaptop.lnk
+StartAppLaptop.lnk
 
 # StartAppMac.command
 
