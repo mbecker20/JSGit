@@ -39,9 +39,18 @@ jspm_packages/
 # package and package-lock .json so versions dont get confused
 *.json
 
-# Linux start scripts/shortcuts
+# all start scripts/shortcuts
 startHTTPServer.sh
 openCycle
+
+# add these when reaedy
+# MakeAppDesktop.lnk
+# MakeAppLaptop.lnk
+
+# StartAppDesktop.lnk
+# StartAppLaptop.lnk
+
+# StartAppMac.command
 
 # TypeScript v1 declaration files
 typings/
