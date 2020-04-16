@@ -40,8 +40,10 @@ jspm_packages/
 *.json
 
 # all start scripts/shortcuts
+# startScripts/
+
 startHTTPServer.sh
-openCycle
+OpenCycle
 
 # add these when ready
 MakeAppDesktop.lnk
