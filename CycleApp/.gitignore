@@ -43,11 +43,11 @@ jspm_packages/
 startHTTPServer.sh
 openCycle
 
-# add these when reaedy
-# MakeAppDesktop.lnk
+# add these when ready
+MakeAppDesktop.lnk
 MakeAppLaptop.lnk
 
-# StartAppDesktop.lnk
+StartAppDesktop.lnk
 StartAppLaptop.lnk
 
 StartAppMac.command
