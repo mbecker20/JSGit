@@ -17,10 +17,10 @@ window.addEventListener('DOMContentLoaded', function(){
         
         //setup camera
         //var camPos = BF.Vec3([37, 20, -22]);
-        var camPos = BF.Vec3([22, 16, -22]);
+        var camPos = BF.Vec3([12, 22, -12]);
         window.camera = new BABYLON.FlyCamera('camera1', camPos, scene);
         window.camera = Cam.setUpFlyCam(window.camera, canvas);
-        window.camera.setTarget(BF.Vec3([0,7,0]));
+        window.camera.setTarget(BF.Vec3([0,22,0]));
 
         //setup scene environment
         scene.ambientColor = BF.ColorRGB(255,255,255);
@@ -50,7 +50,7 @@ window.addEventListener('DOMContentLoaded', function(){
         //anim3.node.position = grid[0][0];
 
         var dancingTHandle = new DancingTHandle(scene, myMats, cycle.shadows, window.gui);
-        //anim4.node.position = grid[1][1];
+        BF.SetVec3([0,18.1,0], dancingTHandle.node.position);
 
         var pendVsMass = new PendVsMass(scene, myMats, cycle.shadows, window.gui);
         //anim5.node.position = grid[1][0];

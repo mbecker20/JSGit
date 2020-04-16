@@ -76,8 +76,8 @@ export class Cycle {
         //place axes at origin for reference during development
         //var worldAxes = BF.MakeAxes('worldAxes', scene, 4);
 
-        this.underBlock = BABYLON.MeshBuilder.CreateBox('underBlock', {width:40,height:1,depth:40}, scene);
-        this.underBlock.position = BF.Vec3([0,-2,0]);
+        this.ubSize = 36;
+        this.underBlock = BABYLON.MeshBuilder.CreateBox('underBlock', {width:this.ubSize,height:this.ubSize,depth:this.ubSize}, scene);
         this.underBlock.material = myMats.darkMoon;
         this.underBlock.receiveShadows = true;
 
