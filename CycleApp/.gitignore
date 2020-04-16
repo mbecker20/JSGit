@@ -50,7 +50,7 @@ MakeAppLaptop.lnk
 # StartAppDesktop.lnk
 StartAppLaptop.lnk
 
-# StartAppMac.command
+StartAppMac.command
 
 # TypeScript v1 declaration files
 typings/
