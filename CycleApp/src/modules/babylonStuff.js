@@ -367,6 +367,10 @@ export class BF {
         // from 0 to 100
         BABYLON.Engine.audioEngine.setGlobalVolume(value);
     }
+
+    static ResumeAudioContext() {
+        BABYLON.Engine.audioEngine.audioContext.resume();
+    }
 }
 
 export class Cam {

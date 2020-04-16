@@ -455,9 +455,15 @@ export class UI {
     }
 
     static MakeShowHideButton(gui) {
+        var resAudFunc = function() {
+            BF.ResumeAudioContext();
+            resAudFunc = function() {}
+        }
+
         var shButton = UI.MakeDualButton('shButton', 'show', 'hide', function() {
             gui.activeMenu.hide();
         }, function() {
+            resAudFunc();
             gui.activeMenu.show();
         }, window.sounds.uiClick);
         UI.AlignControlsTopLeft([shButton]);
