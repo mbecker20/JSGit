@@ -37,7 +37,7 @@ node_modules/
 jspm_packages/
 
 # package-lock.json so versions dont get confused
-package-lock.json
+*.json
 
 # TypeScript v1 declaration files
 typings/
