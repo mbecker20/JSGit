@@ -36,8 +36,12 @@ build/Release
 node_modules/
 jspm_packages/
 
-# package-lock.json so versions dont get confused
+# package and package-lock .json so versions dont get confused
 *.json
+
+# Linux start scripts/shortcuts
+startHTTPServer.sh
+openCycle
 
 # TypeScript v1 declaration files
 typings/
