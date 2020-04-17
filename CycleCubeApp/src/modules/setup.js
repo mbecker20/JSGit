@@ -18,8 +18,7 @@ window.addEventListener('DOMContentLoaded', function(){
         //setup camera
         //var camPos = BF.Vec3([37, 20, -22]);
         var camPos = BF.Vec3([12, 22, -12]);
-        window.camera = new BABYLON.FlyCamera('camera1', camPos, scene);
-        window.camera = Cam.setUpFlyCam(window.camera, canvas);
+        window.camera = Cam.makeCam(camPos, scene, canvas);
         window.camera.setTarget(BF.Vec3([0,22,0]));
 
         //setup scene environment

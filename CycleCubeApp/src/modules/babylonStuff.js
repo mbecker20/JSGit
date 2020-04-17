@@ -207,6 +207,10 @@ export class BF {
         return mat;
     }
 
+    static Vec2(ar2) {
+        return new BABYLON.Vector2(ar2[0], ar2[1]);
+    }
+
     static Vec3(ar3) {
         return new BABYLON.Vector3(ar3[0],ar3[1],ar3[2]);
     }
@@ -214,6 +218,10 @@ export class BF {
     static SetVec3(ar3, target) {
         target.set(ar3[0],ar3[1],ar3[2]);
         return target;
+    }
+
+    static CopyVec3(vec3) {
+        return new BABYLON.Vector3(vec3.x, vec3.y, vec3.z);
     }
 
     static Vec4(ar4) {
@@ -374,19 +382,44 @@ export class BF {
 }
 
 export class Cam {
-    static setUpFlyCam(flyCam,canvas) {
-        flyCam.inputs.clear(); // clear default inputs
+    static makeCam(camPos, scene, canvas) {
+        var cam = new BABYLON.TargetCamera('camera', camPos, scene);
 
-        //flyCam.inputs.addKeyboard(); // to add back standard inputs
-        //flyCam.inputs.addMouse();
+        // clear default inputs
+        cam.inputs.clear();
 
-        flyCam.inputs.add(Cam.makeKBRotateInput(canvas));
-        flyCam.inputs.add(Cam.makeKBMoveInput(canvas));
-        flyCam.attachControl(canvas, false);
-        return flyCam;
+        // add custom inputs
+        cam.inputs.add(Cam.makeKBRotateInput(cam, canvas));
+        cam.inputs.add(Cam.makeKBMoveInput(cam, canvas));
+        cam.attachControl(canvas, false);
+
+        cam.targetPos = BF.CopyVec3(cam.position);
+        cam.targetRot = BF.Vec2([0,0]); // first comp is alt, second is azim
+
+        cam.forwardDir = BF.Vec3([1,0,0]);
+        cam.sideDir = BF.Vec3([0,0,1]);
+
+        cam.moveToTarget = function() {
+
+        }
+
+        cam.rotToTarget = function() {
+
+        }
+
+        cam.step = function() {
+            cam.moveToTarget();
+            cam.rotToTarget();
+        }
+
+        cam.setForwardSideDirection = function() {
+
+        }
+
+        return cam;
     }
     
-    static makeKBRotateInput(canvas) {
+    static makeKBRotateInput(cam, canvas) {
         var kbRotateInput = function() {
             this._keys = [];
             this.keysLeft = [74];
@@ -398,7 +431,7 @@ export class Cam {
             this.deltaTheta = .002;
             this.deltaFOV = .005;
             this.fovMin = Math.PI/24;
-            this.fovMax = .99*Math.PI/2
+            this.fovMax = .99*Math.PI/2;
         };
     
         kbRotateInput.prototype.getTypeName = function() {
@@ -474,22 +507,21 @@ export class Cam {
         kbRotateInput.prototype.checkInputs = function() {
             //this is where you set what the keys do
             if (this._onKeyDown) {
-                var camera = this.camera;
                 // Keyboard
                 for (var index = 0; index < this._keys.length; index++) {
                     var keyCode = this._keys[index];
                     if (this.keysLeft.indexOf(keyCode) !== -1) {
-                        camera.cameraRotation.y -= this.deltaTheta; // done in world space
+                        cam.targetRot.y -= this.deltaTheta; // done in world space
                     } else if (this.keysRight.indexOf(keyCode) !== -1) {
-                        camera.cameraRotation.y += this.deltaTheta;
+                        cam.targetRot.y += this.deltaTheta;
                     } if (this.keysUp.indexOf(keyCode) !== -1) {
-                        camera.cameraRotation.x -= this.deltaTheta; // done in local space
+                        cam.targetRot.x -= this.deltaTheta; // done in local space
                     } else if (this.keysDown.indexOf(keyCode) !== -1) {
-                        camera.cameraRotation.x += this.deltaTheta;
+                        cam.targetRot.x += this.deltaTheta;
                     } if (this.keysZoomIn.indexOf(keyCode) !== -1) {
-                        camera.fov -= this.deltaFOV;
-                        if(camera.fov < this.fovMin) {
-                            camera.fov = this.fovMin;
+                        cam.fov -= this.deltaFOV;
+                        if(cam.fov < this.fovMin) {
+                            cam.fov = this.fovMin;
                         }
                     } else if (this.keysZoomOut.indexOf(keyCode) !== -1) {
                         camera.fov += this.deltaFOV;
@@ -504,29 +536,26 @@ export class Cam {
         return new kbRotateInput();
     };
 
-    static makeKBMoveInput(canvas) {
+    static makeKBMoveInput(cam, canvas) {
         var kbMoveInput = function() {
             this._keys = [];
-            this.keysLeft = [74];
-            this.keysRight = [76];
-            this.keysForward = [73];
-            this.keysBack = [75];
-            this.keysJump = [48];
-            this.keysCrouch = [57];
-            this.a = 1
-            this.maxV = 1;
-            this.fovMin = Math.PI/24;
-            this.fovMax = .99*Math.PI/2
+            this.keysLeft = [65];
+            this.keysRight = [68];
+            this.keysForward = [87];
+            this.keysBack = [83];
+            this.keysJump = [32];
+            this.keysCrouch = [16];
+            this.v = .1;
         };
     
-        kbRotateInput.prototype.getTypeName = function() {
+        kbMoveInput.prototype.getTypeName = function() {
             return "FlyCameraKeyboardRotateInput";
         };
-        kbRotateInput.prototype.getSimpleName = function() {
+        kbMoveInput.prototype.getSimpleName = function() {
             return "keyboardRotate";
         };
     
-        kbRotateInput.prototype.attachControl = function(element, noPreventDefault) {
+        kbMoveInput.prototype.attachControl = function(element, noPreventDefault) {
             var _this = this;
             if (!this._onKeyDown) {
                 element.tabIndex = 1;
@@ -534,10 +563,10 @@ export class Cam {
                     if (
                     _this.keysLeft.indexOf(evt.keyCode) !== -1 ||
                     _this.keysRight.indexOf(evt.keyCode) !== -1 ||
-                    _this.keysUp.indexOf(evt.keyCode) !== -1 ||
-                    _this.keysDown.indexOf(evt.keyCode) !== -1 ||
-                    _this.keysZoomIn.indexOf(evt.keyCode) !== -1 ||
-                    _this.keysZoomOut.indexOf(evt.keyCode) !== -1
+                    _this.keysForward.indexOf(evt.keyCode) !== -1 ||
+                    _this.keysBack.indexOf(evt.keyCode) !== -1 ||
+                    _this.keysJump.indexOf(evt.keyCode) !== -1 ||
+                    _this.keysCrouch.indexOf(evt.keyCode) !== -1
                     ) {
                         var index = _this._keys.indexOf(evt.keyCode);
                         if (index === -1) {
@@ -553,10 +582,10 @@ export class Cam {
                     if (
                     _this.keysLeft.indexOf(evt.keyCode) !== -1 ||
                     _this.keysRight.indexOf(evt.keyCode) !== -1 ||
-                    _this.keysUp.indexOf(evt.keyCode) !== -1 ||
-                    _this.keysDown.indexOf(evt.keyCode) !== -1 ||
-                    _this.keysZoomIn.indexOf(evt.keyCode) !== -1 ||
-                    _this.keysZoomOut.indexOf(evt.keyCode) !== -1
+                    _this.keysForward.indexOf(evt.keyCode) !== -1 ||
+                    _this.keysBack.indexOf(evt.keyCode) !== -1 ||
+                    _this.keysJump.indexOf(evt.keyCode) !== -1 ||
+                    _this.keysCrouch.indexOf(evt.keyCode) !== -1
                     ) {
                         var index = _this._keys.indexOf(evt.keyCode);
                         if (index >= 0) {
@@ -576,7 +605,7 @@ export class Cam {
             }
         };
     
-        kbRotateInput.prototype.detachControl = function(element) {
+        kbMoveInput.prototype.detachControl = function(element) {
             if (this._onKeyDown) {
                 element.removeEventListener("keydown", this._onKeyDown);
                 element.removeEventListener("keyup", this._onKeyUp);
@@ -589,11 +618,9 @@ export class Cam {
             }
         };
     
-        kbRotateInput.prototype.checkInputs = function() {
+        kbMoveInput.prototype.checkInputs = function() {
             //this is where you set what the keys do
             if (this._onKeyDown) {
-                var camera = this.camera;
-                // Keyboard
                 for (var index = 0; index < this._keys.length; index++) {
                     var keyCode = this._keys[index];
                     if (this.keysLeft.indexOf(keyCode) !== -1) {
@@ -619,6 +646,6 @@ export class Cam {
             }
         };
     
-        return new kbRotateInput();
+        return new kbMoveInput();
     };
 }
