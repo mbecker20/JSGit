@@ -12,7 +12,7 @@ window.addEventListener('DOMContentLoaded', function(){
     var engine = new BABYLON.Engine(canvas, true);
 
     // createScene function that creates and return the scene
-    var createScene = function(){
+    var createScene = function() {
         var scene = new BABYLON.Scene(engine);
         
         //setup camera

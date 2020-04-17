@@ -220,6 +220,14 @@ export class BF {
         return target;
     }
 
+    static SetVec3R(vec0, vec1, target) {
+        // sets target vec3 to be vec1 - vec0
+        // vec points from vec0 to vec1
+        target.x = vec1.x - vec0.x;
+        target.y = vec1.y - vec0.y;
+        target.z = vec1.z - vec0.z;
+    }
+
     static CopyVec3(vec3) {
         return new BABYLON.Vector3(vec3.x, vec3.y, vec3.z);
     }
@@ -396,11 +404,14 @@ export class Cam {
         cam.targetPos = BF.CopyVec3(cam.position);
         cam.targetRot = BF.Vec2([0,0]); // first comp is alt, second is azim
 
-        cam.forwardDir = BF.Vec3([1,0,0]);
-        cam.sideDir = BF.Vec3([0,0,1]);
+        cam.a = .01;
+        cam.maxV = cam.a*10;
+
+        cam.forwardDir = BF.Vec3([1,0,0])
+        cam.sideDir = BF.Vec3([0,0,1])
 
         cam.moveToTarget = function() {
-
+            
         }
 
         cam.rotToTarget = function() {
@@ -624,7 +635,7 @@ export class Cam {
                 for (var index = 0; index < this._keys.length; index++) {
                     var keyCode = this._keys[index];
                     if (this.keysLeft.indexOf(keyCode) !== -1) {
-                        camera.cameraRotation.y -= this.deltaTheta; // done in world space
+                        cam.targetPos.y -= this.deltaTheta; // done in world space
                     } else if (this.keysRight.indexOf(keyCode) !== -1) {
                         camera.cameraRotation.y += this.deltaTheta;
                     } if (this.keysUp.indexOf(keyCode) !== -1) {
