@@ -77,7 +77,7 @@ export class Cycle {
         //var worldAxes = BF.MakeAxes('worldAxes', scene, 4);
 
         this.ubSize = 36;
-        this.underBlock = BABYLON.MeshBuilder.CreateBox('underBlock', {width:this.ubSize,height:this.ubSize,depth:this.ubSize}, scene);
+        this.underBlock = BABYLON.MeshBuilder.CreateBox('underBlock', {size: this.ubSize}, scene);
         this.underBlock.material = myMats.darkMoon;
         this.underBlock.receiveShadows = true;
 
