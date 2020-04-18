@@ -456,7 +456,6 @@ export class Cam {
             cam.rotation.x += cam.deltaAlt;
             cam.correctAlt();
             
-
             cam.deltaAzim = Cam.RotInterpMult * cam.targetRot.y;
             cam.camMesh.rotation.y += cam.deltaAzim;
             cam.targetRot.y -= cam.deltaAzim;
