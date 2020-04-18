@@ -435,7 +435,6 @@ export class Cam {
         cam.deltaAzim = 0;
         cam.altMax = .9 * Math.PI/2;
         cam.altMin = -(.9 * Math.PI/2);
-
         cam.targetRotStep = .002;
 
         cam.moveToTarget = function() {
@@ -447,7 +446,10 @@ export class Cam {
         }
 
         cam.rotToTarget = function() {
-            cam.deltaAlt = cam.moveInterpMult * 
+            cam.deltaAlt = cam.rotInterpMult * cam.targetRot.x;
+            cam.deltaAzim = cam.rotInterpMult * cam.targetRot.y;
+            cam.camMesh.rotation.y += cam.deltaAzim;
+            cam.targetRot.y -= cam.deltaAzim;
         }
 
         cam.step = function() {
@@ -558,10 +560,8 @@ export class Cam {
                         cam.targetRot.y -= cam.targetRotStep;
                     } else if (this.keysRight.indexOf(keyCode) !== -1) {
                         cam.targetRot.y += cam.targetRotStep;
-
                     } if (this.keysUp.indexOf(keyCode) !== -1) {
                         cam.targetRot.x -= cam.targetRotStep;
-                        cam.targetRot.x = 
                     } else if (this.keysDown.indexOf(keyCode) !== -1) {
                         cam.targetRot.x += cam.targetRotStep;
                     } if (this.keysZoomIn.indexOf(keyCode) !== -1) {

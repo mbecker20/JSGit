@@ -32,7 +32,6 @@ window.addEventListener('DOMContentLoaded', function(){
         window.sounds = new MySounds(scene);
 
         //setup gui
-
         window.gui = UI.MakeGUI(canvas);
 
         //var grid = BF.MakeGridXZ([-10,0,-10], 20, 2, 2);
