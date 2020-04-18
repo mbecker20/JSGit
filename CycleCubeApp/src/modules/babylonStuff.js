@@ -455,14 +455,14 @@ export class Cam {
             cam.deltaAlt = Cam.RotInterpMult * cam.targetRot.x;
             cam.rotation.x += cam.deltaAlt;
             cam.targetRot.x -= cam.deltaAlt;
-            cam.correctAlt();
+            cam.boundAlt();
             
             cam.deltaAzim = Cam.RotInterpMult * cam.targetRot.y;
             cam.camMesh.rotation.y += cam.deltaAzim;
             cam.targetRot.y -= cam.deltaAzim;
         }
 
-        cam.correctAlt = function() {
+        cam.boundAlt = function() {
             if (cam.rotation.x > cam.altMax) {
                 cam.rotation.x = cam.altMax;
                 cam.targetRot.x = 0;
@@ -479,7 +479,10 @@ export class Cam {
         }
 
         cam.setLookDirection = function(ar3) {
-
+            const unit = VF.Unit2(ar3);
+            const altAzim = VF.GetAltAzimZX(unit);
+            cam.rotation.x = altAzim[0];
+            cam.camMesh.rotation.y = altAzim[1];
         }
 
         return cam;
