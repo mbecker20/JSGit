@@ -429,7 +429,16 @@ export class Cam {
         cam.forwardDir = BF.Vec3([1,0,0]);
 
         cam.moveToTarget = function() {
-            
+            if (cam.targetPos.x > 0) {
+
+            } else if (cam.targetPos.x < 0) {
+
+            }
+            if (cam.targetPos.y > 0) {
+
+            } else if (cam.targetPos.y < 0) {
+                
+            }
         }
 
         cam.rotToTarget = function() {
@@ -468,7 +477,7 @@ export class Cam {
         };
     
         kbRotateInput.prototype.getTypeName = function() {
-            return "FlyCameraKeyboardRotateInput";
+            return "CameraKeyboardRotateInput";
         };
         kbRotateInput.prototype.getSimpleName = function() {
             return "keyboardRotate";
@@ -582,10 +591,10 @@ export class Cam {
         };
     
         kbMoveInput.prototype.getTypeName = function() {
-            return "FlyCameraKeyboardRotateInput";
+            return "CameraKeyboardMovementInput";
         };
         kbMoveInput.prototype.getSimpleName = function() {
-            return "keyboardRotate";
+            return "keyboardMovement";
         };
     
         kbMoveInput.prototype.attachControl = function(element, noPreventDefault) {
@@ -657,23 +666,17 @@ export class Cam {
                 for (var index = 0; index < this._keys.length; index++) {
                     var keyCode = this._keys[index];
                     if (this.keysLeft.indexOf(keyCode) !== -1) {
-                        cam.targetPos.y -= this.deltaTheta; // done in world space
+                        cam.targetPos.y -= cam.maxV;
                     } else if (this.keysRight.indexOf(keyCode) !== -1) {
-                        cam.cameraRotation.y += this.deltaTheta;
-                    } if (this.keysUp.indexOf(keyCode) !== -1) {
-                        cam.cameraRotation.x -= this.deltaTheta; // done in local space
-                    } else if (this.keysDown.indexOf(keyCode) !== -1) {
-                        cam.cameraRotation.x += this.deltaTheta;
-                    } if (this.keysZoomIn.indexOf(keyCode) !== -1) {
-                        camera.fov -= this.deltaFOV;
-                        if(camera.fov < this.fovMin) {
-                            camera.fov = this.fovMin;
-                        }
-                    } else if (this.keysZoomOut.indexOf(keyCode) !== -1) {
-                        camera.fov += this.deltaFOV;
-                        if(camera.fov > this.fovMax) {
-                            camera.fov = this.fovMax;
-                        }
+                        cam.targetPos.y += cam.maxV;
+                    } if (this.keysForward.indexOf(keyCode) !== -1) {
+                        cam.targetPos.x += cam.maxV; // done in local space
+                    } else if (this.keysBack.indexOf(keyCode) !== -1) {
+                        cam.targetPos.x -= cam.maxV;
+                    } if (this.keysJump.indexOf(keyCode) !== -1) {
+                        
+                    } else if (this.keysCrouch.indexOf(keyCode) !== -1) {
+                        
                     }
                 }
             }
