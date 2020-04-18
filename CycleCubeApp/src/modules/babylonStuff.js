@@ -454,6 +454,7 @@ export class Cam {
         cam.rotToTarget = function() {
             cam.deltaAlt = Cam.RotInterpMult * cam.targetRot.x;
             cam.rotation.x += cam.deltaAlt;
+            cam.targetRot.x -= cam.deltaAlt;
             cam.correctAlt();
             
             cam.deltaAzim = Cam.RotInterpMult * cam.targetRot.y;
