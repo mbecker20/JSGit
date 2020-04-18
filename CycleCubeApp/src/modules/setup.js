@@ -85,6 +85,7 @@ window.addEventListener('DOMContentLoaded', function(){
         BF.SetGlobalVolume(0);
 
         scene.registerAfterRender(function () {
+            window.camera.step();
             cycle.step();
             animState.activeAnim.step();
         });

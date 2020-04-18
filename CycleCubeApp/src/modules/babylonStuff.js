@@ -416,42 +416,31 @@ export class Cam {
         // this contains position cam moving to, expressed locally
         // x forward, y side, z up. no movement has targetPos at [0,0,0]
         cam.targetPos = BF.ZeroVec3();
+        cam.deltaPos = BF.ZeroVec3();
 
         // rotation target is moved to. cam is rotated about cam local x axis by alt
         // camMesh is rotated about world y axis by azim
         cam.targetRot = BF.Vec2([0,0]); // first comp is alt, second is azim
 
         cam.a = .01;
-        cam.v = 0;
+        cam.forwardV = 0;
+        cam.sideV = 0;
         cam.vMaxMult = 10;
         cam.maxV = cam.a * cam.vMaxMult;
 
-        cam.forwardDir = BF.Vec3([1,0,0]);
-
         cam.moveToTarget = function() {
-            if (cam.targetPos.x > 0) {
-
-            } else if (cam.targetPos.x < 0) {
-
-            }
-            if (cam.targetPos.y > 0) {
-
-            } else if (cam.targetPos.y < 0) {
-                
-            }
+            camMesh.locallyTranslate(BF.SetVec3([cam.sideV, 0, cam.forwardV], cam.deltaPos));
+            cam.targetPos.x -= cam.forwardV;
+            cam.targetPos.y -= cam.sideV;
         }
 
         cam.rotToTarget = function() {
-
+            // add cam.setForwardDirection after rotation
         }
 
         cam.step = function() {
             cam.moveToTarget();
             cam.rotToTarget();
-        }
-
-        cam.setForwardDirection = function() {
-            BF.SetVec3(BF.GetOTens(camMesh)[0], cam.forwardDir);
         }
 
         cam.setLookDirection = function(ar3) {
