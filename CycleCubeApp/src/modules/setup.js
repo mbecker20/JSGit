@@ -16,7 +16,6 @@ window.addEventListener('DOMContentLoaded', function(){
         var scene = new BABYLON.Scene(engine);
         
         //setup camera
-        //var camPos = BF.Vec3([37, 20, -22]);
         var camPos = BF.Vec3([12, 22, -12]);
         window.camera = Cam.MakeCam(camPos, scene, canvas);
         // window.camera.setTarget(BF.Vec3([0,22,0]));
@@ -41,23 +40,12 @@ window.addEventListener('DOMContentLoaded', function(){
 
         var bouncyBall = new BouncyBall(scene, myMats, cycle.shadows, window.gui);
 
-        //var anim2 = new Anim2(scene, myMats, shadows);
-        //anim2.node.position = grid[1];
-
-        //var anim3 = new Anim3(scene, myMats, shadows);
-        //anim3.node.position = grid[0][0];
-
         var dancingTHandle = new DancingTHandle(scene, myMats, cycle.shadows, window.gui);
         BF.SetVec3([0,18.1,0], dancingTHandle.node.position);
 
         var pendVsMass = new PendVsMass(scene, myMats, cycle.shadows, window.gui);
-        //anim5.node.position = grid[1][0];
-
-        //var anim6 = new Anim6(scene, myMats, shadows);
-        //anim6.node.position = BF.Vec3([0,0,20]);
 
         var ptw = new PendTugOfWar(scene, myMats, cycle.shadows, window.gui);
-        //anim7.node.position = grid[1][0];
 
         var spinningRing = new SpinningRing(scene, myMats, cycle.shadows, window.gui);
 

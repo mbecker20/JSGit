@@ -396,12 +396,17 @@ export class BF {
 }
 
 export class Cam {
+    static MoveInterpMult = .05;
+    static RotInterpMult = .05;
+
+    static TargetPositionStep = .18;
+    static TargetRotationStep = .05;
+
     static MakeCam(camPos, scene, canvas) {
         var cam = new BABYLON.TargetCamera('camera', BF.ZeroVec3(), scene);
 
         // make input manager
         cam.inputs = new BABYLON.CameraInputsManager(cam);
-        //cam.inputs.attachElement(canvas, false);
 
         cam.camMesh = BF.MakeBox('camMesh', scene, 1, 2.2, 1);
         cam.camMesh.locallyTranslate(BF.Vec3([0, -1, 0]));
@@ -416,40 +421,55 @@ export class Cam {
 
         cam.attachControl(canvas, false);
 
+        // setup movement
+
         // this contains position cam moving to, expressed locally
         // x forward, y side, z up. no movement has targetPos at [0,0,0]
         cam.targetPos = BF.ZeroVec3();
         cam.deltaPos = BF.ZeroVec3();
 
+        cam.forwardV = 0;
+        cam.sideV = 0;
+
+        // setup rotation
+
         // rotation target is moved to. cam is rotated about cam local x axis by alt
         // camMesh is rotated about world y axis by azim
         cam.targetRot = BF.Vec2([0,0]); // first comp is alt, second is azim
 
-        cam.moveInterpMult = .05;
-        cam.forwardV = 0;
-        cam.sideV = 0;
-        cam.targetPosStep = .1;
-
-        cam.rotInterpMult = .05;
         cam.deltaAlt = 0;
         cam.deltaAzim = 0;
         cam.altMax = .9 * Math.PI/2;
-        cam.altMin = -(.9 * Math.PI/2);
-        cam.targetRotStep = .002;
+        cam.altMin = -.9 * Math.PI/2;
 
+        // set methods
         cam.moveToTarget = function() {
-            cam.forwardV = cam.moveInterpMult * cam.targetPos.x;
-            cam.sideV = cam.interpMult * cam.targetPos.y;
+            cam.forwardV = Cam.MoveInterpMult * cam.targetPos.x;
+            cam.sideV = Cam.MoveInterpMult * cam.targetPos.y;
             cam.camMesh.locallyTranslate(BF.SetVec3([cam.sideV, 0, cam.forwardV], cam.deltaPos));
             cam.targetPos.x -= cam.forwardV;
             cam.targetPos.y -= cam.sideV;
         }
 
         cam.rotToTarget = function() {
-            cam.deltaAlt = cam.rotInterpMult * cam.targetRot.x;
-            cam.deltaAzim = cam.rotInterpMult * cam.targetRot.y;
+            cam.deltaAlt = Cam.RotInterpMult * cam.targetRot.x;
+            cam.rotation.x += cam.deltaAlt;
+            cam.correctAlt();
+            
+
+            cam.deltaAzim = Cam.RotInterpMult * cam.targetRot.y;
             cam.camMesh.rotation.y += cam.deltaAzim;
             cam.targetRot.y -= cam.deltaAzim;
+        }
+
+        cam.correctAlt = function() {
+            if (cam.rotation.x > cam.altMax) {
+                cam.rotation.x = cam.altMax;
+                cam.targetRot.x = 0;
+            } else if (cam.rotation.x < cam.altMin) {
+                cam.rotation.x = cam.altMin;
+                cam.targetRot.x = 0;
+            }
         }
 
         cam.step = function() {
@@ -557,13 +577,13 @@ export class Cam {
                 for (var index = 0; index < this._keys.length; index++) {
                     var keyCode = this._keys[index];
                     if (this.keysLeft.indexOf(keyCode) !== -1) {
-                        cam.targetRot.y -= cam.targetRotStep;
+                        cam.targetRot.y -= Cam.TargetRotationStep;
                     } else if (this.keysRight.indexOf(keyCode) !== -1) {
-                        cam.targetRot.y += cam.targetRotStep;
+                        cam.targetRot.y += Cam.TargetRotationStep;
                     } if (this.keysUp.indexOf(keyCode) !== -1) {
-                        cam.targetRot.x -= cam.targetRotStep;
+                        cam.targetRot.x -= Cam.TargetRotationStep;
                     } else if (this.keysDown.indexOf(keyCode) !== -1) {
-                        cam.targetRot.x += cam.targetRotStep;
+                        cam.targetRot.x += Cam.TargetRotationStep;
                     } if (this.keysZoomIn.indexOf(keyCode) !== -1) {
                         cam.fov -= this.deltaFOV;
                         cam.fov = Math.max(cam.fov, this.fovMin);
@@ -666,13 +686,13 @@ export class Cam {
                 for (var index = 0; index < this._keys.length; index++) {
                     var keyCode = this._keys[index];
                     if (this.keysLeft.indexOf(keyCode) !== -1) {
-                        cam.targetPos.y -= cam.targetPosStep;
+                        cam.targetPos.y -= Cam.TargetPositionStep;
                     } else if (this.keysRight.indexOf(keyCode) !== -1) {
-                        cam.targetPos.y += cam.targetPosStep;
+                        cam.targetPos.y += Cam.TargetPositionStep;
                     } if (this.keysForward.indexOf(keyCode) !== -1) {
-                        cam.targetPos.x += cam.targetPosStep;
+                        cam.targetPos.x += Cam.TargetPositionStep;
                     } else if (this.keysBack.indexOf(keyCode) !== -1) {
-                        cam.targetPos.x -= cam.targetPosStep;
+                        cam.targetPos.x -= Cam.TargetPositionStep;
                     } if (this.keysJump.indexOf(keyCode) !== -1) {
                         
                     } else if (this.keysCrouch.indexOf(keyCode) !== -1) {
