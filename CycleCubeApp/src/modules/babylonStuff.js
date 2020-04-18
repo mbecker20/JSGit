@@ -396,7 +396,7 @@ export class BF {
 }
 
 export class Cam {
-    static MoveInterpMult = .05;
+    static MoveInterpMult = .1;
     static RotInterpMult = .05;
 
     static TargetPositionStep = .18;
