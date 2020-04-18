@@ -232,6 +232,12 @@ export class BF {
         return new BABYLON.Vector3(vec3.x, vec3.y, vec3.z);
     }
 
+    static CopyVec3ToTarget(vec3, target) {
+        target.x = vec3.x;
+        target.y = vec3.y;
+        target.z = vec3.z;
+    }
+
     static Vec4(ar4) {
         //converts array of length 4 to babylon vec4
         return new BABYLON.Vector4(ar4[0],ar4[1],ar4[2],ar4[3]);
@@ -391,24 +397,36 @@ export class BF {
 
 export class Cam {
     static makeCam(camPos, scene, canvas) {
-        var cam = new BABYLON.TargetCamera('camera', camPos, scene);
+        var cam = new BABYLON.TargetCamera('camera', BF.ZeroVec3(), scene);
 
         // clear default inputs
         cam.inputs.clear();
+
+        cam.camMesh = BF.MakeBox('camMesh', scene, 1, 2, 1);
+        cam.camMesh.locallyTranslate(BF.Vec3([0, -1, 0]));
+        BF.BakeMeshs([cam.camMesh]);
+        cam.camMesh.position = camPos;
+        cam.parent = cam.camMesh;
 
         // add custom inputs
         cam.inputs.add(Cam.makeKBRotateInput(cam, canvas));
         cam.inputs.add(Cam.makeKBMoveInput(cam, canvas));
         cam.attachControl(canvas, false);
 
-        cam.targetPos = BF.CopyVec3(cam.position);
+        // this contains position cam moving to, expressed locally
+        // x forward, y side, z up. no movement has targetPos at [0,0,0]
+        cam.targetPos = BF.ZeroVec3();
+
+        // rotation target is moved to. cam is rotated about cam local x axis by alt
+        // camMesh is rotated about world y axis by azim
         cam.targetRot = BF.Vec2([0,0]); // first comp is alt, second is azim
 
         cam.a = .01;
-        cam.maxV = cam.a*10;
+        cam.v = 0;
+        cam.vMaxMult = 10;
+        cam.maxV = cam.a * cam.vMaxMult;
 
-        cam.forwardDir = BF.Vec3([1,0,0])
-        cam.sideDir = BF.Vec3([0,0,1])
+        cam.forwardDir = BF.Vec3([1,0,0]);
 
         cam.moveToTarget = function() {
             
@@ -423,7 +441,11 @@ export class Cam {
             cam.rotToTarget();
         }
 
-        cam.setForwardSideDirection = function() {
+        cam.setForwardDirection = function() {
+            BF.SetVec3(BF.GetOTens(camMesh)[0], cam.forwardDir);
+        }
+
+        cam.setLookDirection = function(ar3) {
 
         }
 
@@ -637,11 +659,11 @@ export class Cam {
                     if (this.keysLeft.indexOf(keyCode) !== -1) {
                         cam.targetPos.y -= this.deltaTheta; // done in world space
                     } else if (this.keysRight.indexOf(keyCode) !== -1) {
-                        camera.cameraRotation.y += this.deltaTheta;
+                        cam.cameraRotation.y += this.deltaTheta;
                     } if (this.keysUp.indexOf(keyCode) !== -1) {
-                        camera.cameraRotation.x -= this.deltaTheta; // done in local space
+                        cam.cameraRotation.x -= this.deltaTheta; // done in local space
                     } else if (this.keysDown.indexOf(keyCode) !== -1) {
-                        camera.cameraRotation.x += this.deltaTheta;
+                        cam.cameraRotation.x += this.deltaTheta;
                     } if (this.keysZoomIn.indexOf(keyCode) !== -1) {
                         camera.fov -= this.deltaFOV;
                         if(camera.fov < this.fovMin) {

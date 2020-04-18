@@ -444,6 +444,11 @@ export class MF {
     static Square(n) {
         return Math.pow(n, 2);
     }
+
+    static Clamp(x, a, b) {
+        // clamps x to between a and b
+        return Math.min(b, Math.max(a, x));
+    }
 }
 
 export class GF {
