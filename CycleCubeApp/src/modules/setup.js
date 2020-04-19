@@ -40,6 +40,7 @@ window.addEventListener('DOMContentLoaded', function(){
         //initialize animation classes
         var shadowQual = 1024;
         var cycle = new Cycle(scene, myMats, shadowQual);
+        window.camera.ground = cycle.underBlock;
 
         var bouncyBall = new BouncyBall(scene, myMats, cycle.shadows, window.gui);
 

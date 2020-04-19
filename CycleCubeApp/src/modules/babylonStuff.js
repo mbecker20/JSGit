@@ -393,19 +393,26 @@ export class BF {
     static ResumeAudioContext() {
         BABYLON.Engine.audioEngine.audioContext.resume();
     }
+
+    static DoMeshsIntersect(mesh0, mesh1, precise = false) {
+        return mesh0.intersectsMesh(mesh1, precise);
+    }
 }
 
 export class Cam {
     static MOVEINTERPMULT = .1;
-    static ROTINTERPMULT = .05;
+    static ROTINTERPMULT = .1;
 
     static TARGETPOSITIONSTEP = .18;
     static TARGETROTATIONSTEP = .05;
 
-    static MINALT = -.9 * Math.PI/2;
-    static MAXALT = .9 * Math.PI/2;
+    static MINALT = -.8 * Math.PI/2;
+    static MAXALT = .8 * Math.PI/2;
 
-    static GRAVITY = .1;
+    static GRAVITY = .01;
+    static JUMPV = .2;
+    static BOUNCEACCELDOWN = .04; // delta jumpV when jumpV < 0 during bounce
+    static BOUNCEINTERPMULT = -.1;
 
     static MakeCam(camPos, scene, canvas) {
         var cam = new BABYLON.TargetCamera('camera', BF.ZeroVec3(), scene);
@@ -413,7 +420,7 @@ export class Cam {
         cam.setupCam = function() {
             // make and parent camMesh to cam
             cam.camMesh = BF.MakeBox('camMesh', scene, 1, 2.2, 1);
-            cam.camMesh.locallyTranslate(BF.Vec3([0, -1, 0]));
+            cam.camMesh.locallyTranslate(BF.Vec3([0, -.9, 0]));
             BF.BakeMeshs([cam.camMesh]);
             cam.camMesh.position = camPos;
             cam.parent = cam.camMesh;
@@ -446,6 +453,14 @@ export class Cam {
 
             cam.deltaAlt = 0;
             cam.deltaAzim = 0;
+
+            // defines up direction. azim rotation is about this direction
+            cam.upVec = BF.Vec3([0,1,0]);
+            cam.ground = null; // set this once the ground mesh is created;
+            cam.onGround = false; // mode. whether mesh is onground
+            cam.bounceOnGround = false; // mode. bounce a little after contacting ground;
+            cam.jumpV = 0;
+            cam.bounceDist = 0; // returns to 0 after bounce finishes
         }
         
         cam.setupCam();
@@ -454,9 +469,40 @@ export class Cam {
         cam.moveToTarget = function() {
             cam.forwardV = Cam.MOVEINTERPMULT * cam.targetPos.x;
             cam.sideV = Cam.MOVEINTERPMULT * cam.targetPos.y;
-            cam.camMesh.locallyTranslate(BF.SetVec3([cam.sideV, 0, cam.forwardV], cam.deltaPos));
+            cam.camMesh.locallyTranslate(BF.SetVec3([cam.sideV, cam.jumpV, cam.forwardV], cam.deltaPos));
+            cam.updateJump();
+            cam.updateBounce();
             cam.targetPos.x -= cam.forwardV;
             cam.targetPos.y -= cam.sideV;
+        }
+
+        cam.updateJump = function() {
+            // updates the jumping state;
+            if (!cam.onGround) {
+                if (BF.DoMeshsIntersect(cam.camMesh, cam.ground)) {
+                    cam.jumpV += Cam.BOUNCEACCELDOWN;
+                    cam.onGround = true;
+                    cam.bounceOnGround = true;
+                } else {
+                    cam.jumpV -= Cam.GRAVITY;
+                }
+            }
+        }
+
+        cam.updateBounce = function() {
+            if (cam.bounceOnGround) {
+                cam.bounceDist += cam.jumpV;
+                if (cam.jumpV < 0) { // on its way down
+                    cam.jumpV += Cam.BOUNCEACCELDOWN;
+                } else { // on its way up
+                    cam.jumpV = Cam.BOUNCEINTERPMULT * cam.bounceDist;
+                    if(cam.bounceDist > -0.001) {
+                        cam.bounceOnGround = false;
+                        cam.bounceDist = 0;
+                        cam.jumpV = 0;
+                    }
+                }
+            }
         }
 
         cam.rotToTarget = function() {
@@ -466,7 +512,7 @@ export class Cam {
             cam.boundAlt();
             
             cam.deltaAzim = Cam.ROTINTERPMULT * cam.targetRot.y;
-            cam.camMesh.rotation.y += cam.deltaAzim;
+            cam.camMesh.rotate(cam.upVec, cam.deltaAzim, BABYLON.Space.WORLD);
             cam.targetRot.y -= cam.deltaAzim;
         }
 
@@ -481,12 +527,14 @@ export class Cam {
         }
 
         cam.step = function() {
-            cam.inputs.checkInputs();
-            cam.moveToTarget();
-            cam.rotToTarget();
+            // step funcs must not have input
+            for(var i = 0; i < cam.stepFuncs.length; i++) {
+                cam.stepFuncs[i]();
+            }
         }
 
         cam.setLookDirection = function(ar3) {
+            // this only works if done during initialization. after first step, rotationQuaternion is being used instead of rotation
             const unit = VF.Unit(ar3);
             const altAzim = VF.GetAltAzimZX(unit);
             cam.rotation.x = MF.Clamp(altAzim[0], Cam.MINALT, Cam.MAXALT);
@@ -497,6 +545,8 @@ export class Cam {
             // orients camera to be looking at specified point
             cam.setLookDirection(VF.R(BF.Vec3ToAr(cam.camMesh.position), ar3));
         }
+
+        cam.stepFuncs = [cam.inputs.checkInputs, cam.moveToTarget, cam.rotToTarget];
 
         return cam;
     }
@@ -710,7 +760,12 @@ export class Cam {
                     } else if (this.keysBack.indexOf(keyCode) !== -1) {
                         cam.targetPos.x -= Cam.TARGETPOSITIONSTEP;
                     } if (this.keysJump.indexOf(keyCode) !== -1) {
-                        
+                        if(cam.onGround) {
+                            cam.jumpV = Cam.JUMPV;
+                            cam.onGround = false;
+                            cam.bounceOnGround = false;
+                            cam.bounceDist = 0;
+                        }
                     } else if (this.keysCrouch.indexOf(keyCode) !== -1) {
                         
                     }
