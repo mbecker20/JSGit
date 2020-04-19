@@ -37,13 +37,10 @@ node_modules/
 jspm_packages/
 
 # package and package-lock .json so versions dont get confused
-*.json
+# *.json # maybe this isn't a problem
 
 # all start scripts/shortcuts
-# startScripts/
-
-startHTTPServer.sh
-OpenCycleCube
+startScripts/
 
 # TypeScript v1 declaration files
 typings/
