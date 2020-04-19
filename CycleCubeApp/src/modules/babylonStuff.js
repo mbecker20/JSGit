@@ -479,10 +479,15 @@ export class Cam {
         }
 
         cam.setLookDirection = function(ar3) {
-            const unit = VF.Unit2(ar3);
+            const unit = VF.Unit(ar3);
             const altAzim = VF.GetAltAzimZX(unit);
             cam.rotation.x = altAzim[0];
             cam.camMesh.rotation.y = altAzim[1];
+        }
+
+        cam.lookAt = function(ar3) {
+            // orients camera to be looking at specified point
+            cam.setLookDirection(VF.R(BF.Vec3ToAr(cam.camMesh.position), ar3));
         }
 
         return cam;

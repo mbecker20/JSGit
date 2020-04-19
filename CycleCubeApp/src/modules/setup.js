@@ -18,7 +18,7 @@ window.addEventListener('DOMContentLoaded', function(){
         //setup camera
         var camPos = BF.Vec3([12, 22, -12]);
         window.camera = Cam.MakeCam(camPos, scene, canvas);
-        // window.camera.setTarget(BF.Vec3([0,22,0]));
+        window.camera.lookAt([0,22,0]);
 
         //setup scene environment
         scene.ambientColor = BF.ColorRGB(255,255,255);
