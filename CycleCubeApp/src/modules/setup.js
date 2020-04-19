@@ -3,6 +3,7 @@ import { Cycle } from './cycle.js';
 import { BouncyBall, DancingTHandle, PendVsMass, PendTugOfWar, SpinningRing, MultiPend } from './anims/all.js';
 import { BF, Cam } from './babylonStuff.js';
 import { MyMats, MySounds } from './resources.js';
+import { MF } from './funcClasses.js'
 
 window.addEventListener('DOMContentLoaded', function(){
     // get the canvas DOM element
@@ -18,6 +19,7 @@ window.addEventListener('DOMContentLoaded', function(){
         //setup camera
         var camPos = BF.Vec3([12, 22, -12]);
         window.camera = Cam.MakeCam(camPos, scene, canvas);
+        //window.camera.setLookDirection([-1,5,0]);
         window.camera.lookAt([0,22,0]);
 
         //setup scene environment
@@ -33,7 +35,8 @@ window.addEventListener('DOMContentLoaded', function(){
         //setup gui
         window.gui = UI.MakeGUI(canvas);
 
-        //var grid = BF.MakeGridXZ([-10,0,-10], 20, 2, 2);
+        window.MF = MF;
+
         //initialize animation classes
         var shadowQual = 1024;
         var cycle = new Cycle(scene, myMats, shadowQual);
@@ -52,9 +55,9 @@ window.addEventListener('DOMContentLoaded', function(){
         var multiPend = new MultiPend(scene, myMats, cycle.shadows, gui, 5);
         multiPend.params.theta0 = 2;
         
-        //world axes for reference (red = x, green = y, blue = z)
-        //var oAxes = BF.MakeAxes('oAxes', scene, 4);
-        //oAxes.position.y += .5;
+        // world axes for reference (red = x, green = y, blue = z)
+        var oAxes = BF.MakeAxes('oAxes', scene, 4);
+        oAxes.position.y += 22.5;
 
         var anims = {
             'dancing T handle': dancingTHandle,
@@ -77,7 +80,6 @@ window.addEventListener('DOMContentLoaded', function(){
             animState.activeAnim.step();
         });
 
-        // return the created scene
         return scene;
     }
 

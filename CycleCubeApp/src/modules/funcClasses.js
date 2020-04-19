@@ -78,30 +78,30 @@ export class VF {
     static GetAzimZX(vec) {
         // ground plane is zx
         // from -pi to pi
-        // measures azim from neg Z axis (direction camera points)
-        // positive azim if x < 0, negative if x > 0 because positive rotation about yHat moves xHat away from positive zhat
+        // measures azim from pos Z axis (direction camera points)
+        // positive azim if x > 0, negative if x < 0 because positive rotation about yHat moves zHat towards positive xhat
         // vec must be unit
         if (vec[2]>0) {
             if (vec[0]>0) {
-                return math.atan2(vec[0],vec[2]) - Math.PI;
+                return math.atan2(vec[0], vec[2]);
             } else if (vec[0]<0) {
-                return Math.PI - math.atan2(-vec[0],vec[2]);
-            } else {
-                return Math.PI;
-            }
-        } else if (vec[2]<0) {
-            if(vec[0]>0) {
-                return -math.atan2(vec[0],-vec[2]);
-            } else if(vec[0]<0) {
-                return math.atan2(-vec[0],-vec[2]);
+                return -math.atan2(-vec[0], vec[2]);
             } else {
                 return 0;
             }
-        } else { // vec[0] = 0;
+        } else if (vec[2]<0) {
+            if(vec[0]>0) {
+                return  Math.PI - math.atan2(vec[0], -vec[2]);
+            } else if(vec[0]<0) {
+                return math.atan2(-vec[0], -vec[2]) - Math.PI;
+            } else {
+                return Math.PI;
+            }
+        } else { // vec[2] = 0;
             if (vec[0]>0) {
-                return -Math.PI/2;
-            } else if (vec[0]<0) {
                 return Math.PI/2;
+            } else if (vec[0]<0) {
+                return -Math.PI/2;
             } else {
                 return 0;
                 console.log('cant get azim of yHat');
@@ -152,8 +152,9 @@ export class VF {
 
     static GetAltAzimZX(vec) {
         // vec must be unit vector
-        // for xz ground, measuring from neg Z axis
-        const alt = math.asin(vec[1]);
+        // for xz ground, measuring from pos Z axis
+        // alt is neg bc neg rot about x rotates poz z upwards
+        const alt = -math.asin(vec[1]);
         const azim = VF.GetAzimZX(vec);
         return [alt, azim];
     }
