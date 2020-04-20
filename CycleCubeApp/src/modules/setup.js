@@ -3,7 +3,7 @@ import { Cycle } from './cycle.js';
 import { BouncyBall, DancingTHandle, PendVsMass, PendTugOfWar, SpinningRing, MultiPend } from './anims/all.js';
 import { BF, Cam } from './babylonStuff.js';
 import { MyMats, MySounds } from './resources.js';
-import { MF } from './funcClasses.js'
+import { GF } from './funcClasses.js'
 
 window.addEventListener('DOMContentLoaded', function(){
     // get the canvas DOM element
@@ -17,7 +17,7 @@ window.addEventListener('DOMContentLoaded', function(){
         var scene = new BABYLON.Scene(engine);
         
         //setup camera
-        var camPos = BF.Vec3([12, 22, -12]);
+        var camPos = BF.Vec3([12, Cycle.UNDERBLOCKSIZE/2+Cam.HEIGHT+1, -12]);
         window.camera = Cam.MakeCam(camPos, scene, canvas);
         //window.camera.setLookDirection([-1,5,0]);
         window.camera.lookAt([0,22,0]);
@@ -35,7 +35,7 @@ window.addEventListener('DOMContentLoaded', function(){
         //setup gui
         window.gui = UI.MakeGUI(canvas);
 
-        window.MF = MF;
+        window.GF = GF;
 
         //initialize animation classes
         var shadowQual = 1024;
@@ -45,12 +45,12 @@ window.addEventListener('DOMContentLoaded', function(){
         var bouncyBall = new BouncyBall(scene, myMats, cycle.shadows, window.gui);
 
         var dancingTHandle = new DancingTHandle(scene, myMats, cycle.shadows, window.gui);
-        BF.SetVec3([0,18.1,0], dancingTHandle.node.position);
+        BF.SetVec3([0,Cycle.UNDERBLOCKSIZE/2+.1,0], dancingTHandle.node.position);
 
         var pendVsMass = new PendVsMass(scene, myMats, cycle.shadows, window.gui);
 
         var ptw = new PendTugOfWar(scene, myMats, cycle.shadows, window.gui);
-        BF.SetVec3([0,18.1,0], ptw.node.position);
+        BF.SetVec3([0,Cycle.UNDERBLOCKSIZE/2+.1,0], ptw.node.position);
 
         var spinningRing = new SpinningRing(scene, myMats, cycle.shadows, window.gui);
 
@@ -59,7 +59,7 @@ window.addEventListener('DOMContentLoaded', function(){
         
         // world axes for reference (red = x, green = y, blue = z)
         var oAxes = BF.MakeAxes('oAxes', scene, 4);
-        oAxes.position.y += 18.5;
+        oAxes.position.y += Cycle.UNDERBLOCKSIZE/2 + .5;
 
         var anims = {
             'pendulum tug of war': ptw,
@@ -70,7 +70,7 @@ window.addEventListener('DOMContentLoaded', function(){
             'bouncy ball': bouncyBall
         };
 
-        var animState = UI.MakeAnimStateChooseAnimMenu(anims, window.gui, window.mySounds);
+        window.animState = UI.MakeAnimStateChooseAnimMenu(anims, window.gui, window.mySounds);
 
         UI.MakeHowToMenu(window.gui);
         UI.MakeVolumeSliderPanel(window.gui);
@@ -79,7 +79,7 @@ window.addEventListener('DOMContentLoaded', function(){
         scene.registerAfterRender(function () {
             window.camera.step();
             cycle.step();
-            animState.activeAnim.step();
+            window.animState.activeAnim.step();
         });
 
         return scene;

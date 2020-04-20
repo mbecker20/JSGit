@@ -1,7 +1,18 @@
 import { BF } from './babylonStuff.js';
+import { GF } from './funcClasses.js';
 
 
 export class Cycle {
+    // sets up the environment
+    static UNDERBLOCKSIZE = 44;
+    static CAMBOUND = Cycle.UNDERBLOCKSIZE/2;
+    static INTERPCAMMULT = .1;
+    static TARGETROTMAX = Math.PI/2;
+    static INTERPCAMSTEPS = 20; // for loop from 1 to (INTERPCAMSTEPS + 1); targetRot = i * INTERPCAMSTEP
+    static INTERPCAMSTEP = Cycle.TARGETROTMAX/(Cycle.INTERPCAMSTEPS);
+
+    static AXES = ['x', 'y', 'z'];
+
     constructor(scene, myMats, shadowQual) {
         this.time = 0;
         this.dt = .01;
@@ -10,9 +21,15 @@ export class Cycle {
         this.moonW = .5;
         this.skyW = .005;
 
+        this.changingFace = false;
+        this.targetRot = 0;
+
         this.setupLightsShadows(scene, shadowQual);
 
-        this.setupMeshs(scene, myMats, this.shadows);   
+        this.setupMeshs(scene, myMats, this.shadows);
+        
+        this.makeCamModes()
+        this.interpStep = 0;
     }
 
     step() {
@@ -27,7 +44,129 @@ export class Cycle {
         this.moon.rotation.y += this.moonW * this.dt;
         this.skyBox.rotation.y += this.skyW * this.dt;
 
+        this.checkCam(); // checks if cam is within bounds of cube face
+        // if cam is out of bounds, rotates cam about the edge, changes active anim.
+
         this.time += this.dt;
+    }
+
+    checkCam() {
+        if (this.changingFace) {
+            this.interpCam();
+            //this.rotCam();
+        } else {
+            var ax0 = this.camModes.activeMode.plane[0];
+            var ax1 = this.camModes.activeMode.plane[1];
+            var pos0 = window.camera.camMesh.position[ax0];
+            var pos1 = window.camera.camMesh.position[ax1];
+            if (pos0 >= Cycle.CAMBOUND) {
+                //window.camera.suspendMoveInput = true;
+                this.changingFace = true;
+                this.changeFaceEdge = 'pos'.concat(ax0);
+            } else if (pos0 <= -Cycle.CAMBOUND) {
+                //window.camera.suspendMoveInput = true;
+                this.changingFace = true;
+                this.changeFaceEdge = 'neg'.concat(ax0);
+            } else if (pos1 >= Cycle.CAMBOUND) {
+                //window.camera.suspendMoveInput = true;
+                this.changingFace = true;
+                this.changeFaceEdge = 'pos'.concat(ax1);
+            } else if (pos1 <= -Cycle.CAMBOUND) {
+                //window.camera.suspendMoveInput = true;
+                this.changingFace = true;
+                this.changeFaceEdge = 'neg'.concat(ax1);
+            }
+        }
+    }
+
+    interpCam() {
+        if (this.interpStep < Cycle.INTERPCAMSTEPS) {
+            this.targetRot += Cycle.INTERPCAMSTEP;
+            this.interpStep++;
+            var deltaRot = Cycle.INTERPCAMMULT * this.targetRot;
+            window.camera.camMesh.rotate(this.camModes.activeMode[this.changeFaceEdge].rotAxis, deltaRot, BABYLON.Space.WORLD);
+            this.targetRot -= deltaRot;
+        } else {
+            var deltaRot = Cycle.INTERPCAMMULT * this.targetRot;
+            window.camera.camMesh.rotate(this.camModes.activeMode[this.changeFaceEdge].rotAxis, deltaRot, BABYLON.Space.WORLD);
+            this.targetRot -= deltaRot;
+            if(this.targetRot < .0001) {
+                this.targetRot = 0;
+                this.interpStep = 0;
+                //window.camera.suspendMoveInput = false;
+                this.camModes.activeMode = this.camModes[this.camModes.activeMode[this.changeFaceEdge].newModeKey];
+                this.changingFace = false;
+            }
+        }
+    }
+
+    rotCam() {
+        if (this.interpStep < Cycle.INTERPCAMSTEPS) {
+            this.interpStep++;
+            window.camera.camMesh.rotate(this.camModes.activeMode[this.changeFaceEdge].rotAxis, Cycle.INTERPCAMSTEP, BABYLON.Space.WORLD);
+        } else {
+            this.interpStep = 0;
+            //window.camera.suspendMoveInput = false;
+            this.camModes.activeMode = this.camModes[this.camModes.activeMode[this.changeFaceEdge].newModeKey];
+            this.changingFace = false;
+        }
+    }
+
+    makeCamModes() {
+        this.camModes = {};
+
+        // setup base modes structure;
+        for (var i = 0; i < Cycle.AXES.length; i++) {
+            var plane = [Cycle.AXES[(i+1)%3], Cycle.AXES[(i+2)%3]];
+            var pos = {};
+            pos['pos'.concat(plane[0])] = {'newModeKey': 'pos'.concat(Cycle.AXES[(i+1)%3])};
+            pos['neg'.concat(plane[0])] = {'newModeKey': 'neg'.concat(Cycle.AXES[(i+1)%3])};
+            pos['pos'.concat(plane[1])] = {'newModeKey': 'pos'.concat(Cycle.AXES[(i+2)%3])};
+            pos['neg'.concat(plane[1])] = {'newModeKey': 'neg'.concat(Cycle.AXES[(i+2)%3])};
+            pos.plane = plane;
+
+            var neg = {};
+            neg['pos'.concat(plane[0])] = {'newModeKey': 'pos'.concat(Cycle.AXES[(i+1)%3])};
+            neg['neg'.concat(plane[0])] = {'newModeKey': 'neg'.concat(Cycle.AXES[(i+1)%3])};
+            neg['pos'.concat(plane[1])] = {'newModeKey': 'pos'.concat(Cycle.AXES[(i+2)%3])};
+            neg['neg'.concat(plane[1])] = {'newModeKey': 'neg'.concat(Cycle.AXES[(i+2)%3])};
+            neg.plane = plane;
+
+            this.camModes['pos'.concat(Cycle.AXES[i])] = pos;
+            this.camModes['neg'.concat(Cycle.AXES[i])] = neg;
+        }
+
+        this.camModes.posx.posy.rotAxis = BF.Vec3([0,0,1]);
+        this.camModes.posx.negy.rotAxis = BF.Vec3([0,0,-1]);
+        this.camModes.posx.posz.rotAxis = BF.Vec3([0,-1,0]);
+        this.camModes.posx.negz.rotAxis = BF.Vec3([0,1,0]);
+
+        this.camModes.negx.posy.rotAxis = BF.Vec3([0,0,-1]);
+        this.camModes.negx.negy.rotAxis = BF.Vec3([0,0,1]);
+        this.camModes.negx.posz.rotAxis = BF.Vec3([0,1,0]);
+        this.camModes.negx.negz.rotAxis = BF.Vec3([0,-1,0]);
+
+        this.camModes.posy.posx.rotAxis = BF.Vec3([0,0,-1]);
+        this.camModes.posy.negx.rotAxis = BF.Vec3([0,0,1]);
+        this.camModes.posy.posz.rotAxis = BF.Vec3([1,0,0]);
+        this.camModes.posy.negz.rotAxis = BF.Vec3([-1,0,0]);
+
+        this.camModes.negy.posx.rotAxis = BF.Vec3([0,0,1]);
+        this.camModes.negy.negx.rotAxis = BF.Vec3([0,0,-1]);
+        this.camModes.negy.posz.rotAxis = BF.Vec3([-1,0,0]);
+        this.camModes.negy.negz.rotAxis = BF.Vec3([1,0,0]);
+
+        this.camModes.posz.posx.rotAxis = BF.Vec3([0,1,0]);
+        this.camModes.posz.negx.rotAxis = BF.Vec3([0,-1,0]);
+        this.camModes.posz.posy.rotAxis = BF.Vec3([-1,0,0]);
+        this.camModes.posz.negy.rotAxis = BF.Vec3([1,0,0]);
+
+        this.camModes.negz.posx.rotAxis = BF.Vec3([0,-1,0]);
+        this.camModes.negz.negx.rotAxis = BF.Vec3([0,1,0]);
+        this.camModes.negz.posy.rotAxis = BF.Vec3([1,0,0]);
+        this.camModes.negz.negy.rotAxis = BF.Vec3([-1,0,0]);
+
+        this.camModes.activeMode = this.camModes.posy;
     }
 
     setupLightsShadows(scene, shadowQual) {
@@ -76,8 +215,7 @@ export class Cycle {
         //place axes at origin for reference during development
         //var worldAxes = BF.MakeAxes('worldAxes', scene, 4);
 
-        this.ubSize = 36;
-        this.underBlock = BABYLON.MeshBuilder.CreateBox('underBlock', {size: this.ubSize}, scene);
+        this.underBlock = BABYLON.MeshBuilder.CreateBox('underBlock', {size: Cycle.UNDERBLOCKSIZE}, scene);
         this.underBlock.material = myMats.darkMoon;
         this.underBlock.receiveShadows = true;
 
