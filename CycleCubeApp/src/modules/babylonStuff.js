@@ -403,10 +403,9 @@ export class Cam {
     static MOVEINTERPMULT = .1;
     static ROTINTERPMULT = .1;
 
-    static HEIGHT = 2;
-    static CROUCHHEIGHT = 1; // height cam goes to when crouching
-
-    static TARGETPOSITIONSTEP = .18;
+    static HEIGHT = 8;
+    static CROUCHHEIGHT = 2; // height cam goes to when crouching
+    static TARGETPOSITIONSTEP = .25;
     static TARGETROTATIONSTEP = .05;
 
     static MINALT = -.8 * Math.PI/2;

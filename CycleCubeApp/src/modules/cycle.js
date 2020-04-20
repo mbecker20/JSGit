@@ -4,8 +4,9 @@ import { GF } from './funcClasses.js';
 
 export class Cycle {
     // sets up the environment
-    static UNDERBLOCKSIZE = 44;
+    static UNDERBLOCKSIZE = 62;
     static CAMBOUND = Cycle.UNDERBLOCKSIZE/2;
+    static NODEDIST = Cycle.CAMBOUND + .1;
     static INTERPCAMMULT = .1;
     static TARGETROTMAX = Math.PI/2;
     static INTERPCAMSTEPS = 20; // for loop from 1 to (INTERPCAMSTEPS + 1); targetRot = i * INTERPCAMSTEP
@@ -16,7 +17,7 @@ export class Cycle {
     constructor(scene, myMats, shadowQual) {
         this.time = 0;
         this.dt = .01;
-        this.orbitR = 35;
+        this.orbitR = Cycle.UNDERBLOCKSIZE/2 + 30;
         this.orbitW = .2;
         this.moonW = .5;
         this.skyW = .005;
@@ -28,7 +29,7 @@ export class Cycle {
 
         this.setupMeshs(scene, myMats, this.shadows);
         
-        this.makeCamModes()
+        this.makeCamModes(scene);
         this.interpStep = 0;
     }
 
@@ -63,18 +64,22 @@ export class Cycle {
                 //window.camera.suspendMoveInput = true;
                 this.changingFace = true;
                 this.changeFaceEdge = 'pos'.concat(ax0);
+                window.animState.switchActiveAnim(this.camModes[this.changeFaceEdge].animKey);
             } else if (pos0 <= -Cycle.CAMBOUND) {
                 //window.camera.suspendMoveInput = true;
                 this.changingFace = true;
                 this.changeFaceEdge = 'neg'.concat(ax0);
+                window.animState.switchActiveAnim(this.camModes[this.changeFaceEdge].animKey);
             } else if (pos1 >= Cycle.CAMBOUND) {
                 //window.camera.suspendMoveInput = true;
                 this.changingFace = true;
                 this.changeFaceEdge = 'pos'.concat(ax1);
+                window.animState.switchActiveAnim(this.camModes[this.changeFaceEdge].animKey);
             } else if (pos1 <= -Cycle.CAMBOUND) {
                 //window.camera.suspendMoveInput = true;
                 this.changingFace = true;
                 this.changeFaceEdge = 'neg'.concat(ax1);
+                window.animState.switchActiveAnim(this.camModes[this.changeFaceEdge].animKey);
             }
         }
     }
@@ -112,8 +117,9 @@ export class Cycle {
         }
     }
 
-    makeCamModes() {
+    makeCamModes(scene) {
         this.camModes = {};
+        this.modeKeys = ['posy', 'negy', 'posx', 'negx', 'posz', 'negz'];
 
         // setup base modes structure;
         for (var i = 0; i < Cycle.AXES.length; i++) {
@@ -167,6 +173,40 @@ export class Cycle {
         this.camModes.negz.negy.rotAxis = BF.Vec3([-1,0,0]);
 
         this.camModes.activeMode = this.camModes.posy;
+        this.makeAnimNodes(scene);
+    }
+
+    makeAnimNodes(scene) {
+        this.camModes.posy.node = BF.MakeTransformNode('posy', scene);
+        this.camModes.posy.node.position.y = Cycle.NODEDIST;
+
+        this.camModes.negy.node = BF.MakeTransformNode('negy', scene);
+        this.camModes.negy.node.rotation.x = Math.PI;
+        this.camModes.negy.node.position.y = -Cycle.NODEDIST;
+
+        this.camModes.posx.node = BF.MakeTransformNode('posx', scene);
+        this.camModes.posx.node.rotation.z = -Math.PI/2;
+        this.camModes.posx.node.position.x = Cycle.NODEDIST;
+
+        this.camModes.negx.node = BF.MakeTransformNode('negx', scene);
+        this.camModes.negx.node.rotation.z = Math.PI/2;
+        this.camModes.negx.node.position.x = -Cycle.NODEDIST;
+
+        this.camModes.posz.node = BF.MakeTransformNode('posz', scene);
+        this.camModes.posz.node.rotation.x = Math.PI/2;
+        this.camModes.posz.node.position.z = Cycle.NODEDIST;
+
+        this.camModes.negz.node = BF.MakeTransformNode('negz', scene);
+        this.camModes.negz.node.rotation.x = -Math.PI/2;
+        this.camModes.negz.node.position.z = -Cycle.NODEDIST;
+    }
+
+    addAnimsToCycle(anims) {
+        var animKeys = Object.keys(anims);
+        for (var i = 0; i < this.modeKeys.length; i++) {
+            this.camModes[this.modeKeys[i]].animKey = animKeys[i];
+            anims[animKeys[i]].node.parent = this.camModes[this.modeKeys[i]].node;
+        }
     }
 
     setupLightsShadows(scene, shadowQual) {
