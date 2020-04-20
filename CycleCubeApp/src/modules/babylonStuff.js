@@ -471,6 +471,7 @@ export class Cam {
             // setup crouching
             cam.crouchV = 0;
             cam.targetCrouch = 0;
+            cam.crouching = false;
         }
         
         cam.setupCam();
@@ -650,6 +651,10 @@ export class Cam {
                 this._onKeyUp = null;
             }
         };
+
+        kbRotateInput.prototype._onLostFocus = function (e) {
+            this._keys = [];
+        };
     
         kbRotateInput.prototype.checkInputs = function() {
             //this is where you set what the keys do
@@ -759,6 +764,10 @@ export class Cam {
                 this._onKeyDown = null;
                 this._onKeyUp = null;
             }
+        };
+
+        kbMoveInput.prototype._onLostFocus = function (e) {
+            this._keys = [];
         };
     
         kbMoveInput.prototype.checkInputs = function() {
