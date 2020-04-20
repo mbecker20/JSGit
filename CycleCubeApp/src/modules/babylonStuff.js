@@ -414,6 +414,10 @@ export class Cam {
     static BOUNCEACCELDOWN = .04; // delta jumpV when jumpV < 0 during bounce
     static BOUNCEINTERPMULT = -.1;
 
+    static CROUCHMAX = -1;
+    static CROUCHSTEP = .1;
+    static CROUCHINTERPMULT = .1;
+
     static MakeCam(camPos, scene, canvas) {
         var cam = new BABYLON.TargetCamera('camera', BF.ZeroVec3(), scene);
 
@@ -454,6 +458,8 @@ export class Cam {
             cam.deltaAlt = 0;
             cam.deltaAzim = 0;
 
+            //setup jumping
+
             // defines up direction. azim rotation is about this direction
             cam.upVec = BF.Vec3([0,1,0]);
             cam.ground = null; // set this once the ground mesh is created;
@@ -461,6 +467,10 @@ export class Cam {
             cam.bounceOnGround = false; // mode. bounce a little after contacting ground;
             cam.jumpV = 0;
             cam.bounceDist = 0; // returns to 0 after bounce finishes
+
+            // setup crouching
+            cam.crouchV = 0;
+            cam.targetCrouch = 0;
         }
         
         cam.setupCam();
@@ -504,6 +514,11 @@ export class Cam {
                 }
             }
         }
+        
+        cam.updateCrouch = function() {
+            cam.crouchV = Cam.CROUCHINTERPMULT * (cam.targetCrouch - cam.position.y);
+            cam.position.y += cam.crouchV;
+        }
 
         cam.rotToTarget = function() {
             cam.deltaAlt = Cam.ROTINTERPMULT * cam.targetRot.x;
@@ -546,7 +561,7 @@ export class Cam {
             cam.setLookDirection(VF.R(BF.Vec3ToAr(cam.camMesh.position), ar3));
         }
 
-        cam.stepFuncs = [cam.inputs.checkInputs, cam.moveToTarget, cam.rotToTarget];
+        cam.stepFuncs = [cam.inputs.checkInputs, cam.moveToTarget, cam.rotToTarget, cam.updateCrouch];
 
         return cam;
     }
@@ -767,10 +782,11 @@ export class Cam {
                             cam.bounceDist = 0;
                         }
                     } else if (this.keysCrouch.indexOf(keyCode) !== -1) {
-                        
+                        cam.targetCrouch = math.max(cam.targetCrouch - 2*Cam.CROUCHSTEP, -1);
                     }
                 }
             }
+            cam.targetCrouch = math.min(cam.targetCrouch + Cam.CROUCHSTEP, 0); // always runs to return targetCrouch to 0
         };
     
         return new kbMoveInput();

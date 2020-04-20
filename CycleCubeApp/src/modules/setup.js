@@ -50,6 +50,7 @@ window.addEventListener('DOMContentLoaded', function(){
         var pendVsMass = new PendVsMass(scene, myMats, cycle.shadows, window.gui);
 
         var ptw = new PendTugOfWar(scene, myMats, cycle.shadows, window.gui);
+        BF.SetVec3([0,18.1,0], ptw.node.position);
 
         var spinningRing = new SpinningRing(scene, myMats, cycle.shadows, window.gui);
 
@@ -58,13 +59,13 @@ window.addEventListener('DOMContentLoaded', function(){
         
         // world axes for reference (red = x, green = y, blue = z)
         var oAxes = BF.MakeAxes('oAxes', scene, 4);
-        oAxes.position.y += 22.5;
+        oAxes.position.y += 18.5;
 
         var anims = {
+            'pendulum tug of war': ptw,
             'dancing T handle': dancingTHandle,
             'multi pendulum': multiPend,
-            'pend vs mass': pendVsMass, 
-            'pendulum tug of war': ptw, 
+            'pend vs mass': pendVsMass,
             'mass on a ring': spinningRing,
             'bouncy ball': bouncyBall
         };
