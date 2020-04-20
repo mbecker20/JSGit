@@ -3,6 +3,7 @@ import { Cycle } from './cycle.js';
 import { BouncyBall, DancingTHandle, PendVsMass, PendTugOfWar, SpinningRing, MultiPend } from './anims/all.js';
 import { BF, Cam } from './babylonStuff.js';
 import { MyMats, MySounds } from './resources.js';
+import nipplejs from 'nipplejs';
 
 window.addEventListener('DOMContentLoaded', function(){
     // get the canvas DOM element
