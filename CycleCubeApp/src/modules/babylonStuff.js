@@ -453,15 +453,13 @@ export class Cam {
 
             // rotation target is moved to. cam is rotated about cam local x axis by alt
             // camMesh is rotated about world y axis by azim
+            cam.upVec = BF.Vec3([0,1,0]);
             cam.targetRot = BF.Vec2([0,0]); // first comp is alt, second is azim
 
             cam.deltaAlt = 0;
             cam.deltaAzim = 0;
 
             //setup jumping
-
-            // defines up direction. azim rotation is about this direction
-            cam.upVec = BF.Vec3([0,1,0]);
             cam.ground = null; // set this once the ground mesh is created;
             cam.onGround = false; // mode. whether mesh is onground
             cam.bounceOnGround = false; // mode. bounce a little after contacting ground;
@@ -471,7 +469,9 @@ export class Cam {
             // setup crouching
             cam.crouchV = 0;
             cam.targetCrouch = 0;
-            cam.crouching = false;
+
+            // to disable kb movement input
+            cam.suspendMoveInput = false;
         }
         
         cam.setupCam();
@@ -528,7 +528,7 @@ export class Cam {
             cam.boundAlt();
             
             cam.deltaAzim = Cam.ROTINTERPMULT * cam.targetRot.y;
-            cam.camMesh.rotate(cam.upVec, cam.deltaAzim, BABYLON.Space.WORLD);
+            cam.camMesh.rotate(cam.upVec, cam.deltaAzim, BABYLON.Space.LOCAL);
             cam.targetRot.y -= cam.deltaAzim;
         }
 
@@ -772,26 +772,28 @@ export class Cam {
     
         kbMoveInput.prototype.checkInputs = function() {
             //this is where you set what the keys do
-            if (this._onKeyDown) {
-                for (var index = 0; index < this._keys.length; index++) {
-                    var keyCode = this._keys[index];
-                    if (this.keysLeft.indexOf(keyCode) !== -1) {
-                        cam.targetPos.y -= Cam.TARGETPOSITIONSTEP;
-                    } else if (this.keysRight.indexOf(keyCode) !== -1) {
-                        cam.targetPos.y += Cam.TARGETPOSITIONSTEP;
-                    } if (this.keysForward.indexOf(keyCode) !== -1) {
-                        cam.targetPos.x += Cam.TARGETPOSITIONSTEP;
-                    } else if (this.keysBack.indexOf(keyCode) !== -1) {
-                        cam.targetPos.x -= Cam.TARGETPOSITIONSTEP;
-                    } if (this.keysJump.indexOf(keyCode) !== -1) {
-                        if(cam.onGround) {
-                            cam.jumpV = Cam.JUMPV;
-                            cam.onGround = false;
-                            cam.bounceOnGround = false;
-                            cam.bounceDist = 0;
+            if (!cam.suspendMoveInput) {
+                if (this._onKeyDown) {
+                    for (var index = 0; index < this._keys.length; index++) {
+                        var keyCode = this._keys[index];
+                        if (this.keysLeft.indexOf(keyCode) !== -1) {
+                            cam.targetPos.y -= Cam.TARGETPOSITIONSTEP;
+                        } else if (this.keysRight.indexOf(keyCode) !== -1) {
+                            cam.targetPos.y += Cam.TARGETPOSITIONSTEP;
+                        } if (this.keysForward.indexOf(keyCode) !== -1) {
+                            cam.targetPos.x += Cam.TARGETPOSITIONSTEP;
+                        } else if (this.keysBack.indexOf(keyCode) !== -1) {
+                            cam.targetPos.x -= Cam.TARGETPOSITIONSTEP;
+                        } if (this.keysJump.indexOf(keyCode) !== -1) {
+                            if(cam.onGround) {
+                                cam.jumpV = Cam.JUMPV;
+                                cam.onGround = false;
+                                cam.bounceOnGround = false;
+                                cam.bounceDist = 0;
+                            }
+                        } else if (this.keysCrouch.indexOf(keyCode) !== -1) {
+                            cam.targetCrouch = math.max(cam.targetCrouch - 2*Cam.CROUCHSTEP, -1);
                         }
-                    } else if (this.keysCrouch.indexOf(keyCode) !== -1) {
-                        cam.targetCrouch = math.max(cam.targetCrouch - 2*Cam.CROUCHSTEP, -1);
                     }
                 }
             }
