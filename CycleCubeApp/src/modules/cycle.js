@@ -1,6 +1,4 @@
 import { BF } from './babylonStuff.js';
-import { GF } from './funcClasses.js';
-
 
 export class Cycle {
     // sets up the environment
