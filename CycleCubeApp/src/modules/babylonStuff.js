@@ -422,9 +422,13 @@ export class Cam {
     static CROUCHINTERPMULT = .2;
 
     static JOYSTICKOUTERRAD = 1;
-    static JOYSTICKINNERRAD = .5;
     static JOYSTICKOUTERCOLOR = 'blue';
-    static JOYSTICKINNERCOLOR = 'white';
+    static JOYSTICKOUTERBOUNDCOLOR = 'black';
+    
+    static JOYSTICKSTICKRAD = .5;
+    static JOYSTICKSTICKCOLOR = 'white';
+    static JOYSTICKSTICKBOUNDCOLOR = 'white';
+
     static JOYSTICKMOVEMULT = .1; // delta target step = joystickmovemult * (stickpos - centerpos)
     static JOYSTICKROTMULT = .1;
     static MAXJOYSTICKDIST = 1;
@@ -488,14 +492,14 @@ export class Cam {
             cam.suspendMoveInput = false;
 
             // setup virtual joystick input
-            cam.leftJoyStick = Cam.MakeVirtualJoystick();
+            cam.leftJoystick = Cam.MakeVirtualJoystick();
             cam.leftFingerDown = false; // controls movement
             cam.leftFingerID = -1;
             cam.leftCenterPos = [0,0];
             cam.leftStickPos = [0,0]; // absolute stick position
             cam.leftStickLocal = [0,0]; // position of stick relative to center
 
-            cam.rightJoyStick = Cam.MakeVirtualJoystick();
+            cam.rightJoystick = Cam.MakeVirtualJoystick();
             cam.rightFingerDown = false; // controls look direction
             cam.rightFingerID = -1;
             cam.rightCenterPos = [0,0];
@@ -603,16 +607,20 @@ export class Cam {
         cam.pointerDown = function(pointerInfo) {
             var x = pointerInfo.event.x;
             var y = pointerInfo.event.y;
-            if (x <= cam.middleWidth/2 && !cam.leftFingerDown) { // 
+            if (x <= cam.middleWidth/2 && !cam.leftFingerDown) {
                 cam.leftFingerID = pointerInfo.event.pointerId;
                 cam.leftFingerDown = true;
                 cam.leftCenterPos = [x, y];
                 cam.leftStickPos = [x, y];
+                cam.setJoystickBackgroundPosition('left');
+                cam.leftJoystick.show();
             } else if (x > cam.middleWidth/2 && !cam.rightFingerDown) {
                 cam.rightFingerID = pointerInfo.event.pointerId;
                 cam.rightFingerDown = true;
                 cam.rightCenterPos = [x, y];
                 cam.rightStickPos = [x, y];
+                cam.setJoystickBackgroundPosition('right');
+                cam.rightJoystick.show();
             }
         }
 
@@ -621,10 +629,11 @@ export class Cam {
             if (id === cam.leftFingerID) {
                 cam.leftFingerDown = false;
                 cam.leftFingerID = -1;
-                // then make the joystick invisible
+                cam.leftJoystick.hide();
             } else if (id === cam.rightFingerID) {
                 cam.rightFingerDown = false;
-                cam.rightRingerID = -1;
+                cam.rightFingerID = -1;
+                cam.rightJoystick.hide();
             }
         }
 
@@ -638,6 +647,7 @@ export class Cam {
                     cam.leftStickLocal = VF.ScaleVecToLength2(cam.leftStickLocal, mag, Cam.MAXJOYSTICKDIST);
                     cam.leftStickPos = math.add(cam.leftCenterPos, cam.leftStickLocal);
                 }
+                cam.setJoystickPosition('left');
             } else if (id === cam.rightFingerID) {
                 cam.rightStickPos = [pointerInfo.event.x, pointerInfo.event.y];
                 cam.rightStickLocal = VF.R(cam.rightCenterPos, cam.rightStickPos)
@@ -646,12 +656,29 @@ export class Cam {
                     cam.rightStickLocal = VF.ScaleVecToLength2(cam.rightStickLocal, mag, Cam.MAXJOYSTICKDIST);
                     cam.rightStickPos = math.add(cam.rightCenterPos, cam.rightStickLocal);
                 }
+                cam.setJoystickPosition('right');
             }
         }
 
         cam.onResize = function() {
             cam.middleWidth = engine.getRenderWidth()/2;
             cam.middleHeight = engine.getRenderHeight()/2;
+        }
+
+        cam.setJoystickBackgroundPosition = function(side) {
+            // side is 'left' or 'right'
+            // sets both stick and background position
+            cam[side.concat('Joystick')].background.left = cam[side.concat('CenterPos')][0];
+            cam[side.concat('Joystick')].background.top = cam[side.concat('CenterPos')][1];
+            cam[side.concat('Joystick')].stick.left = cam[side.concat('StickPos')][0];
+            cam[side.concat('Joystick')].stick.top = cam[side.concat('StickPos')][1];
+        }
+
+        cam.setJoystickPosition = function(side) {
+            // side is 'left' or 'right'
+            // sets only stick position
+            cam[side.concat('Joystick')].stick.left = cam[side.concat('StickPos')][0];
+            cam[side.concat('Joystick')].stick.top = cam[side.concat('StickPos')][1];
         }
 
         cam.stepFuncs = [cam.inputs.checkInputs, cam.moveToTarget, cam.rotToTarget, cam.updateCrouch, cam.onGroundCheck];
@@ -897,9 +924,31 @@ export class Cam {
 
     static MakeVirtualJoystick() {
         var joystick = {};
-        joystick.centerCircle
-        joystick.stickCircle
-        
+        joystick.background = new BABYLON.GUI.Ellipse('background');
+        joystick.background.width = 2*Cam.JOYSTICKOUTERRAD;
+        joystick.background.height = 2*Cam.JOYSTICKOUTERRAD;
+        joystick.background.background = Cam.JOYSTICKOUTERCOLOR;
+        joystick.background.color = Cam.JOYSTICKOUTERBOUNDCOLOR;
+
+        joystick.stick = new BABYLON.GUI.Ellipse('stick');
+        joystick.stick.width = 2*Cam.JOYSTICKSTICKRAD;
+        joystick.stick.height = 2*Cam.JOYSTICKSTICKRAD;
+        joystick.stick.background = Cam.JOYSTICKSTICKCOLOR;
+        joystick.stick.color = Cam.JOYSTICKSTICKBOUNDCOLOR;
+
+        UI.AlignControlsTopLeft([joystick.background, joystick.stick]);
+
+        joystick.show = function() {
+            joystick.background.isVisible = true;
+            joystick.stick.isVisible = true;
+        }
+
+        joystick.hide = function() {
+            joystick.background.isVisible = false;
+            joystick.stick.isVisible = false;
+        }
+
+        joystick.hide();
 
         return joystick;
     }
