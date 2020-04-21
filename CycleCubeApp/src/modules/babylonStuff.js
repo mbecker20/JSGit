@@ -404,20 +404,20 @@ export class Cam {
     static ROTINTERPMULT = .1;
 
     static HEIGHT = 8;
-    static CROUCHHEIGHT = 2; // height cam goes to when crouching
-    static TARGETPOSITIONSTEP = .25;
+    static TARGETPOSITIONSTEP = .35;
     static TARGETROTATIONSTEP = .05;
 
     static MINALT = -.8 * Math.PI/2;
     static MAXALT = .8 * Math.PI/2;
 
     static GRAVITY = .01;
-    static JUMPV = .2;
+    static JUMPV = .4;
     static BOUNCEACCELDOWN = .04; // delta jumpV when jumpV < 0 during bounce
     static BOUNCEINTERPMULT = .1;
 
-    static CROUCHSTEP = .1;
-    static CROUCHINTERPMULT = .1;
+    static CROUCHHEIGHT = 4; // height cam goes to when crouching
+    static CROUCHSTEP = .2;
+    static CROUCHINTERPMULT = .2;
 
     static MakeCam(camPos, scene, canvas) {
         var cam = new BABYLON.TargetCamera('camera', BF.ZeroVec3(), scene);
@@ -511,7 +511,7 @@ export class Cam {
                 if (cam.bounceV < 0) { // on its way down
                     cam.bounceV += Cam.BOUNCEACCELDOWN;
                 } else { // on its way up
-                    var dist = Cam.HEIGHT - cam.position.y
+                    var dist = cam.targetCrouch - cam.position.y;
                     cam.bounceV = Cam.BOUNCEINTERPMULT * dist;
                     if(dist < 0.01) {
                         cam.bounceOnGround = false;
