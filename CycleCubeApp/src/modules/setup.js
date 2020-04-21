@@ -15,6 +15,9 @@ window.addEventListener('DOMContentLoaded', function() {
         // create scene
         var scene = new BABYLON.Scene(engine);
 
+        //initialize sounds object
+        window.sounds = new MySounds(scene);
+
         // create gui
         window.gui = UI.MakeGUI(canvas);
         
@@ -30,9 +33,6 @@ window.addEventListener('DOMContentLoaded', function() {
 
         //initialize materials object
         var myMats = new MyMats(scene);
-
-        //initialize sounds object
-        window.sounds = new MySounds(scene);
 
         //initialize animation classes
         var shadowQual = 1024;
@@ -82,19 +82,13 @@ window.addEventListener('DOMContentLoaded', function() {
         scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
                 case BABYLON.PointerEventTypes.POINTERDOWN:
-                    window.camera.pointerDown(pointerInfo);
-                    console.log('pointer down')
-                    console.log(pointerInfo);
+                    window.camera.virtualController.pointerDown(pointerInfo);
                     break;
                 case BABYLON.PointerEventTypes.POINTERUP:
-                    window.camera.pointerUp(pointerInfo);
-                    console.log("POINTER UP");
-                    console.log(pointerInfo);
+                    window.camera.virtualController.pointerUp(pointerInfo);
                     break;
                 case BABYLON.PointerEventTypes.POINTERMOVE:
-                    window.camera.pointerMove(pointerInfo);
-                    //console.log("POINTER MOVE");
-                    //console.log(pointerInfo.event);
+                    window.camera.virtualController.pointerMove(pointerInfo);
                     break;
             }
         });
@@ -113,6 +107,6 @@ window.addEventListener('DOMContentLoaded', function() {
     // the canvas/window resize event handler
     window.addEventListener('resize', function(){
         engine.resize();
-        window.camera.onResize();
+        window.camera.virtualController.onResize();
     });
 });

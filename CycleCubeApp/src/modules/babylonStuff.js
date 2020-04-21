@@ -421,17 +421,8 @@ export class Cam {
     static CROUCHSTEP = .2;
     static CROUCHINTERPMULT = .2;
 
-    static JOYSTICKOUTERRAD = 1;
-    static JOYSTICKOUTERCOLOR = 'blue';
-    static JOYSTICKOUTERBOUNDCOLOR = 'black';
-    
-    static JOYSTICKSTICKRAD = .5;
-    static JOYSTICKSTICKCOLOR = 'white';
-    static JOYSTICKSTICKBOUNDCOLOR = 'white';
-
-    static JOYSTICKMOVEMULT = .1; // delta target step = joystickmovemult * (stickpos - centerpos)
-    static JOYSTICKROTMULT = .1;
-    static MAXJOYSTICKDIST = 1;
+    static JOYSTICKMOVEMULT = .005; // delta target step = joystickmovemult * (stickpos - centerpos)
+    static JOYSTICKROTMULT = .0005;
 
     static MakeCam(camPos, scene, canvas, engine) {
         var cam = new BABYLON.TargetCamera('camera', BF.ZeroVec3(), scene);
@@ -492,19 +483,7 @@ export class Cam {
             cam.suspendMoveInput = false;
 
             // setup virtual joystick input
-            cam.leftJoystick = Cam.MakeVirtualJoystick();
-            cam.leftFingerDown = false; // controls movement
-            cam.leftFingerID = -1;
-            cam.leftCenterPos = [0,0];
-            cam.leftStickPos = [0,0]; // absolute stick position
-            cam.leftStickLocal = [0,0]; // position of stick relative to center
-
-            cam.rightJoystick = Cam.MakeVirtualJoystick();
-            cam.rightFingerDown = false; // controls look direction
-            cam.rightFingerID = -1;
-            cam.rightCenterPos = [0,0];
-            cam.rightStickPos = [0,0];
-            cam.rightStickLocal = [0,0];
+            cam.virtualController = UI.MakeVirtualJoystickController(window.gui, engine);
         }
         
         cam.setupCam();
@@ -604,84 +583,19 @@ export class Cam {
             cam.setLookDirection(VF.R(BF.Vec3ToAr(cam.camMesh.position), ar3));
         }
 
-        cam.pointerDown = function(pointerInfo) {
-            var x = pointerInfo.event.x;
-            var y = pointerInfo.event.y;
-            if (x <= cam.middleWidth/2 && !cam.leftFingerDown) {
-                cam.leftFingerID = pointerInfo.event.pointerId;
-                cam.leftFingerDown = true;
-                cam.leftCenterPos = [x, y];
-                cam.leftStickPos = [x, y];
-                cam.setJoystickBackgroundPosition('left');
-                cam.leftJoystick.show();
-            } else if (x > cam.middleWidth/2 && !cam.rightFingerDown) {
-                cam.rightFingerID = pointerInfo.event.pointerId;
-                cam.rightFingerDown = true;
-                cam.rightCenterPos = [x, y];
-                cam.rightStickPos = [x, y];
-                cam.setJoystickBackgroundPosition('right');
-                cam.rightJoystick.show();
+        cam.joystickCheck = function() {
+            if (cam.virtualController.leftFingerDown) {
+                var leftDelta = math.multiply(cam.virtualController.leftStickLocal, Cam.JOYSTICKMOVEMULT);
+                cam.targetPos.x -= leftDelta[1];
+                cam.targetPos.y += leftDelta[0];
+            } if (cam.virtualController.rightFingerDown) {
+                var rightDelta = math.multiply(cam.virtualController.rightStickLocal, Cam.JOYSTICKROTMULT);
+                cam.targetRot.x += rightDelta[1];
+                cam.targetRot.y += rightDelta[0];
             }
         }
 
-        cam.pointerUp = function(pointerInfo) {
-            var id = pointerInfo.event.pointerId;
-            if (id === cam.leftFingerID) {
-                cam.leftFingerDown = false;
-                cam.leftFingerID = -1;
-                cam.leftJoystick.hide();
-            } else if (id === cam.rightFingerID) {
-                cam.rightFingerDown = false;
-                cam.rightFingerID = -1;
-                cam.rightJoystick.hide();
-            }
-        }
-
-        cam.pointerMove = function(pointerInfo) {
-            var id = pointerInfo.event.pointerId;
-            if (id === cam.leftFingerID) {
-                cam.leftStickPos = [pointerInfo.event.x, pointerInfo.event.y];
-                cam.leftStickLocal = VF.R(cam.leftCenterPos, cam.leftStickPos)
-                var mag = VF.Mag(cam.leftStickLocal);
-                if (mag > Cam.MAXJOYSTICKDIST) {
-                    cam.leftStickLocal = VF.ScaleVecToLength2(cam.leftStickLocal, mag, Cam.MAXJOYSTICKDIST);
-                    cam.leftStickPos = math.add(cam.leftCenterPos, cam.leftStickLocal);
-                }
-                cam.setJoystickPosition('left');
-            } else if (id === cam.rightFingerID) {
-                cam.rightStickPos = [pointerInfo.event.x, pointerInfo.event.y];
-                cam.rightStickLocal = VF.R(cam.rightCenterPos, cam.rightStickPos)
-                var mag = VF.Mag(cam.rightStickLocal);
-                if (mag > Cam.MAXJOYSTICKDIST) {
-                    cam.rightStickLocal = VF.ScaleVecToLength2(cam.rightStickLocal, mag, Cam.MAXJOYSTICKDIST);
-                    cam.rightStickPos = math.add(cam.rightCenterPos, cam.rightStickLocal);
-                }
-                cam.setJoystickPosition('right');
-            }
-        }
-
-        cam.onResize = function() {
-            cam.middleWidth = engine.getRenderWidth()/2;
-            cam.middleHeight = engine.getRenderHeight()/2;
-        }
-
-        cam.setJoystickBackgroundPosition = function(side) {
-            // side is 'left' or 'right'
-            // sets both stick and background position
-            cam[side.concat('Joystick')].background.left = cam[side.concat('CenterPos')][0];
-            cam[side.concat('Joystick')].background.top = cam[side.concat('CenterPos')][1];
-            cam[side.concat('Joystick')].stick.left = cam[side.concat('StickPos')][0];
-            cam[side.concat('Joystick')].stick.top = cam[side.concat('StickPos')][1];
-        }
-
-        cam.setJoystickPosition = function(side) {
-            // side is 'left' or 'right'
-            // sets only stick position
-            cam[side.concat('Joystick')].stick.left = cam[side.concat('StickPos')][0];
-            cam[side.concat('Joystick')].stick.top = cam[side.concat('StickPos')][1];
-        }
-
-        cam.stepFuncs = [cam.inputs.checkInputs, cam.moveToTarget, cam.rotToTarget, cam.updateCrouch, cam.onGroundCheck];
+        cam.stepFuncs = [cam.inputs.checkInputs, cam.moveToTarget, cam.rotToTarget, cam.updateCrouch, cam.onGroundCheck, cam.joystickCheck];
 
         return cam;
     }
@@ -921,37 +835,6 @@ export class Cam {
     
         return new kbMoveInput();
     }
-
-    static MakeVirtualJoystick() {
-        var joystick = {};
-        joystick.background = new BABYLON.GUI.Ellipse('background');
-        joystick.background.width = 2*Cam.JOYSTICKOUTERRAD;
-        joystick.background.height = 2*Cam.JOYSTICKOUTERRAD;
-        joystick.background.background = Cam.JOYSTICKOUTERCOLOR;
-        joystick.background.color = Cam.JOYSTICKOUTERBOUNDCOLOR;
-
-        joystick.stick = new BABYLON.GUI.Ellipse('stick');
-        joystick.stick.width = 2*Cam.JOYSTICKSTICKRAD;
-        joystick.stick.height = 2*Cam.JOYSTICKSTICKRAD;
-        joystick.stick.background = Cam.JOYSTICKSTICKCOLOR;
-        joystick.stick.color = Cam.JOYSTICKSTICKBOUNDCOLOR;
-
-        UI.AlignControlsTopLeft([joystick.background, joystick.stick]);
-
-        joystick.show = function() {
-            joystick.background.isVisible = true;
-            joystick.stick.isVisible = true;
-        }
-
-        joystick.hide = function() {
-            joystick.background.isVisible = false;
-            joystick.stick.isVisible = false;
-        }
-
-        joystick.hide();
-
-        return joystick;
-    }
 }
 
 export class UI {
@@ -977,6 +860,16 @@ export class UI {
     static SLIDERHEADERH = '26px';
     static SLIDERH = '30px';
 
+    static JOYSTICKOUTERRAD = 100;
+    static JOYSTICKOUTERCOLOR = 'grey';
+    static JOYSTICKOUTERBOUNDCOLOR = 'blue';
+    
+    static JOYSTICKSTICKRAD = 50;
+    static JOYSTICKSTICKCOLOR = 'white';
+    static JOYSTICKSTICKBOUNDCOLOR = 'white';
+
+    static MAXJOYSTICKDIST = 100;
+
     // makes the main gui object
     static MakeGUI(canvas) {
         var gui = {}
@@ -999,6 +892,12 @@ export class UI {
 
         gui.addControl = function(control) {
             gui.texture.addControl(control);
+        }
+
+        gui.addControls = function(controls) {
+            for(var i = 0; i < controls.length; i++) {
+                gui.addControl(controls[i]);
+            }
         }
     
         return gui;
@@ -1233,6 +1132,139 @@ export class UI {
         UI.SetControlsWidthHeight(controls, UI.HOWTOTEXTW, UI.HOWTOTEXTH);
 
         gui.mainMenu.addSubMenu(htMenu);
+    }
+
+    static MakeVirtualJoystick(gui) {
+        var joystick = {};
+        joystick.background = new BABYLON.GUI.Ellipse('background');
+        joystick.background.width = 2*UI.JOYSTICKOUTERRAD + 'px';
+        joystick.background.height = 2*UI.JOYSTICKOUTERRAD + 'px';
+        joystick.background.background = UI.JOYSTICKOUTERCOLOR;
+        joystick.background.color = UI.JOYSTICKOUTERBOUNDCOLOR;
+        joystick.background.alpha = .5;
+
+        joystick.stick = new BABYLON.GUI.Ellipse('stick');
+        joystick.stick.width = 2*UI.JOYSTICKSTICKRAD + 'px';
+        joystick.stick.height = 2*UI.JOYSTICKSTICKRAD + 'px';
+        joystick.stick.background = UI.JOYSTICKSTICKCOLOR;
+        joystick.stick.color = UI.JOYSTICKSTICKBOUNDCOLOR;
+
+        UI.AlignControlsTopLeft([joystick.background, joystick.stick]);
+
+        joystick.show = function() {
+            joystick.background.isVisible = true;
+            joystick.stick.isVisible = true;
+        }
+
+        joystick.hide = function() {
+            joystick.background.isVisible = false;
+            joystick.stick.isVisible = false;
+        }
+
+        joystick.hide();
+
+        gui.addControls([joystick.background, joystick.stick]);
+
+        return joystick;
+    }
+
+    static MakeVirtualJoystickController(gui, engine) {
+        var controller = {};
+
+        controller.leftJoystick = UI.MakeVirtualJoystick(gui);
+        controller.leftFingerDown = false; // controls movement
+        controller.leftFingerID = -1;
+        controller.leftCenterPos = [0,0];
+        controller.leftStickPos = [0,0]; // absolute stick position
+        controller.leftStickLocal = [0,0]; // position of stick relative to center
+
+        controller.rightJoystick = UI.MakeVirtualJoystick(gui);
+        controller.rightFingerDown = false; // controls look direction
+        controller.rightFingerID = -1;
+        controller.rightCenterPos = [0,0];
+        controller.rightStickPos = [0,0];
+        controller.rightStickLocal = [0,0];
+
+        controller.pointerDown = function(pointerInfo) {
+            var x = pointerInfo.event.x;
+            var y = pointerInfo.event.y;
+            if (x <= controller.middleWidth/2 && !controller.leftFingerDown) {
+                controller.leftFingerID = pointerInfo.event.pointerId;
+                controller.leftFingerDown = true;
+                controller.leftCenterPos = [x, y];
+                controller.leftStickPos = [x, y];
+                controller.setJoystickBackgroundPosition('left');
+                controller.leftJoystick.show();
+            } else if (x > controller.middleWidth/2 && !controller.rightFingerDown) {
+                controller.rightFingerID = pointerInfo.event.pointerId;
+                controller.rightFingerDown = true;
+                controller.rightCenterPos = [x, y];
+                controller.rightStickPos = [x, y];
+                controller.setJoystickBackgroundPosition('right');
+                controller.rightJoystick.show();
+            }
+        }
+
+        controller.pointerUp = function(pointerInfo) {
+            var id = pointerInfo.event.pointerId;
+            if (id === controller.leftFingerID) {
+                controller.leftFingerDown = false;
+                controller.leftFingerID = -1;
+                controller.leftJoystick.hide();
+            } else if (id === controller.rightFingerID) {
+                controller.rightFingerDown = false;
+                controller.rightFingerID = -1;
+                controller.rightJoystick.hide();
+            }
+        }
+
+        controller.pointerMove = function(pointerInfo) {
+            var id = pointerInfo.event.pointerId;
+            if (id === controller.leftFingerID) {
+                controller.leftStickPos = [pointerInfo.event.x, pointerInfo.event.y];
+                controller.leftStickLocal = VF.R(controller.leftCenterPos, controller.leftStickPos)
+                var mag = VF.Mag(controller.leftStickLocal);
+                if (mag > UI.MAXJOYSTICKDIST) {
+                    controller.leftStickLocal = VF.ScaleVecToLength2(controller.leftStickLocal, mag, UI.MAXJOYSTICKDIST);
+                    controller.leftStickPos = math.add(controller.leftCenterPos, controller.leftStickLocal);
+                }
+                controller.setJoystickPosition('left');
+            } else if (id === controller.rightFingerID) {
+                controller.rightStickPos = [pointerInfo.event.x, pointerInfo.event.y];
+                controller.rightStickLocal = VF.R(controller.rightCenterPos, controller.rightStickPos)
+                var mag = VF.Mag(controller.rightStickLocal);
+                if (mag > UI.MAXJOYSTICKDIST) {
+                    controller.rightStickLocal = VF.ScaleVecToLength2(controller.rightStickLocal, mag, UI.MAXJOYSTICKDIST);
+                    controller.rightStickPos = math.add(controller.rightCenterPos, controller.rightStickLocal);
+                }
+                controller.setJoystickPosition('right');
+            }
+        }
+
+        controller.onResize = function() {
+            controller.middleWidth = engine.getRenderWidth()/2;
+            controller.middleHeight = engine.getRenderHeight()/2;
+        }
+
+        controller.setJoystickBackgroundPosition = function(side) {
+            // side is 'left' or 'right'
+            // sets both stick and background position
+            controller[side.concat('Joystick')].background.left = (controller[side.concat('CenterPos')][0] - UI.JOYSTICKOUTERRAD) + 'px';
+            controller[side.concat('Joystick')].background.top = (controller[side.concat('CenterPos')][1] - UI.JOYSTICKOUTERRAD) + 'px';
+            controller[side.concat('Joystick')].stick.left = (controller[side.concat('StickPos')][0] - UI.JOYSTICKSTICKRAD) + 'px';
+            controller[side.concat('Joystick')].stick.top = (controller[side.concat('StickPos')][1] - UI.JOYSTICKSTICKRAD) + 'px';
+        }
+
+        controller.setJoystickPosition = function(side) {
+            // side is 'left' or 'right'
+            // sets only stick position
+            controller[side.concat('Joystick')].stick.left = (controller[side.concat('StickPos')][0] - UI.JOYSTICKSTICKRAD) + 'px';
+            controller[side.concat('Joystick')].stick.top = (controller[side.concat('StickPos')][1] - UI.JOYSTICKSTICKRAD) + 'px';
+        }
+
+        controller.onResize();
+
+        return controller;
     }
 
     static MakeSubMenuHeaderPanel(menuName, parent, gui) {
