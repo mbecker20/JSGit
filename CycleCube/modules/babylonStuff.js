@@ -397,7 +397,7 @@ class BF {
     }
 }
 
-export class Cam {
+class Cam {
 
     static HEIGHT = 12;
 
@@ -835,7 +835,7 @@ export class Cam {
     }
 }
 
-export class UI {
+class UI {
     static SPACING = '15px';
     
     // standard width height

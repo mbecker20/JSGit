@@ -1,4 +1,4 @@
-export class MyMats {
+class MyMats {
     // a collection of initialized Babylon Materials used in various anims
     constructor(scene) {
         //
@@ -83,7 +83,7 @@ export class MyMats {
     }
 }
 
-export class MySounds {
+class MySounds {
     // initializes sounds
     constructor(scene) {
         this.animChange = BF.MakeSound('animChange', 'resources/animChange.mp3', scene);
