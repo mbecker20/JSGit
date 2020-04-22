@@ -402,10 +402,10 @@ class Cam {
     static HEIGHT() {return 12};
 
     static TARGETPOSITIONSTEP() {return .35;}
-    static KBMOVEINTERPMULT() {return .1}
+    static KBMOVEINTERPMULT() {return .08}
 
     static TARGETROTATIONSTEP() {return .05}
-    static KBROTINTERPMULT() {return .1}
+    static KBROTINTERPMULT() {return .08}
 
     static MINALT() {return -.8 * Math.PI/2}
     static MAXALT() {return .8 * Math.PI/2}
