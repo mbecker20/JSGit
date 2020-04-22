@@ -1,6 +1,4 @@
-import { VF, MF } from './funcClasses.js';
-
-export class BF {
+class BF {
     // mesh constructors
     static MakeBox(name, scene, width, height, depth, otherParams = {}, receiveShadows = true) {
         // params: length, width, height,...

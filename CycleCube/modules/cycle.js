@@ -1,6 +1,4 @@
-import { BF } from './babylonStuff.js';
-
-export class Cycle {
+class Cycle {
     // sets up the environment
     static UNDERBLOCKSIZE = 80;
     static CAMBOUND = Cycle.UNDERBLOCKSIZE/2;

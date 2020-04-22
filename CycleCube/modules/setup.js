@@ -1,8 +1,3 @@
-import { Cycle } from './cycle.js';
-import { BouncyBall, DancingTHandle, PendVsMass, PendTugOfWar, SpinningRing, MultiPend } from './anims/all.js';
-import { BF, Cam, UI } from './babylonStuff.js';
-import { MyMats, MySounds } from './resources.js';
-
 window.addEventListener('DOMContentLoaded', function() {
     // get the canvas DOM element
     var canvas = document.getElementById('renderCanvas');

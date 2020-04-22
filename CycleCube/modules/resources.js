@@ -1,5 +1,3 @@
-import { BF } from './babylonStuff.js';
-
 export class MyMats {
     // a collection of initialized Babylon Materials used in various anims
     constructor(scene) {
