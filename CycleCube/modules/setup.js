@@ -17,10 +17,10 @@ window.addEventListener('DOMContentLoaded', function() {
         window.gui = UI.MakeGUI(canvas);
         
         // setup camera
-        var camPos = BF.Vec3([22, Cycle.UNDERBLOCKSIZE/2+Cam.HEIGHT+1, -22]);
+        var camPos = BF.Vec3([22, Cycle.UNDERBLOCKSIZE()/2+Cam.HEIGHT()+1, -22]);
         window.camera = Cam.MakeCam(camPos, scene, canvas, engine);
         //window.camera.setLookDirection([-1,5,0]);
-        window.camera.lookAt([0,Cycle.UNDERBLOCKSIZE/2,0]);
+        window.camera.lookAt([0,Cycle.UNDERBLOCKSIZE()/2,0]);
 
         //setup scene environment
         scene.ambientColor = BF.ColorRGB(255,255,255);
