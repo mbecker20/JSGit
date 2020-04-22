@@ -404,10 +404,10 @@ export class Cam {
     static HEIGHT = 8;
 
     static TARGETPOSITIONSTEP = .35;
-    static MOVEINTERPMULT = .1;
+    static MOVEINTERPMULT = .4;
 
     static TARGETROTATIONSTEP = .05;
-    static ROTINTERPMULT = .1;
+    static ROTINTERPMULT = .3;
 
     static MINALT = -.8 * Math.PI/2;
     static MAXALT = .8 * Math.PI/2;
@@ -1243,8 +1243,8 @@ export class UI {
         }
 
         controller.onResize = function() {
-            controller.middleWidth = engine.getRenderWidth()/2;
-            controller.middleHeight = engine.getRenderHeight()/2;
+            controller.middleWidth = engine.getRenderWidth();
+            controller.middleHeight = engine.getRenderHeight();
         }
 
         controller.setJoystickBackgroundPosition = function(side) {
