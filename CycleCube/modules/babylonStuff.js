@@ -402,10 +402,10 @@ class Cam {
     static HEIGHT() {return 12};
 
     static TARGETPOSITIONSTEP() {return .35;}
-    static MOVEINTERPMULT() {return .3}
+    static KBMOVEINTERPMULT() {return .1}
 
     static TARGETROTATIONSTEP() {return .05}
-    static ROTINTERPMULT() {return .3}
+    static KBROTINTERPMULT() {return .1}
 
     static MINALT() {return -.8 * Math.PI/2}
     static MAXALT() {return .8 * Math.PI/2}
@@ -420,7 +420,10 @@ class Cam {
     static CROUCHINTERPMULT() {return .2}
 
     static JOYSTICKMOVEMULT() {return .05} // delta target step = joystickmovemult * (stickpos - centerpos)
+    static JOYSTICKMOVEINTERPMULT() {return .3}
+
     static JOYSTICKROTMULT() {return .004}
+    static JOYSTICKROTINTERPMULT() {return .3}
 
     static MakeCam(camPos, scene, canvas, engine) {
         var cam = new BABYLON.TargetCamera('camera', BF.ZeroVec3(), scene);
@@ -447,23 +450,25 @@ class Cam {
 
             // this contains position cam moving to, expressed locally
             // x forward, y side. no movement has targetPos at [0,0]
-            cam.targetPos = BF.Vec2([0,0]);
+            cam.kbTargetPos = BF.Vec2([0,0]);
 
             // initialize vector to be set and added to position
             cam.deltaPos = BF.ZeroVec3(); 
 
-            cam.forwardV = 0;
-            cam.sideV = 0;
+            cam.kbForwardV = 0;
+            cam.kbSideV = 0;
 
             // setup rotation
 
             // rotation target is moved to. cam is rotated about cam local x axis by alt
             // camMesh is rotated about world y axis by azim
             cam.upVec = BF.Vec3([0,1,0]);
-            cam.targetRot = BF.Vec2([0,0]); // first comp is alt, second is azim
-
+            cam.kbTargetRot = BF.Vec2([0,0]); // first comp is alt, second is azim
             cam.deltaAlt = 0;
             cam.deltaAzim = 0;
+
+            cam.kbDeltaAlt = 0;
+            cam.kbDeltaAzim = 0;
 
             //setup jumping
             cam.ground = null; // set this once the ground mesh is created;
@@ -482,20 +487,39 @@ class Cam {
 
             // setup virtual joystick input
             cam.virtualController = UI.MakeVirtualJoystickController(window.gui, engine);
+            cam.jsTargetPos = BF.Vec2([0,0]);
+            cam.jsForwardV = 0;
+            cam.jsSideV = 0;
+
+            cam.jsTargetRot = BF.Vec2([0,0]);
+            cam.jsDeltaAlt = 0;
+            cam.jsDeltaAzim = 0;
         }
         
         cam.setupCam();
 
         // set methods
         cam.moveToTarget = function() {
-            cam.forwardV = Cam.MOVEINTERPMULT() * cam.targetPos.x;
-            cam.sideV = Cam.MOVEINTERPMULT() * cam.targetPos.y;
-            cam.camMesh.locallyTranslate(BF.SetVec3([cam.sideV, cam.jumpV, cam.forwardV], cam.deltaPos));
+            cam.kbMoveToTarget();
+            cam.jsMoveToTarget();
+            cam.camMesh.locallyTranslate(BF.SetVec3([cam.kbSideV + cam.jsSideV, cam.jumpV, cam.kbForwardV + cam.jsForwardV], cam.deltaPos));
             cam.position.y += cam.crouchV + cam.bounceV;
             cam.updateJump();
             cam.updateBounce();
-            cam.targetPos.x -= cam.forwardV;
-            cam.targetPos.y -= cam.sideV;
+        }
+
+        cam.kbMoveToTarget = function() {
+            cam.kbForwardV = Cam.KBMOVEINTERPMULT() * cam.kbTargetPos.x;
+            cam.kbSideV = Cam.KBMOVEINTERPMULT() * cam.kbTargetPos.y;
+            cam.kbTargetPos.x -= cam.kbForwardV;
+            cam.kbTargetPos.y -= cam.kbSideV;
+        }
+
+        cam.jsMoveToTarget = function() {
+            cam.jsForwardV = Cam.JOYSTICKMOVEINTERPMULT() * cam.jsTargetPos.x;
+            cam.jsSideV = Cam.JOYSTICKMOVEINTERPMULT() * cam.jsTargetPos.y;
+            cam.jsTargetPos.x -= cam.jsForwardV;
+            cam.jsTargetPos.y -= cam.jsSideV;
         }
 
         cam.updateJump = function() {
@@ -541,14 +565,31 @@ class Cam {
         }
 
         cam.rotToTarget = function() {
-            cam.deltaAlt = Cam.ROTINTERPMULT() * cam.targetRot.x;
+            cam.kbRotToTarget();
+            cam.jsRotToTarget();
+
+            cam.deltaAlt = cam.kbDeltaAlt + cam.jsDeltaAlt;
             cam.rotation.x += cam.deltaAlt;
-            cam.targetRot.x -= cam.deltaAlt;
             cam.boundAlt();
             
-            cam.deltaAzim = Cam.ROTINTERPMULT() * cam.targetRot.y;
+            cam.deltaAzim = cam.kbDeltaAzim + cam.jsDeltaAzim;
             cam.camMesh.rotate(cam.upVec, cam.deltaAzim, BABYLON.Space.LOCAL);
-            cam.targetRot.y -= cam.deltaAzim;
+        }
+
+        cam.kbRotToTarget = function() {
+            cam.kbDeltaAlt = Cam.KBROTINTERPMULT() * cam.kbTargetRot.x;
+            cam.kbTargetRot.x -= cam.kbDeltaAlt;
+            
+            cam.kbDeltaAzim = Cam.KBROTINTERPMULT() * cam.kbTargetRot.y;
+            cam.kbTargetRot.y -= cam.kbDeltaAzim;
+        }
+
+        cam.jsRotToTarget = function() {
+            cam.jsDeltaAlt = Cam.JOYSTICKROTINTERPMULT() * cam.jsTargetRot.x;
+            cam.jsTargetRot.x -= cam.jsDeltaAlt;
+            
+            cam.jsDeltaAzim = Cam.JOYSTICKROTINTERPMULT() * cam.jsTargetRot.y;
+            cam.jsTargetRot.y -= cam.jsDeltaAzim;
         }
 
         cam.boundAlt = function() {
@@ -584,12 +625,12 @@ class Cam {
         cam.joystickCheck = function() {
             if (cam.virtualController.leftFingerDown) {
                 var leftDelta = math.multiply(VF.ScaleVecToLength(cam.virtualController.leftStickLocal, Math.sqrt(VF.Mag(cam.virtualController.leftStickLocal))), Cam.JOYSTICKMOVEMULT());
-                cam.targetPos.x -= leftDelta[1];
-                cam.targetPos.y += leftDelta[0];
+                cam.jsTargetPos.x -= leftDelta[1];
+                cam.jsTargetPos.y += leftDelta[0];
             } if (cam.virtualController.rightFingerDown) {
                 var rightDelta = math.multiply(VF.ScaleVecToLength(cam.virtualController.rightStickLocal, Math.sqrt(VF.Mag(cam.virtualController.rightStickLocal))), Cam.JOYSTICKROTMULT());
-                cam.targetRot.x += rightDelta[1];
-                cam.targetRot.y += rightDelta[0];
+                cam.jsTargetRot.x += rightDelta[1];
+                cam.jsTargetRot.y += rightDelta[0];
             }
         }
 
@@ -694,13 +735,13 @@ class Cam {
                 for (var index = 0; index < this._keys.length; index++) {
                     var keyCode = this._keys[index];
                     if (this.keysLeft.indexOf(keyCode) !== -1) {
-                        cam.targetRot.y -= Cam.TARGETROTATIONSTEP();
+                        cam.kbTargetRot.y -= Cam.TARGETROTATIONSTEP();
                     } else if (this.keysRight.indexOf(keyCode) !== -1) {
-                        cam.targetRot.y += Cam.TARGETROTATIONSTEP();
+                        cam.kbTargetRot.y += Cam.TARGETROTATIONSTEP();
                     } if (this.keysUp.indexOf(keyCode) !== -1) {
-                        cam.targetRot.x -= Cam.TARGETROTATIONSTEP();
+                        cam.kbTargetRot.x -= Cam.TARGETROTATIONSTEP();
                     } else if (this.keysDown.indexOf(keyCode) !== -1) {
-                        cam.targetRot.x += Cam.TARGETROTATIONSTEP();
+                        cam.kbTargetRot.x += Cam.TARGETROTATIONSTEP();
                     } if (this.keysZoomIn.indexOf(keyCode) !== -1) {
                         cam.fov -= this.deltaFOV;
                         cam.fov = Math.max(cam.fov, this.fovMin);
@@ -808,13 +849,13 @@ class Cam {
                     for (var index = 0; index < this._keys.length; index++) {
                         var keyCode = this._keys[index];
                         if (this.keysLeft.indexOf(keyCode) !== -1) {
-                            cam.targetPos.y -= Cam.TARGETPOSITIONSTEP();
+                            cam.kbTargetPos.y -= Cam.TARGETPOSITIONSTEP();
                         } else if (this.keysRight.indexOf(keyCode) !== -1) {
-                            cam.targetPos.y += Cam.TARGETPOSITIONSTEP();
+                            cam.kbTargetPos.y += Cam.TARGETPOSITIONSTEP();
                         } if (this.keysForward.indexOf(keyCode) !== -1) {
-                            cam.targetPos.x += Cam.TARGETPOSITIONSTEP();
+                            cam.kbTargetPos.x += Cam.TARGETPOSITIONSTEP();
                         } else if (this.keysBack.indexOf(keyCode) !== -1) {
-                            cam.targetPos.x -= Cam.TARGETPOSITIONSTEP();
+                            cam.kbTargetPos.x -= Cam.TARGETPOSITIONSTEP();
                         } if (this.keysJump.indexOf(keyCode) !== -1) {
                             if(cam.onGround) {
                                 cam.jumpV = Cam.JUMPV();
@@ -823,7 +864,7 @@ class Cam {
                                 cam.bounceDist = 0;
                             }
                         } else if (this.keysCrouch.indexOf(keyCode) !== -1) {
-                            cam.targetCrouch = math.max(cam.targetCrouch - 2*Cam.CROUCHSTEP(), Cam.CROUCHHEIGHT()()-Cam.CROUCHSTEP());
+                            cam.targetCrouch = math.max(cam.targetCrouch - 2*Cam.CROUCHSTEP(), Cam.CROUCHHEIGHT()-Cam.CROUCHSTEP());
                         }
                     }
                 }
