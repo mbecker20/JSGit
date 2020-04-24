@@ -209,6 +209,11 @@ class BF {
         return new BABYLON.Vector2(ar2[0], ar2[1]);
     }
 
+    static SetVec2(ar2, target) {
+        target.set(ar2[0], ar2[1]);
+        return target;
+    }
+
     static Vec3(ar3) {
         return new BABYLON.Vector3(ar3[0],ar3[1],ar3[2]);
     }
@@ -490,8 +495,10 @@ class Cam {
             cam.crouchV = 0;
             cam.targetCrouch = Cam.HEIGHT();
 
-            // to disable kb movement input
-            cam.suspendMoveInput = false;
+            // to disable things
+            cam.suspendInputChecking = false;
+            cam.suspendRotToTarget = false;
+            cam.suspendMoveToTarget = false;
 
             // setup virtual joystick input
             cam.hybridController = UI.MakeVirtualHybridController(window.gui, engine);
@@ -617,6 +624,15 @@ class Cam {
 
         cam.step = function() {
             // step funcs must not have input
+            if (!cam.suspendInputChecking) {
+                cam.inputs.checkInputs();
+                cam.joystickCheck();
+            }
+            if (!cam.suspendRotToTarget) {
+                cam.rotToTarget();
+            } if (!cam.suspendMoveToTarget) {
+                cam.moveToTarget()
+            }
             for(var i = 0; i < cam.stepFuncs.length; i++) {
                 cam.stepFuncs[i]();
             }
@@ -647,7 +663,7 @@ class Cam {
             }
         }
 
-        cam.stepFuncs = [cam.inputs.checkInputs, cam.moveToTarget, cam.rotToTarget, cam.updateCrouch, cam.onGroundCheck, cam.joystickCheck];
+        cam.stepFuncs = [cam.updateCrouch, cam.onGroundCheck];
 
         return cam;
     }
