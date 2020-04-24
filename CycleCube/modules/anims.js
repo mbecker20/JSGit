@@ -5,7 +5,7 @@ class BouncyBall {
         this.r=4;
         this.sphere = BABYLON.MeshBuilder.CreateSphere('sphere1', {segments:16, diameter:2}, scene);
         this.sphere.position = BF.Vec3([0, 2*this.r, 0]);
-        this.sphere.material = myMats.darkMoon;
+        this.sphere.material = myMats.galaxy;
         this.sphere.receiveShadows = true;
 
         this.ground = BABYLON.MeshBuilder.CreateGround('ground1', {width:30,height:30}, scene);
@@ -146,7 +146,7 @@ class DancingTHandle {
 
         this.ground = BABYLON.MeshBuilder.CreateGround('ground4', {width:30,height:30}, scene);
         this.ground.position = BF.ZeroVec3();
-        this.ground.material = myMats.wArrow;
+        this.ground.material = myMats.jupiter;
         this.ground.receiveShadows = true;
 
         var mainLength = 6;
@@ -155,7 +155,7 @@ class DancingTHandle {
         var crossDiameter = 2;
 
         this.tHandle = BF.MakeTHandle('tHandle', scene, mainLength, mainDiameter, crossLength, crossDiameter);
-        this.tHandle.material = myMats.darkMoon;
+        this.tHandle.material = myMats.galaxy;
         this.tHandle.receiveShadows = true;
 
         BF.ConnectMeshsToShadows([this.tHandle, this.ground], shadows);
