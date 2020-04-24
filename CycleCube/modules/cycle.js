@@ -8,6 +8,7 @@ class Cycle {
     static INTERPCAMSTEP() {return Cycle.TARGETROTMAX()/(Cycle.INTERPCAMSTEPS())}
     static INTERPCAMMULT() {return .1};
     static INTERPCAMALTMULT() {return .03};
+    static INTERPCAMAZIMMULT(i) {return i*.01};
 
     static AXES() {return ['x', 'y', 'z']}
 
@@ -58,25 +59,25 @@ class Cycle {
             var pos0 = window.camera.camMesh.position[ax0];
             var pos1 = window.camera.camMesh.position[ax1];
             if (pos0 >= Cycle.CAMBOUND()) {
-                //window.camera.suspendMoveInput = true;
                 this.changingFace = true;
                 this.changeFaceEdge = 'pos'.concat(ax0);
                 window.animState.switchActiveAnim(this.camModes[this.changeFaceEdge].animKey);
+                this.setTotDeltaAzim();
             } else if (pos0 <= -Cycle.CAMBOUND()) {
-                //window.camera.suspendMoveInput = true;
                 this.changingFace = true;
                 this.changeFaceEdge = 'neg'.concat(ax0);
                 window.animState.switchActiveAnim(this.camModes[this.changeFaceEdge].animKey);
+                this.setTotDeltaAzim();
             } else if (pos1 >= Cycle.CAMBOUND()) {
-                //window.camera.suspendMoveInput = true;
                 this.changingFace = true;
                 this.changeFaceEdge = 'pos'.concat(ax1);
                 window.animState.switchActiveAnim(this.camModes[this.changeFaceEdge].animKey);
+                this.setTotDeltaAzim();
             } else if (pos1 <= -Cycle.CAMBOUND()) {
-                //window.camera.suspendMoveInput = true;
                 this.changingFace = true;
                 this.changeFaceEdge = 'neg'.concat(ax1);
                 window.animState.switchActiveAnim(this.camModes[this.changeFaceEdge].animKey);
+                this.setTotDeltaAzim();
             }
         }
     }
@@ -88,7 +89,6 @@ class Cycle {
             var deltaRot = Cycle.INTERPCAMMULT() * this.targetRot;
             window.camera.camMesh.rotate(this.camModes.activeMode[this.changeFaceEdge].rotAxis, deltaRot, BABYLON.Space.WORLD);
             this.targetRot -= deltaRot;
-            window.camera.rotation.x -= Cycle.INTERPCAMALTMULT() * window.camera.rotation.x;
         } else {
             var deltaRot = Cycle.INTERPCAMMULT() * this.targetRot;
             window.camera.camMesh.rotate(this.camModes.activeMode[this.changeFaceEdge].rotAxis, deltaRot, BABYLON.Space.WORLD);
@@ -100,11 +100,26 @@ class Cycle {
                 this.camModes.activeMode = this.camModes[this.camModes.activeMode[this.changeFaceEdge].newModeKey];
                 this.changingFace = false;
             }
-            window.camera.rotation.x -= Cycle.INTERPCAMALTMULT() * window.camera.rotation.x;
         }
+        this.returnCamOrientation(this.interpStep);
+    }
+
+    returnCamOrientation(i) {
+        // interpolates camera to altitude of 0 and azim facing center of cube
+        window.camera.rotation.x -= Cycle.INTERPCAMALTMULT() * window.camera.rotation.x;
+        var deltaAzim = Cycle.INTERPCAMAZIMMULT(i) * this.totDeltaAzim;
+        window.camera.camMesh.rotate(window.camera.upVec, deltaAzim, BABYLON.Space.LOCAL);
+        this.totDeltaAzim -= deltaAzim;
+    }
+
+    setTotDeltaAzim() {
+        var forwardDir = this.camModes.activeMode[this.changeFaceEdge].getForwardDir();
+        var localTargetDir = BF.TransformVecWorldToMeshLocal(window.camera.camMesh, forwardDir);
+        this.totDeltaAzim = VF.GetAzimZX(localTargetDir);
     }
 
     rotCam() {
+        // alternative to interpCam
         if (this.interpStep < Cycle.INTERPCAMSTEPS()) {
             this.interpStep++;
             window.camera.camMesh.rotate(this.camModes.activeMode[this.changeFaceEdge].rotAxis, Cycle.INTERPCAMSTEP(), BABYLON.Space.WORLD);
@@ -129,6 +144,17 @@ class Cycle {
             pos['pos'.concat(plane[1])] = {'newModeKey': 'pos'.concat(Cycle.AXES()[(i+2)%3])};
             pos['neg'.concat(plane[1])] = {'newModeKey': 'neg'.concat(Cycle.AXES()[(i+2)%3])};
             pos.plane = plane;
+            pos['pos'.concat(plane[0])].forwardDir = BF.ZeroVec3();
+            pos['pos'.concat(plane[0])].forwardDir[Cycle.AXES()[(i+1)%3]] = 1;
+            pos['neg'.concat(plane[0])].forwardDir = BF.ZeroVec3();
+            pos['neg'.concat(plane[0])].forwardDir[Cycle.AXES()[(i+1)%3]] = -1;
+            pos['pos'.concat(plane[1])].forwardDir = BF.ZeroVec3();
+            pos['pos'.concat(plane[1])].forwardDir[Cycle.AXES()[(i+2)%3]] = 1;
+            pos['neg'.concat(plane[1])].forwardDir = BF.ZeroVec3();
+            pos['neg'.concat(plane[1])].forwardDir[Cycle.AXES()[(i+2)%3]] = -1;
+            pos.getForwardDir = function() {
+
+            }
 
             var neg = {};
             neg['pos'.concat(plane[0])] = {'newModeKey': 'pos'.concat(Cycle.AXES()[(i+1)%3])};
@@ -136,6 +162,17 @@ class Cycle {
             neg['pos'.concat(plane[1])] = {'newModeKey': 'pos'.concat(Cycle.AXES()[(i+2)%3])};
             neg['neg'.concat(plane[1])] = {'newModeKey': 'neg'.concat(Cycle.AXES()[(i+2)%3])};
             neg.plane = plane;
+            neg['pos'.concat(plane[0])].forwardDir = BF.ZeroVec3();
+            neg['pos'.concat(plane[0])].forwardDir[Cycle.AXES()[(i+1)%3]] = 1;
+            neg['neg'.concat(plane[0])].forwardDir = BF.ZeroVec3();
+            neg['neg'.concat(plane[0])].forwardDir[Cycle.AXES()[(i+1)%3]] = -1;
+            neg['pos'.concat(plane[1])].forwardDir = BF.ZeroVec3();
+            neg['pos'.concat(plane[1])].forwardDir[Cycle.AXES()[(i+2)%3]] = 1;
+            neg['neg'.concat(plane[1])].forwardDir = BF.ZeroVec3();
+            neg['neg'.concat(plane[1])].forwardDir[Cycle.AXES()[(i+2)%3]] = -1;
+            neg.getTargetDir = function() {
+                
+            }
 
             this.camModes['pos'.concat(Cycle.AXES()[i])] = pos;
             this.camModes['neg'.concat(Cycle.AXES()[i])] = neg;
