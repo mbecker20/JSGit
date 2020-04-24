@@ -336,7 +336,7 @@ class Cycle {
     }
 
     ambientIntensity(t, w) {
-        return .5*(1+.4*Math.sin(w*t)) //sun rising at t = 0;
+        return .6*(1+.2*Math.sin(w*t)) //sun rising at t = 0;
     }
 
     setupMeshs(scene, myMats, shadows) {
@@ -355,7 +355,7 @@ class Cycle {
         //var worldAxes = BF.MakeAxes('worldAxes', scene, 4);
 
         this.underBlock = BABYLON.MeshBuilder.CreateBox('underBlock', {size: Cycle.UNDERBLOCKSIZE()}, scene);
-        this.underBlock.material = myMats.darkMoon;
+        this.underBlock.material = myMats.darkMoonUB;
         this.underBlock.receiveShadows = true;
 
         BF.ConnectToShadows(this.underBlock, shadows);
