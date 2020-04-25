@@ -127,6 +127,7 @@ class Cycle {
     moveCamToCenter(i) {
         var deltaMove = Cycle.INTERPCAMMOVEMULT(i) * this.moveTot;
         window.camera.camMesh.translate(this.moveDir, deltaMove, BABYLON.Space.WORLD);
+        this.moveTot -= deltaMove;
     }
 
     setMoveDir() {
