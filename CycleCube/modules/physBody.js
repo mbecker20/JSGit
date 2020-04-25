@@ -1,8 +1,8 @@
-function makePhysBody(scene, mesh, v, angMom, density, dt) {
+function makePhysBody(scene, node, mesh, v, angMom, density, dt) {
     // returns the mesh with added functions and properties
     // mesh will have COM at origin after creation
     PF.MoveToCOM(mesh);
-    mesh.angMom = angMom; //ar 3
+    mesh.angMom = angMom; //ar 3 relative to node space
     mesh.p = BF.ZeroVec3();
     mesh.v = v; //babylon vec3
     mesh.momTens = PF.GetMomentTensor(mesh,density);

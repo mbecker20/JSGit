@@ -91,8 +91,74 @@ window.addEventListener('DOMContentLoaded', function() {
         return scene;
     }
 
+    var createTestingScene = function() {
+        // create scene
+        // scene with only cycle for testing
+        var scene = new BABYLON.Scene(engine);
+
+        //initialize sounds object
+        window.sounds = new MySounds(scene);
+
+        // create gui
+        window.gui = UI.MakeGUI(canvas);
+        
+        // setup camera
+        var camPos = BF.Vec3([22, Cycle.UNDERBLOCKSIZE()/2+Cam.HEIGHT()+1, -22]);
+        window.camera = Cam.MakeCam(camPos, scene, canvas, engine);
+        //window.camera.setLookDirection([-1,5,0]);
+        window.camera.lookAt([0,Cycle.UNDERBLOCKSIZE()/2,0]);
+
+        //setup scene environment
+        scene.ambientColor = BF.ColorRGB(255,255,255);
+        scene.clearColor = BF.ColorRGB(0,0,0);
+
+        //initialize materials object
+        var myMats = new MyMats(scene);
+
+        //initialize animation classes
+        var shadowQual = 1024;
+        var cycle = new Cycle(scene, myMats, shadowQual);
+        window.camera.ground = cycle.underBlock;
+        
+        // world axes for reference (red = x, green = y, blue = z)
+        var oAxes = BF.MakeAxes('oAxes', scene, 4);
+        oAxes.position.y = Cycle.UNDERBLOCKSIZE()/2 + .5;
+
+        var dth = new DancingTHandle(scene, myMats, cycle.shadows, window.gui);
+        dth.node.position.z += Cycle.UNDERBLOCKSIZE()/2 + .1; // need to make physBodies coord system the anims node
+        dth.node.rotation.x = Math.PI/2;
+        dth.tHandle.setShowWArrow(true);
+
+        UI.MakeHowToMenu(window.gui);
+        UI.MakeVolumeSliderPanel(window.gui);
+        BF.SetGlobalVolume(0);
+
+        scene.registerAfterRender(function () {
+            window.camera.step();
+            cycle.step();
+            dth.step();
+        });
+
+        // control pointer observables
+        scene.onPointerObservable.add((pointerInfo) => {
+            switch (pointerInfo.type) {
+                case BABYLON.PointerEventTypes.POINTERDOWN:
+                    window.camera.virtualController.pointerDown(pointerInfo);
+                    break;
+                case BABYLON.PointerEventTypes.POINTERUP:
+                    window.camera.virtualController.pointerUp(pointerInfo);
+                    break;
+                case BABYLON.PointerEventTypes.POINTERMOVE:
+                    window.camera.virtualController.pointerMove(pointerInfo);
+                    break;
+            }
+        });
+
+        return scene;
+    }
+
     // call the createScene function
-    var scene = createScene();
+    var scene = createTestingScene();
 
     // run the render loop
     engine.runRenderLoop(function(){
