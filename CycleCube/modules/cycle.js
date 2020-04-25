@@ -10,7 +10,7 @@ class Cycle {
     static INTERPCAMALTMULT() {return .03};
     static INTERPCAMAZIMMULT(i) {return i*.01};
     static INTERPCAMMOVEMULT(i) {return i*.01};
-    static INTERPCAMMOVETOT() {return 5};
+    static INTERPCAMMOVETOT() {return 10};
 
     static AXES() {return ['x', 'y', 'z']}
 
