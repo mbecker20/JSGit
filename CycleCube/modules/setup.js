@@ -63,6 +63,7 @@ window.addEventListener('DOMContentLoaded', function() {
         cycle.addAnimsToCycle(anims);
         window.animState = UI.MakeAnimStateChooseAnimMenu(anims, window.gui, window.mySounds);
 
+        UI.MakeChooseVirtualControlMenu(window.gui);
         UI.MakeHowToMenu(window.gui);
         UI.MakeVolumeSliderPanel(window.gui);
         BF.SetGlobalVolume(0);
@@ -129,6 +130,7 @@ window.addEventListener('DOMContentLoaded', function() {
         dth.node.rotation.x = Math.PI/2;
         dth.tHandle.setShowWArrow(true);
 
+        UI.MakeChooseVirtualControlMenu(window.gui);
         UI.MakeHowToMenu(window.gui);
         UI.MakeVolumeSliderPanel(window.gui);
         BF.SetGlobalVolume(0);

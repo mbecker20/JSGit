@@ -1,4 +1,4 @@
-function makePhysBody(scene, node, mesh, v, angMom, density, dt) {
+function makePhysBody(scene, mesh, v, angMom, density, dt) {
     // returns the mesh with added functions and properties
     // mesh will have COM at origin after creation
     PF.MoveToCOM(mesh);
