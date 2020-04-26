@@ -408,6 +408,14 @@ class BF {
         var oTens = BF.GetOTens(mesh);
         return math.multiply(oTens, BF.Vec3ToAr(vec3));
     }
+
+    static TransformArMeshLocalToWorld(mesh, ar3) {
+        // transforms input ar3 from local space given by mesh to world space
+        // returns ar3
+        mesh.computeWorldMatrix();
+        var oTens = BF.GetOTens(mesh);
+        return math.multiply(ar3, oTens);
+    }
 }
 
 class Cam {
