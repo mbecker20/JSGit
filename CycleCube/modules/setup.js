@@ -62,6 +62,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
         cycle.addAnimsToCycle(anims);
         window.animState = UI.MakeAnimStateChooseAnimMenu(anims, window.gui, window.mySounds);
+        window.animState.anims['dancing T handle'].tHandle.updateAngMom();
 
         UI.MakeChooseVirtualControlMenu(window.gui);
         UI.MakeHowToMenu(window.gui);
@@ -126,8 +127,9 @@ window.addEventListener('DOMContentLoaded', function() {
         oAxes.position.y = Cycle.UNDERBLOCKSIZE()/2 + .5;
 
         var dth = new DancingTHandle(scene, myMats, cycle.shadows, window.gui);
-        dth.node.position.z += Cycle.UNDERBLOCKSIZE()/2 + .1; // need to make physBodies coord system the anims node
-        dth.node.rotation.x = Math.PI/2;
+        dth.node.position.y -= Cycle.UNDERBLOCKSIZE()/2 + .1; // need to make physBodies coord system the anims node
+        dth.node.rotation.x = Math.PI;
+        dth.tHandle.updateAngMom();
         dth.tHandle.setShowWArrow(true);
 
         UI.MakeChooseVirtualControlMenu(window.gui);
@@ -160,7 +162,7 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 
     // call the createScene function
-    var scene = createTestingScene();
+    var scene = createScene();
 
     // run the render loop
     engine.runRenderLoop(function(){
