@@ -73,6 +73,10 @@ class MyMats {
         this.jupiter = new BABYLON.StandardMaterial('jupiter', scene);
         this.jupiter.diffuseTexture = new BABYLON.Texture('https://i.imgur.com/wAGQBuU.png', scene);
 
+        this.nebula = new BABYLON.StandardMaterial('nebula', scene);
+        this.nebula.diffuseTexture = new BABYLON.Texture('https://i.imgur.com/cPAh4KM.png', scene);
+        this.nebula.emissiveColor = BF.ColorRGB(100,100,100);
+
         this.underBlock = new BABYLON.StandardMaterial('underBlock', scene);
         this.underBlock.diffuseTexture = new BABYLON.Texture("https://i.imgur.com/B2vjChP.png", scene);
 
