@@ -1200,3 +1200,7 @@ class SpinningRing {
         this.guiMenu.parentButton.isVisible = false;
     }
 }
+
+class JackInBox {
+    
+}

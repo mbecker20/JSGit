@@ -1961,3 +1961,7 @@ class UI {
         }
     }
 }
+
+class UI3D {
+    
+}
