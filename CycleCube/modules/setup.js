@@ -64,7 +64,8 @@ window.addEventListener('DOMContentLoaded', function() {
         };
 
         cycle.addAnimsToCycle(anims);
-        window.animState = UI.MakeAnimStateChooseAnimMenu(anims, window.gui, window.mySounds);
+        //window.animState = UI.MakeAnimStateChooseAnimMenu(anims, window.gui);
+        window.animState = BF.MakeAnimState(anims, window.gui);
         window.animState.anims['dancing T handle'].tHandle.updateAngMom();
 
         UI.MakeChooseVirtualControlMenu(window.gui);
@@ -76,21 +77,6 @@ window.addEventListener('DOMContentLoaded', function() {
             window.camera.step();
             cycle.step();
             window.animState.activeAnim.step();
-        });
-
-        // control pointer observables
-        scene.onPointerObservable.add((pointerInfo) => {
-            switch (pointerInfo.type) {
-                case BABYLON.PointerEventTypes.POINTERDOWN:
-                    window.camera.virtualController.pointerDown(pointerInfo);
-                    break;
-                case BABYLON.PointerEventTypes.POINTERUP:
-                    window.camera.virtualController.pointerUp(pointerInfo);
-                    break;
-                case BABYLON.PointerEventTypes.POINTERMOVE:
-                    window.camera.virtualController.pointerMove(pointerInfo);
-                    break;
-            }
         });
 
         return scene;
@@ -129,12 +115,11 @@ window.addEventListener('DOMContentLoaded', function() {
         var oAxes = BF.MakeAxes('oAxes', scene, 4);
         oAxes.position.y = Cycle.UNDERBLOCKSIZE()/2 + .5;
 
-        var dth = new DancingTHandle(scene, myMats, cycle.shadows, window.gui);
-        dth.node.position.y -= Cycle.UNDERBLOCKSIZE()/2 + .1; // need to make physBodies coord system the anims node
-        dth.node.rotation.x = Math.PI;
-        dth.tHandle.updateAngMom();
-        dth.tHandle.setShowWArrow(true);
+        // do testing stuff here
+        //var res = scene.onPointerObservable.removeCallback(window.camera.onPointerObservableCallback);
+        //console.log(res);
 
+        
         UI.MakeChooseVirtualControlMenu(window.gui);
         UI.MakeHowToMenu(window.gui);
         UI.MakeVolumeSliderPanel(window.gui);
@@ -143,29 +128,13 @@ window.addEventListener('DOMContentLoaded', function() {
         scene.registerAfterRender(function () {
             window.camera.step();
             cycle.step();
-            dth.step();
-        });
-
-        // control pointer observables
-        scene.onPointerObservable.add((pointerInfo) => {
-            switch (pointerInfo.type) {
-                case BABYLON.PointerEventTypes.POINTERDOWN:
-                    window.camera.virtualController.pointerDown(pointerInfo);
-                    break;
-                case BABYLON.PointerEventTypes.POINTERUP:
-                    window.camera.virtualController.pointerUp(pointerInfo);
-                    break;
-                case BABYLON.PointerEventTypes.POINTERMOVE:
-                    window.camera.virtualController.pointerMove(pointerInfo);
-                    break;
-            }
         });
 
         return scene;
     }
 
     // call the createScene function
-    var scene = createScene();
+    var scene = createTestingScene();
 
     // run the render loop
     engine.runRenderLoop(function(){

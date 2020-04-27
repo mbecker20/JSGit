@@ -416,6 +416,32 @@ class BF {
         var oTens = BF.GetOTens(mesh);
         return math.multiply(ar3, oTens);
     }
+
+    static MakeAnimState(anims, gui) {
+        // makes animstate without choose anim menu 
+        var animKeys = Object.keys(anims);
+        var animState = {anims: anims};
+        animState.switchActiveAnim = function(animKey) {
+            window.sounds.animChange.play();
+            if (animState.activeAnim.guiMenu.panel.isVisible) {
+                gui.setActiveMenu(animState.anims[animKey].guiMenu);
+            }
+            animState.activeAnim.deactivate();
+            animState.activeAnim = animState.anims[animKey];
+            animState.activeAnim.activate();
+        }
+        var animMenus = [];
+        for(var i = 0; i < animKeys.length; i++) {
+            if (i === 0) {
+                animState.activeAnim = anims[animKeys[i]];
+            } else {
+                anims[animKeys[i]].deactivate();
+            }
+            animMenus.push(animState.anims[animKeys[i]].guiMenu);
+        }
+        gui.mainMenu.addOneOfSubMenus('animSettings', animMenus);
+        return animState;
+    }
 }
 
 class Cam {
@@ -607,7 +633,24 @@ class Cam {
             cam.setLookDirection(VF.R(BF.Vec3ToAr(cam.camMesh.position), ar3));
         }
 
+        cam.onPointerObservableCallback = function(pointerInfo) {
+            switch (pointerInfo.type) {
+                case BABYLON.PointerEventTypes.POINTERDOWN:
+                    cam.virtualController.pointerDown(pointerInfo);
+                    break;
+                case BABYLON.PointerEventTypes.POINTERUP:
+                    cam.virtualController.pointerUp(pointerInfo);
+                    break;
+                case BABYLON.PointerEventTypes.POINTERMOVE:
+                    cam.virtualController.pointerMove(pointerInfo);
+                    break;
+            }
+        }
+
         cam.stepFuncs = [cam.updateCrouch, cam.onGroundCheck];
+
+        // add virtual pointer observable callback
+        scene.onPointerObservable.add(cam.onPointerObservableCallback);
 
         return cam;
     }
@@ -1963,5 +2006,47 @@ class UI {
 }
 
 class UI3D {
-    
+    static MakeSlider(name, sliderMesh, groundMesh, range, initVal) {
+        // uses position of a sphere on a line in 3d to set slider value
+        // range is [minVal, maxVal]
+        var slider = {};
+        slider.name = name;
+        slider.mesh = sliderMesh;
+        slider.groundMesh = groundMesh;
+        slider.value = initVal;
+        slider.pressed = false;
+
+        slider.exist = function() {
+
+        }
+
+        slider.pointerDown = function(pointerInfo) {
+
+        }
+
+        slider.pointerUp = function(pointerInfo) {
+
+        }
+
+        slider.pointerMove = function(pointerInfo) {
+            
+        }
+
+        slider.onPointerObservableCallback = function(pointerInfo) {
+            // func to be added to 
+            switch (pointerInfo.type) {
+                case BABYLON.PointerEventTypes.POINTERDOWN:
+                    slider.pointerDown(pointerInfo);
+                    break;
+                case BABYLON.PointerEventTypes.POINTERUP:
+                    slider.pointerUp(pointerInfo);
+                    break;
+                case BABYLON.PointerEventTypes.POINTERMOVE:
+                    slider.pointerMove(pointerInfo);
+                    break;
+            }
+        }
+
+        return slider;
+    }
 }
