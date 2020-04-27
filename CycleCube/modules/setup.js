@@ -93,6 +93,10 @@ window.addEventListener('DOMContentLoaded', function() {
         // create gui
         window.gui = UI.MakeGUI(canvas);
 
+        window.pointerManager = new PointerManager( ) {
+
+        }
+
         // setup camera
         var camPos = BF.Vec3([22, Cycle.UNDERBLOCKSIZE()/2+Cam.HEIGHT()+1, -22]);
         window.camera = Cam.MakeCam(camPos, scene, canvas, engine);

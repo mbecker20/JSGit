@@ -45,7 +45,7 @@ class BF {
         tube.bakeCurrentTransformIntoVertices();
         tip.locallyTranslate(BF.Vec3([0,.925,0]));
         tip.bakeCurrentTransformIntoVertices();
-        
+
         var arrow = BF.MakeTransformNode(name, scene); // this is the top level rotator (last to be rotated);
         arrow.secondRot = BF.MakeTransformNode(name.concat(' secondRot'), scene); // second to be rotated
         arrow.secondRot.parent = arrow;
@@ -94,7 +94,7 @@ class BF {
 
     static MakeAxes(name, scene, length, mats = window.axesMats) {
         // mats is ar4[materials] for x y and z axes, and center sphere
-        // parent axes 
+        // parent axes
         var diameter = .4;
         var arrowDiameter = .6;
         var sphereDiameter = .8;
@@ -253,7 +253,7 @@ class BF {
     static ZeroVec4() {
         return BF.Vec4([0,0,0,0]);
     }
-    
+
     static Vec4_2(ar3,w) {
         //converts array of length 3 and one additional number to babylon vec4
         return new BABYLON.Vector4(ar3[0],ar3[1],ar3[2],w);
@@ -418,7 +418,7 @@ class BF {
     }
 
     static MakeAnimState(anims, gui) {
-        // makes animstate without choose anim menu 
+        // makes animstate without choose anim menu
         var animKeys = Object.keys(anims);
         var animState = {anims: anims};
         animState.switchActiveAnim = function(animKey) {
@@ -499,7 +499,7 @@ class Cam {
             cam.attachControl(canvas);
 
             // initialize vector to be set and added to position
-            cam.deltaPos = BF.ZeroVec3(); 
+            cam.deltaPos = BF.ZeroVec3();
 
             // setup rotation
             cam.upVec = BF.Vec3([0,1,0]); // vector camMesh is rotated locally about for azim rotation
@@ -523,7 +523,7 @@ class Cam {
             cam.suspendRotToTarget = false;
             cam.suspendMoveToTarget = false;
         }
-        
+
         cam.setupCam();
         Cam.SetupKBControl(cam);
         Cam.SetupVirtualControl(cam, engine);
@@ -561,7 +561,7 @@ class Cam {
             cam.deltaAlt = cam.kbDeltaAlt + cam.jsDeltaAlt;
             cam.rotation.x += cam.deltaAlt;
             cam.boundAlt();
-            
+
             cam.deltaAzim = cam.kbDeltaAzim + cam.jsDeltaAzim;
             cam.camMesh.rotate(cam.upVec, cam.deltaAzim, BABYLON.Space.LOCAL);
         }
@@ -610,14 +610,14 @@ class Cam {
                 }
             }
         }
-        
+
         cam.updateCrouch = function() {
             if (cam.bounceOnGround) {
                 cam.crouchV = 0;
             } else {
                 cam.crouchV = Cam.CROUCHINTERPMULT() * (cam.targetCrouch - cam.position.y);
             }
-            
+
         }
 
         cam.setLookDirection = function(ar3) {
@@ -633,28 +633,26 @@ class Cam {
             cam.setLookDirection(VF.R(BF.Vec3ToAr(cam.camMesh.position), ar3));
         }
 
-        cam.onPointerObservableCallback = function(pointerInfo) {
-            switch (pointerInfo.type) {
-                case BABYLON.PointerEventTypes.POINTERDOWN:
-                    cam.virtualController.pointerDown(pointerInfo);
-                    break;
-                case BABYLON.PointerEventTypes.POINTERUP:
-                    cam.virtualController.pointerUp(pointerInfo);
-                    break;
-                case BABYLON.PointerEventTypes.POINTERMOVE:
-                    cam.virtualController.pointerMove(pointerInfo);
-                    break;
-            }
+        cam.pointerDown = function(pointerInfo) {
+            cam.virtualController.pointerDown(pointerInfo);
+        }
+
+        cam.pointerUp = function(pointerInfo) {
+            cam.virtualController.pointerUp(pointerInfo);
+        }
+
+        cam.pointerMove = function(pointerInfo) {
+            cam.virtualController.pointerMove(pointerInfo);
         }
 
         cam.stepFuncs = [cam.updateCrouch, cam.onGroundCheck];
 
-        // add virtual pointer observable callback
-        scene.onPointerObservable.add(cam.onPointerObservableCallback);
+        // add virtual pointer observable callbacks to pointer manager
+        window.pointerManager.addCallbacksFromObj('virtualController', cam);
 
         return cam;
     }
-    
+
     static MakeKBRotateInput(cam, canvas) {
         var kbRotateInput = function() {
             this._keys = [];
@@ -668,7 +666,7 @@ class Cam {
             this.fovMin = Math.PI/24;
             this.fovMax = .99*Math.PI/2;
         };
-    
+
         kbRotateInput.prototype.getTypeName = function() {
             return "CameraKeyboardRotateInput";
         };
@@ -676,7 +674,7 @@ class Cam {
         kbRotateInput.prototype.getSimpleName = function() {
             return "keyboardRotate";
         };
-    
+
         kbRotateInput.prototype.attachControl = function(element, noPreventDefault) {
             var _this = this;
             if (!this._onKeyDown) {
@@ -699,7 +697,7 @@ class Cam {
                         }
                     }
                 };
-    
+
                 this._onKeyUp = function(evt) {
                     if (
                     _this.keysLeft.indexOf(evt.keyCode) !== -1 ||
@@ -718,7 +716,7 @@ class Cam {
                         }
                     }
                 };
-            
+
                 element.addEventListener("keydown", this._onKeyDown, false);
                 element.addEventListener("keyup", this._onKeyUp, false);
                 BABYLON.Tools.RegisterTopRootEvents(canvas, [
@@ -726,7 +724,7 @@ class Cam {
                 ]);
             }
         };
-    
+
         kbRotateInput.prototype.detachControl = function(element) {
             if (this._onKeyDown) {
                 element.removeEventListener("keydown", this._onKeyDown);
@@ -743,7 +741,7 @@ class Cam {
         kbRotateInput.prototype._onLostFocus = function (e) {
             this._keys = [];
         };
-    
+
         kbRotateInput.prototype.checkInputs = function() {
             //this is where you set what the keys do
             if (this._onKeyDown) {
@@ -768,7 +766,7 @@ class Cam {
                 }
             }
         };
-    
+
         return new kbRotateInput();
     }
 
@@ -782,7 +780,7 @@ class Cam {
             this.keysJump = [32];
             this.keysCrouch = [16];
         };
-    
+
         kbMoveInput.prototype.getTypeName = function() {
             return "CameraKeyboardMovementInput";
         };
@@ -790,7 +788,7 @@ class Cam {
         kbMoveInput.prototype.getSimpleName = function() {
             return "keyboardMovement";
         };
-    
+
         kbMoveInput.prototype.attachControl = function(element, noPreventDefault) {
             var _this = this;
             if (!this._onKeyDown) {
@@ -813,7 +811,7 @@ class Cam {
                         }
                     }
                 };
-    
+
                 this._onKeyUp = function(evt) {
                     if (
                     _this.keysLeft.indexOf(evt.keyCode) !== -1 ||
@@ -832,7 +830,7 @@ class Cam {
                         }
                     }
                 };
-            
+
                 element.addEventListener("keydown", this._onKeyDown, false);
                 element.addEventListener("keyup", this._onKeyUp, false);
                 BABYLON.Tools.RegisterTopRootEvents(canvas, [
@@ -840,7 +838,7 @@ class Cam {
                 ]);
             }
         };
-    
+
         kbMoveInput.prototype.detachControl = function(element) {
             if (this._onKeyDown) {
                 element.removeEventListener("keydown", this._onKeyDown);
@@ -857,7 +855,7 @@ class Cam {
         kbMoveInput.prototype._onLostFocus = function (e) {
             this._keys = [];
         };
-    
+
         kbMoveInput.prototype.checkInputs = function() {
             //this is where you set what the keys do
             if (this._onKeyDown) {
@@ -885,7 +883,7 @@ class Cam {
             }
             cam.targetCrouch = math.min(cam.targetCrouch + Cam.CROUCHSTEP(), Cam.HEIGHT()); // always runs to return targetCrouch to 0
         };
-    
+
         return new kbMoveInput();
     }
 
@@ -914,7 +912,7 @@ class Cam {
         cam.kbRotToTarget = function() {
             cam.kbDeltaAlt = Cam.KBROTINTERPMULT() * cam.kbTargetRot.x;
             cam.kbTargetRot.x -= cam.kbDeltaAlt;
-            
+
             cam.kbDeltaAzim = Cam.KBROTINTERPMULT() * cam.kbTargetRot.y;
             cam.kbTargetRot.y -= cam.kbDeltaAzim;
         }
@@ -974,7 +972,7 @@ class Cam {
         cam.vcModes.dualJSRotToTarget = function() {
             cam.jsDeltaAlt = Cam.JOYSTICKROTINTERPMULT() * cam.jsTargetRot.x;
             cam.jsTargetRot.x -= cam.jsDeltaAlt;
-            
+
             cam.jsDeltaAzim = Cam.JOYSTICKROTINTERPMULT() * cam.jsTargetRot.y;
             cam.jsTargetRot.y -= cam.jsDeltaAzim;
         }
@@ -982,7 +980,7 @@ class Cam {
         cam.vcModes.hybridRotToTarget = function() {
             cam.jsDeltaAlt = Cam.HYBRIDROTINTERPMULT() * cam.jsTargetRot.x;
             cam.jsTargetRot.x -= cam.jsDeltaAlt;
-            
+
             cam.jsDeltaAzim = Cam.HYBRIDROTINTERPMULT() * cam.jsTargetRot.y;
             cam.jsTargetRot.y -= cam.jsDeltaAzim;
         }
@@ -1003,7 +1001,7 @@ class Cam {
 
 class UI {
     static SPACING() {return '15px'};
-    
+
     // standard width height
     static STANDARDW() {return '200px'};
     static STANDARDH() {return '40px'};
@@ -1028,7 +1026,7 @@ class UI {
     static JOYSTICKOUTERCOLOR() {return 'grey'};
     static JOYSTICKOUTERBOUNDCOLOR() {return 'grey'};
     static JOYSTICKOUTERALPHA() {return .5};
-    
+
     static JOYSTICKSTICKRAD() {return 50};
     static JOYSTICKSTICKCOLOR() {return 'black'};
     static JOYSTICKSTICKBOUNDCOLOR() {return 'black'};
@@ -1039,7 +1037,7 @@ class UI {
     static MakeGUI(canvas) {
         var gui = {}
         gui.texture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI('gui');
-    
+
         // make show/hide button
         gui.shButton = UI.MakeShowHideButton(gui);
         gui.muteButton = UI.MakeMuteButton(gui);
@@ -1048,7 +1046,7 @@ class UI {
         gui.mainMenu = UI.MakeMainMenu(gui, canvas);
         gui.activeMenu = gui.mainMenu;
         gui.activeMenu.hide();
-    
+
         gui.setActiveMenu = function(menu) {
             gui.activeMenu.hide(); // hide current active menu
             gui.activeMenu = menu;
@@ -1064,7 +1062,7 @@ class UI {
                 gui.addControl(controls[i]);
             }
         }
-    
+
         return gui;
     }
 
@@ -1106,7 +1104,7 @@ class UI {
         mainMenu.addSubMenu = function(subMenu) {
             mainMenu.addControl(subMenu.name.concat('PB'), subMenu.parentButton);
         }
-        
+
         mainMenu.addOneOfSubMenus = function(name, subMenus) {
             // for when only 1 parent button will be active at a time
             var oneOfPanel = UI.MakePanel();
@@ -1160,7 +1158,7 @@ class UI {
 
         menu.sv = UI.MakeScrollViewer();
         menu.panel.addControl(menu.sv);
-        
+
         menu.svPanel = UI.MakePanel(true, false, false);
         //menu.svPanel.background = 'white';
         menu.svPanel.width = UI.SUBMENUW();
@@ -1327,7 +1325,7 @@ class UI {
         });
         controls.push(dualJSButton);
         names.push('dualJSButton');
-        
+
         cvcMenu.activeBut = hybridButton;
         cvcMenu.activeBut.color = 'green';
         cvcMenu.addControls(names, controls);
@@ -2005,14 +2003,7 @@ class UI {
     }
 }
 
-class UI3D
-    class Test {
-        constructor() {
-            console.log('yes');
-            this.t1 = 3;
-        }
-    }
-
+class UI3D {
     static MakeSlider(name, sliderMesh, groundMesh, range, initVal) {
         // uses position of a sphere on a line in 3d to set slider value
         // range is [minVal, maxVal]
@@ -2039,20 +2030,7 @@ class UI3D
 
         }
 
-        slider.onPointerObservableCallback = function(pointerInfo) {
-            // func to be added to
-            switch (pointerInfo.type) {
-                case BABYLON.PointerEventTypes.POINTERDOWN:
-                    slider.pointerDown(pointerInfo);
-                    break;
-                case BABYLON.PointerEventTypes.POINTERUP:
-                    slider.pointerUp(pointerInfo);
-                    break;
-                case BABYLON.PointerEventTypes.POINTERMOVE:
-                    slider.pointerMove(pointerInfo);
-                    break;
-            }
-        }
+        window.pointerManager.addCallbacksFromObj(name, slider);
 
         return slider;
     }
@@ -2061,9 +2039,47 @@ class UI3D
 class PointerManager {
     // handles the scene pointer observable
     // controls which pointer callbacks are active
-    constructor() {
+    constructor (scene) {
+        this.pointerDowns = {};
+        this.callbacks = {};
+        this.scene = scene;
+    }
+
+    pointerDown(pointerInfo) {
 
     }
+
+    addCallbackFromObj (name, obj) {
+        this.pointerDowns[name] = obj.pointerDown;
+        this.callbacks[name] = this.makeOnPointerObservableCallback(this, obj.pointerUp, obj.pointerMove);
+        if (!this.activeCallback) {
+            this.activeKey = this.callbacks[name];
+        }
+    }
+
+    switchActive (name) {
+        this.scene.onPointerObservable.removeCallback(this.activeCallback);
+        this.activeCallback = this.callbacks[name];
+        this.scene.onPointerObservable.add(this.activeCallback);
+    }
+
+    makeOnPointerObservableCallback(pointerManager, pointerUp, pointerMove) {
+        var onPointerObservableCallback = function (pointerInfo) {
+            switch (pointerInfo.type) {
+                case BABYLON.PointerEventTypes.POINTERDOWN:
+                    pointerManager.pointerDown(pointerInfo);
+                    break;
+                case BABYLON.PointerEventTypes.POINTERUP:
+                    pointerUp(pointerInfo);
+                    break;
+                case BABYLON.PointerEventTypes.POINTERMOVE:
+                    pointerMove(pointerInfo);
+                    break;
+            }
+        }
+        return onPointerObservableCallback;
+    }
+
 
 
 }
