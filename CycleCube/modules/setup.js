@@ -18,7 +18,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
         // create gui
         window.gui = UI.MakeGUI(canvas);
-        
+
         // setup camera
         var camPos = BF.Vec3([22, Cycle.UNDERBLOCKSIZE()/2+Cam.HEIGHT()+1, -22]);
         window.camera = Cam.MakeCam(camPos, scene, canvas, engine);
@@ -49,7 +49,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
         var multiPend = new MultiPend(scene, myMats, cycle.shadows, gui, 5);
         multiPend.params.theta0 = 2;
-        
+
         // world axes for reference (red = x, green = y, blue = z)
         //var oAxes = BF.MakeAxes('oAxes', scene, 4);
         //oAxes.position.y = Cycle.UNDERBLOCKSIZE()/2 + .5;
@@ -92,7 +92,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
         // create gui
         window.gui = UI.MakeGUI(canvas);
-        
+
         // setup camera
         var camPos = BF.Vec3([22, Cycle.UNDERBLOCKSIZE()/2+Cam.HEIGHT()+1, -22]);
         window.camera = Cam.MakeCam(camPos, scene, canvas, engine);
@@ -110,7 +110,7 @@ window.addEventListener('DOMContentLoaded', function() {
         var shadowQual = 1024;
         var cycle = new Cycle(scene, myMats, shadowQual);
         window.camera.ground = cycle.underBlock;
-        
+
         // world axes for reference (red = x, green = y, blue = z)
         var oAxes = BF.MakeAxes('oAxes', scene, 4);
         oAxes.position.y = Cycle.UNDERBLOCKSIZE()/2 + .5;
@@ -119,7 +119,7 @@ window.addEventListener('DOMContentLoaded', function() {
         //var res = scene.onPointerObservable.removeCallback(window.camera.onPointerObservableCallback);
         //console.log(res);
 
-        
+
         UI.MakeChooseVirtualControlMenu(window.gui);
         UI.MakeHowToMenu(window.gui);
         UI.MakeVolumeSliderPanel(window.gui);

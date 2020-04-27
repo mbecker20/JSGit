@@ -1793,7 +1793,7 @@ class UI {
         return muteButton;
     }
 
-    static MakeFullscreenButton(canvas) { 
+    static MakeFullscreenButton(canvas) {
         var fsButton = UI.MakeDualButton('fsButton', 'enter fullscreen', 'exit fullscreen', function() {
             if(screenfull.isEnabled) {
                 screenfull.exit();
@@ -2005,7 +2005,14 @@ class UI {
     }
 }
 
-class UI3D {
+class UI3D
+    class Test {
+        constructor() {
+            console.log('yes');
+            this.t1 = 3;
+        }
+    }
+
     static MakeSlider(name, sliderMesh, groundMesh, range, initVal) {
         // uses position of a sphere on a line in 3d to set slider value
         // range is [minVal, maxVal]
@@ -2029,11 +2036,11 @@ class UI3D {
         }
 
         slider.pointerMove = function(pointerInfo) {
-            
+
         }
 
         slider.onPointerObservableCallback = function(pointerInfo) {
-            // func to be added to 
+            // func to be added to
             switch (pointerInfo.type) {
                 case BABYLON.PointerEventTypes.POINTERDOWN:
                     slider.pointerDown(pointerInfo);
@@ -2049,4 +2056,14 @@ class UI3D {
 
         return slider;
     }
+}
+
+class PointerManager {
+    // handles the scene pointer observable
+    // controls which pointer callbacks are active
+    constructor() {
+
+    }
+
+
 }
