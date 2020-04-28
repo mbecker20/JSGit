@@ -2048,6 +2048,8 @@ class PointerManager {
         this.scene = scene;
         this.interactModes = {};
         this.camModes = {};
+        this.activePointerUps = {};
+        this.activePointerMoves = {};
     }
 
     pointerDown(pointerInfo) {
@@ -2058,22 +2060,23 @@ class PointerManager {
             var res = aiMode.pointerDowns[aiDownKeys[i]](pointerInfo);
             if (res) {
                 inInteracting = true;
-                aiMode.activePointers[aiDownKeys[i]] = pointerInfo.event.pointerId;
-                aiMode.activePointerKeys = Object.keys(aiMode.activePointers);
+                this.activePointerUps[pointerInfo.event.pointerId] = aiMode.pointerUps[aiDownKeys[i]];
+                this.activePointerMoves[pointerInfo.event.pointerId] = aiMode.pointerMoves[aiDownKeys[i]];
+                this.activePointerIds = Object.keys(this.activePointerUps);
                 break;
             }
         }
         if (!isInteracting) {
             this.camModes.activeMode.pointerDown(pointerInfo);
+
         }
     }
 
     pointerUp(pointerInfo) {
-        var aiKeys = this.interactModes.activeMode.activePointerKeys; //active interact mode
+        var aiKeys = this.activePointerUpKeys; //active interact mode
         for (var i = 0; i < aiKeys.length; i++) {
-            
-        }
 
+        }
     }
 
     pointerMove(pointerInfo) {
@@ -2098,7 +2101,6 @@ class PointerManager {
         // modeType is 'interact' or 'cam'
         if (!this.interactModes[mode]) {
             this.interactModes[mode] = {
-                activePointers: {}, // contains active names as keys, ids as vals
                 pointerDowns: {},
                 pointerUps: {},
                 pointerMoves: {}
