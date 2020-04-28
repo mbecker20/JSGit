@@ -633,22 +633,7 @@ class Cam {
             cam.setLookDirection(VF.R(BF.Vec3ToAr(cam.camMesh.position), ar3));
         }
 
-        cam.pointerDown = function(pointerInfo) {
-            return cam.virtualController.pointerDown(pointerInfo);
-        }
-
-        cam.pointerUp = function(pointerInfo) {
-            cam.virtualController.pointerUp(pointerInfo);
-        }
-
-        cam.pointerMove = function(pointerInfo) {
-            cam.virtualController.pointerMove(pointerInfo);
-        }
-
         cam.stepFuncs = [cam.updateCrouch, cam.onGroundCheck];
-
-        // add virtual pointer observable callbacks to pointer manager
-        window.pointerManager.addCallbacksFromObj('virtualController', cam);
 
         return cam;
     }
@@ -923,6 +908,8 @@ class Cam {
         cam.vcModes = {};
         cam.vcModes.hybridController = UI.MakeVirtualHybridController(window.gui, engine);
         cam.vcModes.dualJSController = UI.MakeVirtualJoystickController(window.gui, engine);
+        window.pointerManager.addCamCallbacksToMode('hybridController', cam.vcModes.hybridController);
+        window.pointerManager.addCamCallbacksToMode('dualJSController', cam.vcModes.dualJSController);
 
         cam.jsTargetPos = BF.Vec2([0,0]);
         cam.jsForwardV = 0;
@@ -986,6 +973,8 @@ class Cam {
         }
 
         cam.switchVirtualControl = function(name) {
+            // name is 'hybrid' and 'dualJS'
+            window.pointerManager.switchActiveMode(name.concat('Controller'), 'cam');
             cam.virtualController = cam.vcModes[name.concat('Controller')];
             cam.virtualControllerCheck = cam.vcModes[name.concat('Check')];
             cam.jsRotToTarget = cam.vcModes[name.concat('RotToTarget')];
@@ -1403,9 +1392,8 @@ class UI {
                 controller.setJoystickBackgroundPosition('right');
                 controller.rightJoystick.show();
                 return true;
-            } else {
-                return false;
             }
+            return false;
         }
 
         controller.pointerUp = function(pointerInfo) {
@@ -1505,7 +1493,9 @@ class UI {
                 controller.rightFingerDown = true;
                 controller.currentPos = [x, y];
                 controller.prevPos = [x, y];
+                return true;
             }
+            return false;
         }
 
         controller.pointerUp = function(pointerInfo) {
@@ -2045,55 +2035,64 @@ class PointerManager {
     // handles the scene pointer observable
     // controls which pointer callbacks are active
     constructor (scene) {
-        this.scene = scene;
         this.interactModes = {};
         this.camModes = {};
         this.activePointerUps = {};
         this.activePointerMoves = {};
+        this.activePointerIds = [];
+        scene.onPointerObservable.add(PointerManager.MakeOnPointerObservableCallback(this));
     }
 
     pointerDown(pointerInfo) {
-        var aiMode = this.interactModes.activeMode; //active interact mode
-        var aiDownKeys = aiMode.pointerDowns.keys; // active interact pointerDown keys
-        var isInteracting = false;
-        for (var i = 0; i < aiDownKeys.length; i++) {
-            var res = aiMode.pointerDowns[aiDownKeys[i]](pointerInfo);
-            if (res) {
-                inInteracting = true;
-                this.activePointerUps[pointerInfo.event.pointerId] = aiMode.pointerUps[aiDownKeys[i]];
-                this.activePointerMoves[pointerInfo.event.pointerId] = aiMode.pointerMoves[aiDownKeys[i]];
-                this.activePointerIds = Object.keys(this.activePointerUps);
-                break;
+        if (this.interactModes.activeMode) {
+            var aiMode = this.interactModes.activeMode; //active interact mode
+            var aiDownKeys = aiMode.pointerDowns.keys; // active interact pointerDown keys
+            var isInteracting = false;
+            for (var i = 0; i < aiDownKeys.length; i++) {
+                isInteracting = aiMode.pointerDowns[aiDownKeys[i]](pointerInfo);
+                if (isInteracting) {
+                    this.activePointerUps[pointerInfo.event.pointerId] = aiMode.pointerUps[aiDownKeys[i]];
+                    this.activePointerMoves[pointerInfo.event.pointerId] = aiMode.pointerMoves[aiDownKeys[i]];
+                    this.activePointerIds = Object.keys(this.activePointerUps);
+                    break;
+                }
             }
-        }
-        if (!isInteracting) {
-            this.camModes.activeMode.pointerDown(pointerInfo);
-
+            if (!isInteracting) {
+                var res = this.camModes.activeMode.pointerDown(pointerInfo);
+                if (res) {
+                    this.activePointerUps[pointerInfo.event.pointerId] = this.camModes.activeMode.pointerUp;
+                    this.activePointerMoves[pointerInfo.event.pointerId] = this.camModes.activeMode.pointerMove;
+                    this.activePointerIds = Object.keys(this.activePointerUps);
+                }
+            }
+        } else {
+            var res = this.camModes.activeMode.pointerDown(pointerInfo);
+            if (res) {
+                this.activePointerUps[pointerInfo.event.pointerId] = this.camModes.activeMode.pointerUp;
+                this.activePointerMoves[pointerInfo.event.pointerId] = this.camModes.activeMode.pointerMove;
+                this.activePointerIds = Object.keys(this.activePointerUps);
+            }
         }
     }
 
     pointerUp(pointerInfo) {
-        var aiKeys = this.activePointerUpKeys; //active interact mode
-        for (var i = 0; i < aiKeys.length; i++) {
-
+        var activeIds = this.activePointerIds; //active interact mode
+        for (var i = 0; i < activeIds.length; i++) {
+            if (activeIds[i] == pointerInfo.event.pointerId) { // use == for type conversion (activeIds are converted to strings, pointerId is number)
+                this.activePointerUps[activeIds[i]](pointerInfo);
+                delete this.activePointerUps[activeIds[i]];
+                delete this.activePointerMoves[activeIds[i]];
+                this.activePointerIds = Object.keys(this.activePointerUps);
+            }
         }
     }
 
     pointerMove(pointerInfo) {
-
-    }
-
-    onPointerObservableCallback(pointerInfo) {
-        switch (pointerInfo.type) {
-            case BABYLON.PointerEventTypes.POINTERDOWN:
-                this.pointerDown(pointerInfo);
-                break;
-            case BABYLON.PointerEventTypes.POINTERUP:
-                this.pointerUp(pointerInfo);
-                break;
-            case BABYLON.PointerEventTypes.POINTERMOVE:
-                this.pointerMove(pointerInfo);
-                break;
+        var activeIds = this.activePointerIds; //active interact mode
+        for (var i = 0; i < activeIds.length; i++) {
+            if (activeIds[i] == pointerInfo.event.pointerId) {
+                this.activePointerMoves[activeIds[i]](pointerInfo);
+            }
         }
     }
 
@@ -2121,13 +2120,12 @@ class PointerManager {
     addCamCallbacksToMode (mode, obj) {
         // modeType is 'interact' or 'cam'
         if (!this.camModes[mode]) {
-            this.camModes[mode] = {activePointers = {}};
+            this.camModes[mode] = {};
         }
 
         this.camModes[mode].pointerDown = obj.pointerDown;
         this.camModes[mode].pointerUp = obj.pointerUp;
         this.camModes[mode].pointerMove = obj.pointerMove;
-
 
         if (!this.camModes.activeMode) {
             this.camModes.activeMode = this.camModes[mode];
@@ -2135,6 +2133,24 @@ class PointerManager {
     }
 
     switchActiveMode (mode, modeType) {
+        // modeType is 'cam' or 'interact'
         this[modeType.concat('Modes')].activeMode = this[modeType.concat('Modes')][mode];
+    }
+
+    static MakeOnPointerObservableCallback(pointerManager) {
+        var onPointerObservableCallback = function(pointerInfo) {
+            switch (pointerInfo.type) {
+                case BABYLON.PointerEventTypes.POINTERDOWN:
+                    pointerManager.pointerDown(pointerInfo);
+                    break;
+                case BABYLON.PointerEventTypes.POINTERUP:
+                    pointerManager.pointerUp(pointerInfo);
+                    break;
+                case BABYLON.PointerEventTypes.POINTERMOVE:
+                    pointerManager.pointerMove(pointerInfo);
+                    break;
+            }
+        }
+        return onPointerObservableCallback;
     }
 }

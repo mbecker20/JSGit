@@ -19,6 +19,9 @@ window.addEventListener('DOMContentLoaded', function() {
         // create gui
         window.gui = UI.MakeGUI(canvas);
 
+        // create pointerManager to manage mouse/touch interactions
+        window.pointerManager = new PointerManager(scene);
+
         // setup camera
         var camPos = BF.Vec3([22, Cycle.UNDERBLOCKSIZE()/2+Cam.HEIGHT()+1, -22]);
         window.camera = Cam.MakeCam(camPos, scene, canvas, engine);
@@ -93,9 +96,8 @@ window.addEventListener('DOMContentLoaded', function() {
         // create gui
         window.gui = UI.MakeGUI(canvas);
 
-        window.pointerManager = new PointerManager( ) {
-
-        }
+        // create pointerManager to manage mouse/touch interactions
+        window.pointerManager = new PointerManager(scene);
 
         // setup camera
         var camPos = BF.Vec3([22, Cycle.UNDERBLOCKSIZE()/2+Cam.HEIGHT()+1, -22]);
