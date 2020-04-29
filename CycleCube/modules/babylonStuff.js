@@ -974,7 +974,7 @@ class Cam {
 
         cam.switchVirtualControl = function(name) {
             // name is 'hybrid' and 'dualJS'
-            window.pointerManager.switchActiveMode(name.concat('Controller'), 'cam');
+            window.pointerManager.switchActiveCamMode(name.concat('Controller'));
             cam.virtualController = cam.vcModes[name.concat('Controller')];
             cam.virtualControllerCheck = cam.vcModes[name.concat('Check')];
             cam.jsRotToTarget = cam.vcModes[name.concat('RotToTarget')];
@@ -2132,9 +2132,14 @@ class PointerManager {
         }
     }
 
-    switchActiveMode (mode, modeType) {
+    switchActiveInteractMode (mode) {
         // modeType is 'cam' or 'interact'
-        this[modeType.concat('Modes')].activeMode = this[modeType.concat('Modes')][mode];
+        this[interactModes].activeMode = this[interactModes][mode];
+    }
+
+    switchActiveCamMode (mode) {
+        // modeType is 'cam' or 'interact'
+        this.camModes.activeMode = this.camModes[mode];
     }
 
     static MakeOnPointerObservableCallback(pointerManager) {
