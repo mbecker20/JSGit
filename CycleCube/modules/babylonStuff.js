@@ -1999,33 +1999,55 @@ class UI {
 }
 
 class UI3D {
-    static MakeSlider(name, sliderMesh, groundMesh, range, initVal) {
+    static MakeSlider(name, mode, scene, sliderMesh, groundMesh, range, initVal) {
         // uses position of a sphere on a line in 3d to set slider value
         // range is [minVal, maxVal]
+        // mode is the pointerManager interact mode control is added to
+        // default slider oriented sitting in x-z plane at origin
+        // slider
         var slider = {};
+        slider.node = BF.MakeTransformNode(name.concat('Node'), scene);
         slider.name = name;
         slider.mesh = sliderMesh;
         slider.groundMesh = groundMesh;
         slider.value = initVal;
-        slider.pressed = false;
-
-        slider.exist = function() {
-
-        }
+        slider.position = BF.ZeroVec3();
 
         slider.pointerDown = function(pointerInfo) {
-
+            if (pointerInfo.pickInfo.pickedMesh == slider.mesh) {
+                return true;
+            }
+            return false;
         }
 
         slider.pointerUp = function(pointerInfo) {
-
+            // may not need to do anything bc pointerManager will unlink control
         }
 
         slider.pointerMove = function(pointerInfo) {
+            var groundPosition = slider.getGroundPosition(slider.scene);
+            if (groundPosition) {
+
+            }
+        }
+
+        slider.getRelativeGroundPosition = function() {
+            var pickinfo = scene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh == slider.groundMesh; });
+            if (pickinfo.hit) {
+                return pickinfo.pickedPoint; // a babylon vec3
+            }
+            return null;
+        }
+
+        slider.setPosition = function() {
 
         }
 
-        window.pointerManager.addCallbacksFromObj(name, slider);
+        slider.rotate = function() {
+
+        }
+
+        window.pointerManager.addInteractCallbacksToMode(name, slider, mode);
 
         return slider;
     }
