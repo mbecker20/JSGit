@@ -19,7 +19,7 @@ class MyMats {
 
         this.chill = new BABYLON.StandardMaterial("chill", scene);
         this.chill.diffuseTexture = new BABYLON.Texture("https://images.squarespace-cdn.com/content/537cfc28e4b0785074d4ae25/1471358583532-I9LQ4LV67S3I8Y4XH7DA/?content-type=image%2Fpng", scene);
-        
+
         this.bwPattern = new BABYLON.StandardMaterial("bwPattern", scene);
         this.bwPattern.diffuseTexture = new BABYLON.Texture("https://i.imgur.com/QqKNS1o.png", scene);
 
@@ -50,6 +50,9 @@ class MyMats {
 
         this.sun = new BABYLON.StandardMaterial('sun', scene);
         this.sun.emissiveColor = BF.ColorRGB(255,255,100);
+
+        this.darkSun = new BABYLON.StandardMaterial('sun', scene);
+        this.darkSun.emissiveColor = BF.ColorRGB(55,55,10);
 
         this.moon = new BABYLON.StandardMaterial('moon', scene);
         this.moon.diffuseTexture = new BABYLON.Texture('https://i.imgur.com/i2iDYgn.png', scene);

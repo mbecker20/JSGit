@@ -34,6 +34,11 @@ class BF {
         return cyl;
     }
 
+    static MakePlane(name, scene, width, height) {
+        // plane is oriented in x - y
+        return BABYLON.MeshBuilder.CreatePlane(name, {width: width, height: height}, scene);
+    }
+
     static MakeArrow(name, scene, direction, diameter, arrowDiameter) {
         //name is string
         //vertices pointing [1,0,0];
@@ -2003,20 +2008,51 @@ class UI {
 }
 
 class UI3D {
-    static MakeSlider(name, scene, sliderMesh, groundMesh, range, initVal, length, verticleOffset = 0) {
+    static SLIDERLINEWIDTH() {return .25}
+    static SLIDERTEXTPLANEHEIGHT() {return 10}
+    static SLIDERTEXTFONTSIZE() {return 130}
+
+    static MakeTextPlane(name, scene, width, height, text, fontSize) {
+        var textPlane = BF.MakePlane(name, scene, width, height);
+        var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(textPlane);
+
+        textPlane.textBlock = UI.MakeTextBlock(text, fontSize);
+        textPlane.textBlock.width = 1;
+        textPlane.textBlock.height = 1;
+        textPlane.textBlock.background = 'green';
+
+        advancedTexture.addControl(textPlane.textBlock);
+
+        textPlane.setText = function(text) {
+            textPlane.textBlock.text = text;
+        }
+
+        return textPlane;
+    }
+
+    static MakeSlider(name, scene, sliderMesh, groundMesh, range, initVal, length, onValChange, verticleOffset = 0) {
         // uses position of a sphere on a line in 3d to set slider value
         // range is [minVal, maxVal]
         // mode is the pointerManager interact mode control is added to
         // default slider oriented sitting in x-z plane and centered at origin
         // slider can move length/2 in pos/neg x direction
+        // onValChange is function of value
         var slider = {};
         slider.node = BF.MakeTransformNode(name.concat('Node'), scene);
         slider.name = name;
+
         slider.mesh = sliderMesh;
         slider.mesh.parent = slider.node;
         slider.mesh.position.y = verticleOffset;
+        slider.mesh.material = window.myMats.sun;
+
         slider.groundMesh = groundMesh;
         slider.rangeSize = range[1] - range[0];
+        slider.onValChange = onValChange;
+
+        slider.line = BF.MakeBox(name.concat('Line'), scene, length, UI3D.SLIDERLINEWIDTH(), UI3D.SLIDERLINEWIDTH(), {}, false);
+        slider.line.parent = slider.node;
+        slider.line.material = window.myMats.darkSun;
 
         slider.pointerDown = function(pointerInfo) {
             if (pointerInfo.pickInfo.pickedMesh == slider.mesh) {
@@ -2034,6 +2070,10 @@ class UI3D {
             if (sliderPos) {
                 slider.mesh.position.x = MF.Clamp(sliderPos, -length/2, length/2);
                 slider.updateValue();
+                slider.onValChange(slider.value);
+                if (slider.textPlane) {
+                    slider.textPlane.setText(slider.text + slider.getValString() + ' ' + slider.units);
+                }
             }
         }
 
@@ -2061,6 +2101,25 @@ class UI3D {
         slider.setValue = function(val) {
             slider.value = val;
             slider.setSliderPositionFromValue(val);
+        }
+
+        slider.addText = function(text, units = '') {
+            slider.text = text.concat(': ');
+            slider.units = units;
+            var sliderText = slider.text + slider.getValString() + ' ' + units;
+            slider.textPlane = UI3D.MakeTextPlane(slider.name.concat('TextPlane'), scene, length, UI3D.SLIDERTEXTPLANEHEIGHT(), sliderText, UI3D.SLIDERTEXTFONTSIZE());
+            slider.textPlane.parent = slider.node;
+            slider.textPlane.position.z = -3;
+            slider.textPlane.position.y = .1;
+            slider.textPlane.rotation.x = Math.PI/2;
+        }
+
+        slider.getValString = function() {
+            var valString = (math.round(10*slider.value)/10).toString();
+            if (valString.length < 3) {
+                valString = valString.concat('.0');
+            }
+            return valString;
         }
 
         slider.updateNodeOTens = function() {

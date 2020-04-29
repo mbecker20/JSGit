@@ -33,24 +33,24 @@ window.addEventListener('DOMContentLoaded', function() {
         scene.clearColor = BF.ColorRGB(0,0,0);
 
         //initialize materials object
-        var myMats = new MyMats(scene);
+        window.myMats = new MyMats(scene);
 
         //initialize animation classes
         var shadowQual = 1024;
         var cycle = new Cycle(scene, myMats, shadowQual);
         window.camera.ground = cycle.underBlock;
 
-        var bouncyBall = new BouncyBall(scene, myMats, cycle.shadows, window.gui);
+        var bouncyBall = new BouncyBall(scene, window.myMats, cycle.shadows, window.gui);
 
-        var dancingTHandle = new DancingTHandle(scene, myMats, cycle.shadows, window.gui);
+        var dancingTHandle = new DancingTHandle(scene, window.myMats, cycle.shadows, window.gui);
 
-        var pendVsMass = new PendVsMass(scene, myMats, cycle.shadows, window.gui);
+        var pendVsMass = new PendVsMass(scene, window.myMats, cycle.shadows, window.gui);
 
-        var ptw = new PendTugOfWar(scene, myMats, cycle.shadows, window.gui);
+        var ptw = new PendTugOfWar(scene, window.myMats, cycle.shadows, window.gui);
 
-        var spinningRing = new SpinningRing(scene, myMats, cycle.shadows, window.gui);
+        var spinningRing = new SpinningRing(scene, window.myMats, cycle.shadows, window.gui);
 
-        var multiPend = new MultiPend(scene, myMats, cycle.shadows, gui, 5);
+        var multiPend = new MultiPend(scene, window.myMats, cycle.shadows, gui, 5);
         multiPend.params.theta0 = 2;
 
         // world axes for reference (red = x, green = y, blue = z)
@@ -110,11 +110,11 @@ window.addEventListener('DOMContentLoaded', function() {
         scene.clearColor = BF.ColorRGB(0,0,0);
 
         //initialize materials object
-        var myMats = new MyMats(scene);
+        window.myMats = new MyMats(scene);
 
         //initialize animation classes
         var shadowQual = 1024;
-        var cycle = new Cycle(scene, myMats, shadowQual);
+        var cycle = new Cycle(scene, window.myMats, shadowQual);
         window.camera.ground = cycle.underBlock;
 
         // world axes for reference (red = x, green = y, blue = z)
@@ -122,10 +122,19 @@ window.addEventListener('DOMContentLoaded', function() {
         oAxes.position.y = Cycle.UNDERBLOCKSIZE()/2 + .5;
 
         // do testing stuff here
-        var slider = UI3D.MakeSphereSlider('sphereSlider', scene, 2, cycle.underBlock, [0,10], 5, 20);
-        slider.node.position = BF.Vec3([0, Cycle.UNDERBLOCKSIZE()/2, 10]);
+        var slider = UI3D.MakeSphereSlider('sphereSlider', scene, 1, cycle.underBlock, [0,10], 5, 20, GF.DoNothing);
+        slider.node.position = BF.Vec3([0, Cycle.UNDERBLOCKSIZE()/2, -10]);
         slider.addToPointerManager('posy');
-        slider.mesh.material = myMats.sun;
+        slider.addText('testing');
+        slider.mesh.material = window.myMats.sun;
+
+        /*
+        var plane = UI3D.MakeTextPlane('planetest', scene, 10, 10, 'testing testing', 150);
+        plane.parent = slider.node;
+        plane.position.z = -3;
+        plane.position.y = .1;
+        plane.rotation.x = Math.PI/2;
+        */
 
         UI.MakeChooseVirtualControlMenu(window.gui);
         UI.MakeHowToMenu(window.gui);
