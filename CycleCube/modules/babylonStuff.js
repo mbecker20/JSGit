@@ -161,7 +161,7 @@ class BF {
 
     // other helpers
     static GetOTens(mesh) {
-        mesh.computeWorldMatrix(false);
+        mesh.computeWorldMatrix();
         const ar = mesh.getWorldMatrix()._m;
         return [[ar[0],ar[1],ar[2]],[ar[4],ar[5],ar[6]],[ar[8],ar[9],ar[10]]];
     }
@@ -404,15 +404,19 @@ class BF {
     static TransformVecWorldToMeshLocal(mesh, vec3) {
         // transforms input vec3 to local space given by mesh
         // returns ar3
-        mesh.computeWorldMatrix();
         var oTens = BF.GetOTens(mesh);
+        return math.multiply(oTens, BF.Vec3ToAr(vec3));
+    }
+
+    static TransformVecWorldToOTensLocal(oTens, vec3) {
+        // transforms input vec3 to local space given by mesh
+        // returns ar3
         return math.multiply(oTens, BF.Vec3ToAr(vec3));
     }
 
     static TransformArMeshLocalToWorld(mesh, ar3) {
         // transforms input ar3 from local space given by mesh to world space
         // returns ar3
-        mesh.computeWorldMatrix();
         var oTens = BF.GetOTens(mesh);
         return math.multiply(ar3, oTens);
     }
@@ -1999,19 +2003,20 @@ class UI {
 }
 
 class UI3D {
-    static MakeSlider(name, mode, scene, sliderMesh, groundMesh, range, initVal) {
+    static MakeSlider(name, scene, sliderMesh, groundMesh, range, initVal, length, verticleOffset = 0) {
         // uses position of a sphere on a line in 3d to set slider value
         // range is [minVal, maxVal]
         // mode is the pointerManager interact mode control is added to
-        // default slider oriented sitting in x-z plane at origin
-        // slider
+        // default slider oriented sitting in x-z plane and centered at origin
+        // slider can move length/2 in pos/neg x direction
         var slider = {};
         slider.node = BF.MakeTransformNode(name.concat('Node'), scene);
         slider.name = name;
         slider.mesh = sliderMesh;
+        slider.mesh.parent = slider.node;
+        slider.mesh.position.y = verticleOffset;
         slider.groundMesh = groundMesh;
-        slider.value = initVal;
-        slider.position = BF.ZeroVec3();
+        slider.rangeSize = range[1] - range[0];
 
         slider.pointerDown = function(pointerInfo) {
             if (pointerInfo.pickInfo.pickedMesh == slider.mesh) {
@@ -2025,31 +2030,53 @@ class UI3D {
         }
 
         slider.pointerMove = function(pointerInfo) {
-            var groundPosition = slider.getGroundPosition(slider.scene);
-            if (groundPosition) {
-
+            var sliderPos = slider.getNewSliderPos(scene);
+            if (sliderPos) {
+                slider.mesh.position.x = MF.Clamp(sliderPos, -length/2, length/2);
+                slider.updateValue();
             }
         }
 
-        slider.getRelativeGroundPosition = function() {
-            var pickinfo = scene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh == slider.groundMesh; });
-            if (pickinfo.hit) {
-                return pickinfo.pickedPoint; // a babylon vec3
+        slider.getNewSliderPos = function(scene) {
+            var pickInfo = scene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh == slider.groundMesh; });
+            if (pickInfo.hit) {
+                return BF.TransformVecWorldToMeshLocal(slider.node, pickInfo.pickedPoint.subtractInPlace(slider.node.position))[0];
             }
             return null;
         }
 
-        slider.setPosition = function() {
-
+        slider.updateValue = function() {
+            slider.value = (slider.mesh.position.x/length + .5) * (slider.rangeSize) + range[0];
         }
 
-        slider.rotate = function() {
-
+        slider.addToPointerManager = function(mode) {
+            window.pointerManager.addInteractCallbacksToMode(slider.name, slider, mode);
         }
 
-        window.pointerManager.addInteractCallbacksToMode(name, slider, mode);
+        slider.setSliderPositionFromValue = function(val) {
+            val = MF.Clamp(val, range[0], range[1]);
+            slider.mesh.position.x = ((val - range[0]) / slider.rangeSize - .5) * length;
+        }
+
+        slider.setValue = function(val) {
+            slider.value = val;
+            slider.setSliderPositionFromValue(val);
+        }
+
+        slider.updateNodeOTens = function() {
+            // called after rotating slider node
+            slider.oTens = BF.GetOTens(slider.node);
+        }
+
+        slider.setValue(initVal);
+        slider.updateNodeOTens();
 
         return slider;
+    }
+
+    static MakeSphereSlider(name, scene, sphereRad, groundMesh, range, initVal, length, verticleOffset = 0) {
+        var sphere = BF.MakeSphere(name.concat('Sphere'), scene, 2 * sphereRad);
+        return UI3D.MakeSlider(name, scene, sphere, groundMesh, range, initVal, length, verticleOffset);
     }
 }
 

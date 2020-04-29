@@ -122,9 +122,10 @@ window.addEventListener('DOMContentLoaded', function() {
         oAxes.position.y = Cycle.UNDERBLOCKSIZE()/2 + .5;
 
         // do testing stuff here
-        //var res = scene.onPointerObservable.removeCallback(window.camera.onPointerObservableCallback);
-        //console.log(res);
-
+        var slider = UI3D.MakeSphereSlider('sphereSlider', scene, 2, cycle.underBlock, [0,10], 5, 20);
+        slider.node.position = BF.Vec3([0, Cycle.UNDERBLOCKSIZE()/2, 10]);
+        slider.addToPointerManager('posy');
+        slider.mesh.material = myMats.sun;
 
         UI.MakeChooseVirtualControlMenu(window.gui);
         UI.MakeHowToMenu(window.gui);

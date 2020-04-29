@@ -18,7 +18,7 @@ function makePhysBody(scene, node, mesh, v, angMom, density, dt) {
     mesh.wArrow.position = mesh.position;
 
     mesh.axes = BF.MakeAxes(mesh.name.concat(' axes'), scene, 8);
-    mesh.axes.setParent(mesh);
+    mesh.axes.parent = mesh;
 
     mesh.showWArrow = false;
     mesh.showAxes = false;
