@@ -2137,6 +2137,35 @@ class UI3D {
         var sphere = BF.MakeSphere(name.concat('Sphere'), scene, 2 * sphereRad);
         return UI3D.MakeSlider(name, scene, sphere, groundMesh, range, initVal, length, verticleOffset);
     }
+
+    static MakeRisingBox(name, scene, width, height, depth) {
+        var risingBox = {};
+        risingBox.node = BF.MakeTransformNode(name.concat('Node'), scene);
+        risingBox.box = BF.MakeBox(name.concat('Box'), scene, width, height, depth);
+        risingBox.box.parent = risingBox.node;
+
+        risingBox.pointerDown = function(pointerInfo) {
+
+        }
+
+        risingBox.pointerUp = function(pointerInfo) {
+
+        }
+
+        risingBox.pointerMove = function(pointerInfo) {
+
+        }
+
+        rising.moveUp = function() {
+
+        }
+
+        rising.moveDown = function() {
+            
+        }
+
+        return risingBox;
+    }
 }
 
 class PointerManager {
