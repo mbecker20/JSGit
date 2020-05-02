@@ -11,6 +11,9 @@ var createScene = function(canvas, engine) {
     // create pointerManager to manage mouse/touch interactions
     window.pointerManager = new PointerManager(scene);
 
+    // create funcBuffer for keyed animations
+    window.funcBuffer = new FuncBuffer();
+
     // setup camera
     var camPos = BF.Vec3([22, Cycle.UNDERBLOCKSIZE()/2+Cam.HEIGHT()+1, -22]);
     window.camera = Cam.MakeCam(camPos, scene, canvas, engine);

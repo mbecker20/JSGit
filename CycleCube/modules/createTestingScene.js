@@ -12,6 +12,9 @@ var createTestingScene = function(canvas, engine) {
     // create pointerManager to manage mouse/touch interactions
     window.pointerManager = new PointerManager(scene);
 
+    // create funcBuffer for keyed animations
+    window.funcBuffer = new FuncBuffer();
+
     // setup camera
     var camPos = BF.Vec3([22, Cycle.UNDERBLOCKSIZE()/2+Cam.HEIGHT()+1, -22]);
     window.camera = Cam.MakeCam(camPos, scene, canvas, engine);
@@ -41,15 +44,17 @@ var createTestingScene = function(canvas, engine) {
     slider.addText('testing');
     slider.mesh.material = window.myMats.sun;
 
-    var risingBox = UI3D.MakeRisingBox('risingBox', scene, 6, 6, 1);
-    risingBox.node.position.y = Cycle.UNDERBLOCKSIZE()/2;
-    /*
-    var plane = UI3D.MakeTextPlane('planetest', scene, 10, 10, 'testing testing', 150);
-    plane.parent = slider.node;
-    plane.position.z = -3;
-    plane.position.y = .1;
-    plane.rotation.x = Math.PI/2;
-    */
+    //var risingBox = UI3D.MakeRisingBox('risingBox', scene, 6, 6, 1);
+    //risingBox.node.position.y = Cycle.UNDERBLOCKSIZE()/2;
+
+    function test(a, b, ...args) {
+        console.log(a);
+        console.log(b);
+        console.log(args);
+    };
+
+    test(1,2,3,4,5);
+
 
     UI.MakeChooseVirtualControlMenu(window.gui);
     UI.MakeHowToMenu(window.gui);
@@ -59,6 +64,7 @@ var createTestingScene = function(canvas, engine) {
     scene.registerAfterRender(function() {
         window.camera.step();
         cycle.step();
+        window.funcBuffer.exist();
     });
 
     return scene;

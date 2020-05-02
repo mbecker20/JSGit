@@ -3,7 +3,7 @@ class VF {
     static Mag(vec) {
         return math.sqrt(math.dot(vec,vec));
     }
-    
+
     static Unit(vec) {
         const magnitude=VF.Mag(vec);
         if(magnitude!==0) {
@@ -164,7 +164,7 @@ class VF {
         const azim = VF.GetAzimZX(vec);
         return [alt, azim];
     }
-    
+
     static GetAltAzimXY(vec) {
         // vec must be unit vector
         // for xy ground plane
@@ -561,34 +561,41 @@ class GF {
 
 class FuncBuffer {
     constructor() {
-        this.funcBuff={};
+        this.funcBuff = {};
     }
 
     addFunc(key, func, stepsUntil, numTimes, ...args) {
-        this.funcBuff[key]={func:func, args:args, stepsUntil:stepsUntil, numTimes:numTimes};
+        this.funcBuff[key] = {func:func, args:args, stepsUntil:stepsUntil, numTimes:numTimes};
+        this.funcKeys = Object.keys(this.funcBuff);
     }
 
     removeFunc(key) {
         delete this.funcBuff[key];
     }
 
-    stepAndRun() {
+    exist() {
         let keysToRemove=[];
-        Object.keys(this.funcBuffer).forEach(function(key) {
-            if(this.funcBuff[key]['stepsUntil']==0) {
-                if(this.funcBuff[key]['numTimes']!=0) {
-                    this.funcBuff[key]['func'](...this.funcBuff[key]['args']);
-                    this.funcBuff[key]['numTimes']-=1;
+        for (var i = 0; i < this.funcKeys.length; i++) {
+            if(this.funcBuff[this.funcKeys[i]]['stepsUntil'] == 0) {
+                if(this.funcBuff[this.funcKeys[i]]['numTimes'] != 0) {
+                    this.funcBuff[this.funcKeys[i]]['func'](...this.funcBuff[this.funcKeys[i]]['args']);
+                    this.funcBuff[this.funcKeys[i]]['numTimes'] -= 1;
                 } else {
-                    keysToRemove.push(key);
+                    keysToRemove.push(this.funcKeys[i]);
                 }
             } else {
-                this.funcBuff[key]['stepsUntil']-=1;
+                this.funcBuff[this.funcKeys[i]]['stepsUntil'] -= 1;
             }
-        });
-        keysToRemove.forEach(function(key) {
-            this.removeFunc(key);
-        })
+        }
+        for(var i = 0; i < keysToRemove; i++) {
+            this.removeFunc(keyToRemove[i]);
+        }
+        this.funcKeys = Object.keys(this.funcBuff);
     }
 }
 
+class InterpAnim {
+    constructor(totFrames) {
+
+    }
+}
