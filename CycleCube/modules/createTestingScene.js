@@ -34,8 +34,8 @@ var createTestingScene = function(canvas, engine) {
     window.camera.ground = cycle.underBlock;
 
     // world axes for reference (red = x, green = y, blue = z)
-    var oAxes = BF.MakeAxes('oAxes', scene, 4);
-    oAxes.position.y = Cycle.UNDERBLOCKSIZE()/2 + .5;
+    //var oAxes = BF.MakeAxes('oAxes', scene, 4);
+    //oAxes.position.y = Cycle.UNDERBLOCKSIZE()/2 + .5;
 
     // do testing stuff here
     var risingBox = UI3D.MakeRisingBox('risingBox', scene, 20, 12, 1, 1);
