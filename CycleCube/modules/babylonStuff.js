@@ -2186,6 +2186,13 @@ class UI3D {
 
         return risingBox;
     }
+
+    static MakeTwistKnob(name, scene, diameter, depth, range, initVal, onValChange) {
+      var knob = {};
+      knob.node = BF.MakeTransformNode(name.concat('node'), scene);
+      knob.name = name;
+      
+    }
 }
 
 class PointerManager {
