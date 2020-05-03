@@ -49,7 +49,7 @@ var createTestingScene = function(canvas, engine) {
     slider.updateNodeOTens();
     slider.addToPointerManager('posy');
     // slider.addText('testing');
-    slider.mesh.material = window.myMats.sun;
+    slider.mesh.material = window.myMats.lightBlue;
 
     var knob = UI3D.MakeTwistKnob('twistKnob', scene, 3, 1, risingBox.box, [0,10], 5, .05, 250, GF.DONothing);
     knob.node.parent = risingBox.box;
