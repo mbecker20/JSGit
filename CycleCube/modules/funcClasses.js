@@ -557,19 +557,36 @@ class GF {
 
         return temp;
     }
+
+    static Wrap(func, ...args) {
+        var wrapped = function() {
+            func(...args);
+        }
+
+        return wrapped;
+    }
 }
 
 class FuncBuffer {
+    // each func in buffer is func(animKey, ...args)
     constructor() {
         this.funcBuff = {};
+        this.funcKeys = [];
     }
 
-    addFunc(key, func, stepsUntil, numTimes, ...args) {
-        this.funcBuff[key] = {func:func, args:args, stepsUntil:stepsUntil, numTimes:numTimes};
+    addFunc(key, func, stepsUntil, numTimes, onRemove, ...args) {
+        this.funcBuff[key] = {
+            func:func, args:args,
+            stepsUntil:stepsUntil,
+            numTimes:numTimes,
+            totNumTimes: numTimes,
+            onRemove: onRemove
+        };
         this.funcKeys = Object.keys(this.funcBuff);
     }
 
     removeFunc(key) {
+        this.funcBuff[key].onRemove();
         delete this.funcBuff[key];
     }
 
@@ -578,7 +595,7 @@ class FuncBuffer {
         for (var i = 0; i < this.funcKeys.length; i++) {
             if(this.funcBuff[this.funcKeys[i]]['stepsUntil'] == 0) {
                 if(this.funcBuff[this.funcKeys[i]]['numTimes'] != 0) {
-                    this.funcBuff[this.funcKeys[i]]['func'](...this.funcBuff[this.funcKeys[i]]['args']);
+                    this.funcBuff[this.funcKeys[i]]['func'](this.getAnimKey(this.funcKeys[i]), ...this.funcBuff[this.funcKeys[i]]['args']);
                     this.funcBuff[this.funcKeys[i]]['numTimes'] -= 1;
                 } else {
                     keysToRemove.push(this.funcKeys[i]);
@@ -592,10 +609,20 @@ class FuncBuffer {
         }
         this.funcKeys = Object.keys(this.funcBuff);
     }
+
+    getAnimKey(funcKey) {
+        return this.funcBuff[funcKey].totNumTimes - this.funcBuff[funcKey].numTimes;
+    }
 }
 
-class InterpAnim {
-    constructor(totFrames) {
+class IF {
+    // interpolation functions
+    static MakeInterpFunc(obj, prop, target, interpMultFunc) {
+        var interpFunc = function(i) {
+            var delta = interpMultFunc(i) * (target - obj[prop]);
+            obj[prop] += delta;
+        }
 
+        return interpFunc;
     }
 }

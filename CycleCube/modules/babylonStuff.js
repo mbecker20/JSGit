@@ -2138,30 +2138,50 @@ class UI3D {
         return UI3D.MakeSlider(name, scene, sphere, groundMesh, range, initVal, length, verticleOffset);
     }
 
-    static MakeRisingBox(name, scene, width, height, depth) {
+    static MakeRisingBox(name, scene, width, height, depth, downHeight) {
         var risingBox = {};
         risingBox.node = BF.MakeTransformNode(name.concat('Node'), scene);
         risingBox.box = BF.MakeBox(name.concat('Box'), scene, width, height, depth);
+        risingBox.upTarget = height/2;
+        risingBox.downTarget = -height/2 + downHeight
+        risingBox.box.position.y = risingBox.downTarget;
         risingBox.box.parent = risingBox.node;
+        risingBox.isDown = true;
 
         risingBox.pointerDown = function(pointerInfo) {
-
+            if (pointerInfo.pickInfo.pickedMesh == risingBox.box) {
+                risingBox.isDown = !risingBox.isDown;
+                if (window.funcBuffer[name]) {
+                    window.funcBuffer.removeFunc(name);
+                    if (risingBox.isDown) {
+                        window.funcBuffer.addFunc(name, risingBox.moveDown, 0, 100, GF.DoNothing);
+                    } else {
+                        window.funcBuffer.addFunc(name, risingBox.moveUp, 0, 100, GF.DoNothing);
+                    }
+                } else {
+                    if (risingBox.isDown) {
+                        window.funcBuffer.addFunc(name, risingBox.moveDown, 0, 100, GF.DoNothing);
+                    } else {
+                        window.funcBuffer.addFunc(name, risingBox.moveUp, 0, 100, GF.DoNothing);
+                    }
+                }
+                return true;
+            }
+            return false;
         }
 
-        risingBox.pointerUp = function(pointerInfo) {
+        risingBox.pointerUp = GF.DoNothing;
 
-        }
+        risingBox.pointerMove = GF.DoNothing;
 
-        risingBox.pointerMove = function(pointerInfo) {
+        risingBox.interpMultFunc = function(i) { return .01 * i }
 
-        }
+        risingBox.moveUp = IF.MakeInterpFunc(risingBox.box.position, 'y', risingBox.upTarget, risingBox.interpMultFunc);
 
-        rising.moveUp = function() {
+        risingBox.moveDown = IF.MakeInterpFunc(risingBox.box.position, 'y', risingBox.downTarget, risingBox.interpMultFunc);
 
-        }
-
-        rising.moveDown = function() {
-            
+        risingBox.addToPointerManager = function(mode) {
+            window.pointerManager.addInteractCallbacksToMode(risingBox.name, risingBox, mode);
         }
 
         return risingBox;
@@ -2183,7 +2203,7 @@ class PointerManager {
     pointerDown(pointerInfo) {
         if (this.interactModes.activeMode) {
             var aiMode = this.interactModes.activeMode; //active interact mode
-            var aiDownKeys = aiMode.pointerDowns.keys; // active interact pointerDown keys
+            var aiDownKeys = aiMode.pointerDownKeys; // active interact pointerDown keys
             var isInteracting = false;
             for (var i = 0; i < aiDownKeys.length; i++) {
                 isInteracting = aiMode.pointerDowns[aiDownKeys[i]](pointerInfo);
@@ -2244,10 +2264,9 @@ class PointerManager {
         }
 
         this.interactModes[mode].pointerDowns[name] = obj.pointerDown;
+        this.interactModes[mode].pointerDownKeys = Object.keys(this.interactModes[mode].pointerDowns);
         this.interactModes[mode].pointerUps[name] = obj.pointerUp;
         this.interactModes[mode].pointerMoves[name] = obj.pointerMove;
-
-        this.interactModes[mode].pointerDowns.keys = Object.keys(this.interactModes[mode].pointerDowns);
 
         if (!this.interactModes.activeMode) {
             this.interactModes.activeMode = this.interactModes[mode];

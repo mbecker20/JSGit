@@ -38,23 +38,18 @@ var createTestingScene = function(canvas, engine) {
     oAxes.position.y = Cycle.UNDERBLOCKSIZE()/2 + .5;
 
     // do testing stuff here
-    var slider = UI3D.MakeSphereSlider('sphereSlider', scene, 1, cycle.underBlock, [0,10], 5, 20, GF.DoNothing);
-    slider.node.position = BF.Vec3([0, Cycle.UNDERBLOCKSIZE()/2, -10]);
+    var risingBox = UI3D.MakeRisingBox('risingBox', scene, 20, 8, 1, 1);
+    risingBox.node.position.y = Cycle.UNDERBLOCKSIZE()/2;
+    risingBox.addToPointerManager('posy');
+
+    var slider = UI3D.MakeSphereSlider('sphereSlider', scene, 1, risingBox.box, [0,10], 5, 18, GF.DoNothing);
+    slider.node.parent = risingBox.box;
+    slider.node.position.z -= .51;
+    slider.node.rotation.x = -Math.PI/2;
+    slider.updateNodeOTens();
     slider.addToPointerManager('posy');
     slider.addText('testing');
     slider.mesh.material = window.myMats.sun;
-
-    //var risingBox = UI3D.MakeRisingBox('risingBox', scene, 6, 6, 1);
-    //risingBox.node.position.y = Cycle.UNDERBLOCKSIZE()/2;
-
-    function test(a, b, ...args) {
-        console.log(a);
-        console.log(b);
-        console.log(args);
-    };
-
-    test(1,2,3,4,5);
-
 
     UI.MakeChooseVirtualControlMenu(window.gui);
     UI.MakeHowToMenu(window.gui);
