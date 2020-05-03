@@ -2013,6 +2013,7 @@ class UI3D {
     static SLIDERTEXTFONTSIZE() {return 130}
 
     static MakeTextPlane(name, scene, width, height, text, fontSize) {
+        // oriented in X-Y plane, text on pos z side
         var textPlane = BF.MakePlane(name, scene, width, height);
         var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(textPlane);
 
@@ -2030,7 +2031,7 @@ class UI3D {
         return textPlane;
     }
 
-    static MakeSlider(name, scene, sliderMesh, groundMesh, range, initVal, length, onValChange, verticleOffset = 0) {
+    static MakeSlider(name, scene, sliderMesh, backgroundMesh, range, initVal, length, onValChange, verticleOffset = 0) {
         // uses position of a sphere on a line in 3d to set slider value
         // range is [minVal, maxVal]
         // mode is the pointerManager interact mode control is added to
@@ -2046,7 +2047,7 @@ class UI3D {
         slider.mesh.position.y = verticleOffset;
         slider.mesh.material = window.myMats.sun;
 
-        slider.groundMesh = groundMesh;
+        slider.backgroundMesh = backgroundMesh;
         slider.rangeSize = range[1] - range[0];
         slider.onValChange = onValChange;
 
@@ -2078,9 +2079,9 @@ class UI3D {
         }
 
         slider.getNewSliderPos = function(scene) {
-            var pickInfo = scene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh == slider.groundMesh; });
+            var pickInfo = scene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh == slider.backgroundMesh; });
             if (pickInfo.hit) {
-                return BF.TransformVecWorldToMeshLocal(slider.node, pickInfo.pickedPoint.subtractInPlace(slider.node.position))[0];
+                return BF.TransformVecWorldToOTensLocal(slider.oTens, pickInfo.pickedPoint.subtractInPlace(slider.node.position))[0];
             }
             return null;
         }
@@ -2133,9 +2134,9 @@ class UI3D {
         return slider;
     }
 
-    static MakeSphereSlider(name, scene, sphereRad, groundMesh, range, initVal, length, verticleOffset = 0) {
+    static MakeSphereSlider(name, scene, sphereRad, backgroundMesh, range, initVal, length, verticleOffset = 0) {
         var sphere = BF.MakeSphere(name.concat('Sphere'), scene, 2 * sphereRad);
-        return UI3D.MakeSlider(name, scene, sphere, groundMesh, range, initVal, length, verticleOffset);
+        return UI3D.MakeSlider(name, scene, sphere, backgroundMesh, range, initVal, length, verticleOffset);
     }
 
     static MakeRisingBox(name, scene, width, height, depth, downHeight) {
@@ -2187,11 +2188,112 @@ class UI3D {
         return risingBox;
     }
 
-    static MakeTwistKnob(name, scene, diameter, depth, range, initVal, onValChange) {
-      var knob = {};
-      knob.node = BF.MakeTransformNode(name.concat('node'), scene);
-      knob.name = name;
-      
+    static MakeTwistKnob(name, scene, diameter, depth, backgroundMesh, range, initVal, sensitivityMult, fontSize, onValChange) {
+        var knob = {};
+        knob.node = BF.MakeTransformNode(name.concat('node'), scene);
+        knob.name = name;
+        knob.range = range;
+        knob.totRange = range[1] - range[0];
+        knob.value = initVal;
+        knob.maxRot = 9*Math.PI/10;
+        knob.minRot = -knob.maxRot;
+        knob.totRot = 2 * knob.maxRot;
+        knob.sensitivity = sensitivityMult;
+        knob.backgroundMesh = backgroundMesh;
+
+        knob.mesh = BF.MakeCylinder(name.concat('Mesh'), scene, depth, diameter);
+        knob.mesh.position.y = depth/2;
+        BF.BakeMeshs([knob.mesh]);
+        knob.mesh.parent = knob.node;
+        knob.mesh.material = window.myMats.lightBlue;
+
+        var indWidth = diameter/24;
+        var indLength = diameter/5;
+        knob.indicator = BF.MakeBox(name.concat('Indicator'), scene, indWidth, indWidth, indLength);
+        knob.indicator.parent = knob.mesh;
+        knob.indicator.position.z = diameter/2 - indLength/2;
+        knob.indicator.position.y = depth;
+        knob.indicator.material = window.myMats.black;
+
+        var valTextSide = diameter/Math.sqrt(2);
+        knob.valText = UI3D.MakeTextPlane(name.concat('ValText'), scene, valTextSide, valTextSide, (Math.round(knob.value*10)/10).toString(), fontSize);
+        knob.valText.parent = knob.node;
+        knob.valText.rotation.x = Math.PI/2;
+        knob.valText.position.y = depth + .1;
+
+        knob.pointerDown = function(pointerInfo) {
+            if (pointerInfo.pickInfo.pickedMesh == knob.mesh || pointerInfo.pickInfo.pickedMesh == knob.valText) {
+                knob.startVal = knob.value;
+                knob.startPos = scene.pointerY;
+                return true;
+            }
+            return false;
+        }
+
+        knob.pointerDown2 = function(pointerInfo) {
+            if (pointerInfo.pickInfo.pickedMesh == knob.mesh) {
+                knob.startVal = knob.value;
+                knob.startPos = BF.TransformVecWorldToOTensLocal(knob.oTens, pointerInfo.pickInfo.pickedPoint.subtractInPlace(knob.node.position))[2];
+                return true;
+            }
+            return false;
+        }
+
+        knob.pointerUp = GF.DoNothing;
+
+        knob.pointerMove = function(pointerInfo) {
+            var res = knob.setNewVal(scene);
+            if (res) {
+                knob.setRot();
+                knob.valText.setText((Math.round(knob.value*10)/10).toString());
+                return true;
+            }
+            return false;
+        }
+
+        knob.setNewVal = function(scene) {
+            knob.value = MF.Clamp(knob.startVal + knob.sensitivity * (knob.startPos - scene.pointerY), knob.range[0], knob.range[1]);
+            return true;
+        }
+
+        knob.setNewVal2 = function(scene) {
+            var pickInfo = scene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh == knob.backgroundMesh; });
+            if (pickInfo.hit) {
+                var newPos = BF.TransformVecWorldToOTensLocal(knob.oTens, pickInfo.pickedPoint.subtractInPlace(knob.node.position))[2];
+                knob.value = MF.Clamp(knob.startVal + knob.sensitivity * (newPos - knob.startPos), range[0], range[1]);
+                return true;
+            }
+            return false;
+        }
+
+        knob.setNewVal3 = function(scene) {
+            var pickInfo = scene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh == knob.backgroundMesh; });
+            if (pickInfo.hit) {
+                var newPos = BF.TransformVecWorldToOTensLocal(knob.oTens, pickInfo.pickedPoint.subtractInPlace(knob.node.position))[2];
+                knob.value = MF.Clamp(knob.value + knob.sensitivity * (newPos - knob.startPos), range[0], range[1]);
+                knob.startPos = newPos;
+                return true;
+            }
+            return false;
+        }
+
+        knob.setRot = function() {
+            knob.mesh.rotation.y = MF.TransformScaleWithTotRange(knob.value, knob.range[0], knob.totRange, knob.minRot, knob.totRot);
+        }
+
+        knob.updateNodeOTens = function() {
+            // called after rotating slider node
+            knob.oTens = BF.GetOTens(knob.node);
+        }
+
+        knob.addToPointerManager = function(mode) {
+            window.pointerManager.addInteractCallbacksToMode(knob.name, knob, mode);
+        }
+
+        knob.updateNodeOTens();
+        knob.setRot();
+
+        return knob;
     }
 }
 

@@ -17,6 +17,9 @@ class MyMats {
         this.blue = new BABYLON.StandardMaterial('blue', scene);
         this.blue.diffuseColor = BF.ColorRGB(0,0,255);
 
+        this.black = new BABYLON.StandardMaterial('black', scene);
+        this.black.diffuseColor = BF.ColorRGB(0,0,0);
+
         this.chill = new BABYLON.StandardMaterial("chill", scene);
         this.chill.diffuseTexture = new BABYLON.Texture("https://images.squarespace-cdn.com/content/537cfc28e4b0785074d4ae25/1471358583532-I9LQ4LV67S3I8Y4XH7DA/?content-type=image%2Fpng", scene);
 

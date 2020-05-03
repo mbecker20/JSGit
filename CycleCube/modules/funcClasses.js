@@ -498,6 +498,22 @@ class MF {
         // clamps x to between a and b
         return Math.min(b, Math.max(a, x));
     }
+
+    static TransformScale(val, range0, range1) {
+        // transforms val position in range0 to val position in range1
+        // (val - range0[0])/totRange0 = (returnVal - range1[0])/totRange1
+        // range0, range1 are ar2: [min, max]
+        var totRange0 = range0[1] - range0[0];
+        var totRange1 = range1[1] - range1[0];
+        return MF.TransformScaleWithTotRange(val, range0[0], totRange0, range1[0], totRange1);
+    }
+
+    static TransformScaleWithTotRange(val, minRange0, totRange0, minRange1, totRange1) {
+        // transforms val position in range0 to val position in range1
+        // (val - range0[0])/totRange0 = (returnVal - range1[0])/totRange1
+        // minRange0, minRange1 are numbers (min val of range)
+        return (val - minRange0) * (totRange1 / totRange0) + minRange1;
+    }
 }
 
 class GF {

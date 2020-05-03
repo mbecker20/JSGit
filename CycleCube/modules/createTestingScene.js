@@ -38,18 +38,25 @@ var createTestingScene = function(canvas, engine) {
     oAxes.position.y = Cycle.UNDERBLOCKSIZE()/2 + .5;
 
     // do testing stuff here
-    var risingBox = UI3D.MakeRisingBox('risingBox', scene, 20, 8, 1, 1);
+    var risingBox = UI3D.MakeRisingBox('risingBox', scene, 20, 12, 1, 1);
     risingBox.node.position.y = Cycle.UNDERBLOCKSIZE()/2;
     risingBox.addToPointerManager('posy');
 
     var slider = UI3D.MakeSphereSlider('sphereSlider', scene, 1, risingBox.box, [0,10], 5, 18, GF.DoNothing);
     slider.node.parent = risingBox.box;
-    slider.node.position.z -= .51;
+    slider.node.position = BF.Vec3([0, 3, -.51]);
     slider.node.rotation.x = -Math.PI/2;
     slider.updateNodeOTens();
     slider.addToPointerManager('posy');
-    slider.addText('testing');
+    // slider.addText('testing');
     slider.mesh.material = window.myMats.sun;
+
+    var knob = UI3D.MakeTwistKnob('twistKnob', scene, 3, 1, risingBox.box, [0,10], 5, .05, 250, GF.DONothing);
+    knob.node.parent = risingBox.box;
+    knob.node.position = BF.Vec3([0, 0, -.51]);
+    knob.node.rotation.x = -Math.PI/2;
+    knob.updateNodeOTens();
+    knob.addToPointerManager('posy');
 
     UI.MakeChooseVirtualControlMenu(window.gui);
     UI.MakeHowToMenu(window.gui);
