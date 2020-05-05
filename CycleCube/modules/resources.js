@@ -86,6 +86,9 @@ class MyMats {
         this.underBlock = new BABYLON.StandardMaterial('underBlock', scene);
         this.underBlock.diffuseTexture = new BABYLON.Texture("https://i.imgur.com/B2vjChP.png", scene);
 
+        this.starry = new BABYLON.StandardMaterial('starry', scene);
+        this.starry.diffuseTexture = new BABYLON.Texture('https://i.imgur.com/yRbRwyD.png', scene);
+
         this.skyBox = new BABYLON.StandardMaterial("skyBox", scene);
         this.skyBox.backFaceCulling = false;
         this.skyBox.reflectionTexture = new BABYLON.CubeTexture("https://i.imgur.com/0XiOCjt.png", scene);

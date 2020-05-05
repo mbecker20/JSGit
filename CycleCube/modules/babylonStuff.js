@@ -2134,9 +2134,51 @@ class UI3D {
         return slider;
     }
 
-    static MakeSphereSlider(name, scene, sphereRad, backgroundMesh, range, initVal, length, verticleOffset = 0) {
+    static MakeSphereSlider(name, scene, sphereRad, backgroundMesh, range, initVal, length, onValChange, verticleOffset = 0) {
         var sphere = BF.MakeSphere(name.concat('Sphere'), scene, 2 * sphereRad);
-        return UI3D.MakeSlider(name, scene, sphere, backgroundMesh, range, initVal, length, verticleOffset);
+        return UI3D.MakeSlider(name, scene, sphere, backgroundMesh, range, initVal, length, onValChange, verticleOffset);
+    }
+
+    static MakePuckSlider(name, scene, puckDiameter, puckHeight, backgroundMesh, range, initVal, length, fontSize, onValChange) {
+        var puck = BF.MakeCylinder(name.concat('Puck'), scene, puckHeight, puckDiameter);
+        puck.position.y = puckHeight/2;
+        BF.BakeMeshs([puck]);
+
+        var slider = UI3D.MakeSlider(name, scene, puck, backgroundMesh, range, initVal, length, onValChange);
+
+        var valTextSide = puckDiameter / Math.sqrt(2);
+        slider.valText = UI3D.MakeTextPlane(name.concat('ValText'), scene, valTextSide, valTextSide, (Math.round(slider.value*10)/10).toString(), fontSize);
+        slider.valText.parent = slider.mesh;
+        slider.valText.position.y = puckHeight + .1;
+        slider.valText.rotation.x = Math.PI/2;
+
+        slider.pointerDown = function(pointerInfo) {
+            if (pointerInfo.pickInfo.pickedMesh == slider.mesh || pointerInfo.pickInfo.pickedMesh == slider.valText) {
+                return true;
+            }
+            return false;
+        }
+
+        slider.pointerMove = function(pointerInfo) {
+            var sliderPos = slider.getNewSliderPos(scene);
+            if (sliderPos) {
+                slider.mesh.position.x = MF.Clamp(sliderPos, -length/2, length/2);
+                slider.updateValue();
+                slider.onValChange(slider.value);
+                slider.valText.setText(slider.getValString());
+            }
+        }
+
+        slider.addText = function(text) {
+            slider.text = text;
+            slider.textPlane = UI3D.MakeTextPlane(slider.name.concat('TextPlane'), scene, length, UI3D.SLIDERTEXTPLANEHEIGHT(), slider.text, UI3D.SLIDERTEXTFONTSIZE());
+            slider.textPlane.parent = slider.node;
+            slider.textPlane.position.z = -3;
+            slider.textPlane.position.y = .1;
+            slider.textPlane.rotation.x = Math.PI/2;
+        }
+
+        return slider;
     }
 
     static MakeRisingBox(name, scene, width, height, depth, downHeight) {
@@ -2200,6 +2242,7 @@ class UI3D {
         knob.totRot = 2 * knob.maxRot;
         knob.sensitivity = sensitivityMult;
         knob.backgroundMesh = backgroundMesh;
+        knob.onValChange = onValChange;
 
         knob.mesh = BF.MakeCylinder(name.concat('Mesh'), scene, depth, diameter);
         knob.mesh.position.y = depth/2;
@@ -2230,22 +2273,14 @@ class UI3D {
             return false;
         }
 
-        knob.pointerDown2 = function(pointerInfo) {
-            if (pointerInfo.pickInfo.pickedMesh == knob.mesh) {
-                knob.startVal = knob.value;
-                knob.startPos = BF.TransformVecWorldToOTensLocal(knob.oTens, pointerInfo.pickInfo.pickedPoint.subtractInPlace(knob.node.position))[2];
-                return true;
-            }
-            return false;
-        }
-
         knob.pointerUp = GF.DoNothing;
 
         knob.pointerMove = function(pointerInfo) {
             var res = knob.setNewVal(scene);
             if (res) {
                 knob.setRot();
-                knob.valText.setText((Math.round(knob.value*10)/10).toString());
+                knob.valText.setText(knob.getValString());
+                knob.onValChange(knob.value);
                 return true;
             }
             return false;
@@ -2256,42 +2291,48 @@ class UI3D {
             return true;
         }
 
-        knob.setNewVal2 = function(scene) {
-            var pickInfo = scene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh == knob.backgroundMesh; });
-            if (pickInfo.hit) {
-                var newPos = BF.TransformVecWorldToOTensLocal(knob.oTens, pickInfo.pickedPoint.subtractInPlace(knob.node.position))[2];
-                knob.value = MF.Clamp(knob.startVal + knob.sensitivity * (newPos - knob.startPos), range[0], range[1]);
-                return true;
-            }
-            return false;
+        knob.getValString = function() {
+            return (Math.round(knob.value*10)/10).toString();
         }
 
-        knob.setNewVal3 = function(scene) {
-            var pickInfo = scene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh == knob.backgroundMesh; });
-            if (pickInfo.hit) {
-                var newPos = BF.TransformVecWorldToOTensLocal(knob.oTens, pickInfo.pickedPoint.subtractInPlace(knob.node.position))[2];
-                knob.value = MF.Clamp(knob.value + knob.sensitivity * (newPos - knob.startPos), range[0], range[1]);
-                knob.startPos = newPos;
-                return true;
-            }
-            return false;
+        knob.setValText = function() {
+            knob.valText.setText(knob.getValString());
         }
 
         knob.setRot = function() {
             knob.mesh.rotation.y = MF.TransformScaleWithTotRange(knob.value, knob.range[0], knob.totRange, knob.minRot, knob.totRot);
         }
 
-        knob.updateNodeOTens = function() {
-            // called after rotating slider node
-            knob.oTens = BF.GetOTens(knob.node);
-        }
-
         knob.addToPointerManager = function(mode) {
             window.pointerManager.addInteractCallbacksToMode(knob.name, knob, mode);
         }
 
-        knob.updateNodeOTens();
         knob.setRot();
+
+        return knob;
+    }
+
+    static MakeTwistKnobPrecise(name, scene, diameter, depth, backgroundMesh, range, initVal, sensitivityMult, fontSize, onValChange) {
+        var knob = UI3D.MakeTwistKnob(name, scene, diameter, depth, backgroundMesh, range, initVal, sensitivityMult, fontSize, onValChange);
+
+        knob.getValString = function() {
+            return (Math.round(knob.value*100)/100).toString();
+        }
+
+        return knob;
+    }
+
+    static MakeTwistKnobInt(name, scene, diameter, depth, backgroundMesh, range, initVal, sensitivityMult, fontSize, onValChange) {
+        var knob = UI3D.MakeTwistKnob(name, scene, diameter, depth, backgroundMesh, range, initVal, sensitivityMult, fontSize, onValChange);
+
+        knob.setNewVal = function(scene) {
+            knob.value = Math.round(MF.Clamp(knob.startVal + knob.sensitivity * (knob.startPos - scene.pointerY), knob.range[0], knob.range[1]));
+            return true;
+        }
+
+        knob.getValString = function() {
+            return knob.value.toString();
+        }
 
         return knob;
     }

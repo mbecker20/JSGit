@@ -41,22 +41,33 @@ var createTestingScene = function(canvas, engine) {
     var risingBox = UI3D.MakeRisingBox('risingBox', scene, 20, 12, 1, 1);
     risingBox.node.position.y = Cycle.UNDERBLOCKSIZE()/2;
     risingBox.addToPointerManager('posy');
+    risingBox.box.material = window.myMats.bluePlanet;
 
-    var slider = UI3D.MakeSphereSlider('sphereSlider', scene, 1, risingBox.box, [0,10], 5, 18, GF.DoNothing);
+    var slider = UI3D.MakePuckSlider('puckSlider', scene, 3, 1, risingBox.box, [0,10], 5, 18, 300, GF.DoNothing);
     slider.node.parent = risingBox.box;
     slider.node.position = BF.Vec3([0, 3, -.51]);
     slider.node.rotation.x = -Math.PI/2;
     slider.updateNodeOTens();
     slider.addToPointerManager('posy');
-    // slider.addText('testing');
     slider.mesh.material = window.myMats.lightBlue;
 
-    var knob = UI3D.MakeTwistKnob('twistKnob', scene, 3, 1, risingBox.box, [0,10], 5, .05, 250, GF.DONothing);
+    var knob = UI3D.MakeTwistKnob('twistKnob', scene, 3, 1, risingBox.box, [0,10], 5, .05, 300, GF.DoNothing);
     knob.node.parent = risingBox.box;
-    knob.node.position = BF.Vec3([0, 0, -.51]);
+    knob.node.position = BF.Vec3([0, -1, -.51]);
     knob.node.rotation.x = -Math.PI/2;
-    knob.updateNodeOTens();
     knob.addToPointerManager('posy');
+
+    var knob1 = UI3D.MakeTwistKnobInt('twistKnob1', scene, 3, 1, risingBox.box, [0,10], 3, .05, 300, GF.DoNothing);
+    knob1.node.parent = risingBox.box;
+    knob1.node.position = BF.Vec3([-6, -1, -.51]);
+    knob1.node.rotation.x = -Math.PI/2;
+    knob1.addToPointerManager('posy');
+
+    var knob2 = UI3D.MakeTwistKnobPrecise('twistKnob2', scene, 3, 1, risingBox.box, [0,2], 1.12, .005, 300, GF.DoNothing);
+    knob2.node.parent = risingBox.box;
+    knob2.node.position = BF.Vec3([6, -1, -.51]);
+    knob2.node.rotation.x = -Math.PI/2;
+    knob2.addToPointerManager('posy');
 
     UI.MakeChooseVirtualControlMenu(window.gui);
     UI.MakeHowToMenu(window.gui);
