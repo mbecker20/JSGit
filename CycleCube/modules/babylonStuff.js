@@ -2008,9 +2008,14 @@ class UI {
 }
 
 class UI3D {
-    static SLIDERLINEWIDTH() {return .25}
-    static SLIDERTEXTPLANEHEIGHT() {return 10}
-    static SLIDERTEXTFONTSIZE() {return 130}
+    static SLIDERLINEWIDTH() { return .25 }
+    static SLIDERLINEHEIGHT() { return .1 }
+    static SLIDERTEXTPLANEHEIGHT() { return 10 }
+    static SLIDERTEXTFONTSIZE() { return 130 }
+
+    static RISINGPANELDEPTH() { return 1 }
+
+    static PUCKDEPTH() { return .9 }
 
     static MakeTextPlane(name, scene, width, height, text, fontSize) {
         // oriented in X-Y plane, text on pos z side
@@ -2051,8 +2056,11 @@ class UI3D {
         slider.rangeSize = range[1] - range[0];
         slider.onValChange = onValChange;
 
-        slider.line = BF.MakeBox(name.concat('Line'), scene, length, UI3D.SLIDERLINEWIDTH(), UI3D.SLIDERLINEWIDTH(), {}, false);
+        slider.lineHeight = UI3D.SLIDERLINEHEIGHT();
+        slider.line = BF.MakeBox(name.concat('Line'), scene, length, slider.lineHeight, UI3D.SLIDERLINEWIDTH(), {}, false);
         slider.line.parent = slider.node;
+        slider.line.position.y = UI3D.SLIDERLINEHEIGHT()/2;
+        BF.BakeMeshs([slider.line]);
         slider.line.material = window.myMats.darkSun;
 
         slider.pointerDown = function(pointerInfo) {
@@ -2140,11 +2148,13 @@ class UI3D {
     }
 
     static MakePuckSlider(name, scene, puckDiameter, puckHeight, backgroundMesh, range, initVal, length, fontSize, onValChange) {
+        // oriented with cyl axis in y dir - ie on ground facing up
         var puck = BF.MakeCylinder(name.concat('Puck'), scene, puckHeight, puckDiameter);
         puck.position.y = puckHeight/2;
         BF.BakeMeshs([puck]);
 
         var slider = UI3D.MakeSlider(name, scene, puck, backgroundMesh, range, initVal, length, onValChange);
+        slider.height = puckHeight;
 
         var valTextSide = puckDiameter / Math.sqrt(2);
         slider.valText = UI3D.MakeTextPlane(name.concat('ValText'), scene, valTextSide, valTextSide, (Math.round(slider.value*10)/10).toString(), fontSize);
@@ -2181,36 +2191,80 @@ class UI3D {
         return slider;
     }
 
-    static MakeRisingPanel(name, scene, width, height, depth, downHeight) {
-        var risingBox = {};
+    static MakeRisingPanel(name, scene, width, height, downHeight, gridDimensions, pointerManagerMode) {
+        // risingPanel is oriented in x-y plane
+        // gridDimensions is [numRows, numColumns]
+        var risingPanel = {};
         risingPanel.node = BF.MakeTransformNode(name.concat('Node'), scene);
-        risingPanel.box = BF.MakeBox(name.concat('Box'), scene, width, height, depth);
+        risingPanel.panel = BF.MakeBox(name.concat('Panel'), scene, width, height, UI3D.RISINGPANELDEPTH());
         risingPanel.upTarget = height/2;
         risingPanel.downTarget = -height/2 + downHeight
-        risingPanel.box.position.y = risingPanel.downTarget;
-        risingPanel.box.parent = risingPanel.node;
+        risingPanel.panel.position.y = risingPanel.downTarget;
+        risingPanel.panel.parent = risingPanel.node;
         risingPanel.isDown = true;
 
+        var controlNode = BF.MakeTransformNode(name.concat('ControlNode'), scene);
+        controlNode.parent = risingPanel.panel;
+        controlNode.rotation.x = -Math.PI/2;
+        controlNode.position.z = -UI3D.RISINGPANELDEPTH()/2;
+        risingPanel.controls = {node: controlNode};
+
         risingPanel.pointerDown = function(pointerInfo) {
-            if (pointerInfo.pickInfo.pickedMesh == risingPanel.box) {
+            if (pointerInfo.pickInfo.pickedMesh == risingPanel.panel) {
                 risingPanel.isDown = !risingPanel.isDown;
                 if (window.funcBuffer[name]) {
-                    window.funcBuffer.removeFunc(name);
+                    risingPanel.removeFromFuncBuffer();
                     if (risingPanel.isDown) {
-                        window.funcBuffer.addFunc(name, risingPanel.moveDown, 0, 100, GF.DoNothing);
+                        risingPanel.onPanelDown();
                     } else {
-                        window.funcBuffer.addFunc(name, risingPanel.moveUp, 0, 100, GF.DoNothing);
+                        risingPanel.onPanelUp();
                     }
                 } else {
                     if (risingPanel.isDown) {
-                        window.funcBuffer.addFunc(name, risingPanel.moveDown, 0, 100, GF.DoNothing);
+                        risingPanel.onPanelDown();
                     } else {
-                        window.funcBuffer.addFunc(name, risingPanel.moveUp, 0, 100, GF.DoNothing);
+                        risingPanel.onPanelUp();
                     }
                 }
                 return true;
             }
             return false;
+        }
+
+        risingPanel.onPanelDown = function() {
+            window.funcBuffer.addFunc(name, risingPanel.moveDown, 40, 40, GF.DoNothing);
+            if (risingPanel.controls.sliders) {
+                for (var i = 0; i < risingPanel.controls.sliders.length; i++) {
+                    window.funcBuffer.addFunc(name.concat('Slider') + i, risingPanel.controls.sliders[i].moveIn, 0, 40, GF.DoNothing);
+                    window.funcBuffer.addFunc(name.concat('SliderLine') + i, risingPanel.controls.sliders[i].moveLineIn, 0, 40, GF.DoNothing);
+                }
+            }
+            if (risingPanel.controls.knobNode) {
+                window.funcBuffer.addFunc(name.concat('KnobNode'), risingPanel.controls.knobNode.moveIn, 0, 40, GF.DoNothing);
+            }
+        }
+
+        risingPanel.onPanelUp = function() {
+            window.funcBuffer.addFunc(name, risingPanel.moveUp, 0, 40, GF.DoNothing);
+            if (risingPanel.controls.sliders) {
+                for (var i = 0; i < risingPanel.controls.sliders.length; i++) {
+                    window.funcBuffer.addFunc(name.concat('Slider') + i, risingPanel.controls.sliders[i].moveOut, 40, 40, GF.DoNothing);
+                    window.funcBuffer.addFunc(name.concat('SliderLine') + i, risingPanel.controls.sliders[i].moveLineOut, 40, 40, GF.DoNothing);
+                }
+            }
+            if (risingPanel.controls.knobNode) {
+                window.funcBuffer.addFunc(name.concat('KnobNode'), risingPanel.controls.knobNode.moveOut, 40, 40, GF.DoNothing);
+            }
+        }
+
+        risingPanel.removeFromFuncBuffer = function() {
+            window.funcBuffer.removeFunc(name);
+            if (risingPanel.controls.sliders) {
+                for (var i = 0; i < risingPanel.controls.sliders.length; i++) {
+                    window.funcBuffer.removeFunc(name.concat('Slider') + i);
+                    window.funcBuffer.removeFunc(name.concat('SliderLine') + i);
+                }
+            }
         }
 
         risingPanel.pointerUp = GF.DoNothing;
@@ -2219,13 +2273,72 @@ class UI3D {
 
         risingPanel.interpMultFunc = function(i) { return .01 * i }
 
-        risingPanel.moveUp = IF.MakeInterpFunc(risingPanel.box.position, 'y', risingPanel.upTarget, risingPanel.interpMultFunc);
+        risingPanel.moveUp = IF.MakeInterpFunc(risingPanel.panel.position, 'y', risingPanel.upTarget, risingPanel.interpMultFunc);
 
-        risingPanel.moveDown = IF.MakeInterpFunc(risingPanel.box.position, 'y', risingPanel.downTarget, risingPanel.interpMultFunc);
+        risingPanel.moveDown = IF.MakeInterpFunc(risingPanel.panel.position, 'y', risingPanel.downTarget, risingPanel.interpMultFunc);
 
         risingPanel.addToPointerManager = function(mode) {
             window.pointerManager.addInteractCallbacksToMode(risingPanel.name, risingPanel, mode);
         }
+
+        risingPanel.makeGrid = function(gridDimensions) {
+            // gridDimensions is [numRow, numCol]
+            risingPanel.grid = [];
+            var scale = 1.3; // spread out the grid a little bit;
+            var hStep = width / (gridDimensions[1] + 1);
+            var vStep = height / (gridDimensions[0] + 1);
+            for (var i = 1; i < gridDimensions[0] + 1; i++) {
+                var row = [];
+                var zpos = height/2 - i*vStep;
+                for (var j = 1; j < gridDimensions[1] + 1; j++) {
+                    var pos = BF.Vec3([-width/2 + j*hStep, 0, zpos]).scaleInPlace(scale);
+                    row.push(pos);
+                }
+                risingPanel.grid.push(row);
+            }
+        }
+
+        risingPanel.addSlider = function(slider, gridCoord) {
+            // gridCoord is [row, col]
+            // slider needs a height
+            if (!risingPanel.controls.sliders) {
+                risingPanel.controls.sliders = [];
+            }
+
+            slider.node.parent = risingPanel.controls.node;
+            slider.updateNodeOTens();
+            slider.node.position = risingPanel.grid[gridCoord[0]][gridCoord[1]];
+            slider.addToPointerManager(pointerManagerMode);
+            slider.mesh.position.y = -slider.height + .02;
+            slider.line.position.y = -slider.lineHeight + .01;
+
+            slider.interpMultFunc = function(i) { return i * .01 }
+            slider.moveOut = IF.MakeInterpFunc(slider.mesh.position, 'y', 0, slider.interpMultFunc);
+            slider.moveIn = IF.MakeInterpFunc(slider.mesh.position, 'y', -slider.height + .02, slider.interpMultFunc);
+            slider.moveLineOut = IF.MakeInterpFunc(slider.line.position, 'y', 0, slider.interpMultFunc);
+            slider.moveLineIn = IF.MakeInterpFunc(slider.line.position, 'y', -slider.lineHeight + .01, slider.interpMultFunc);
+
+            risingPanel.controls.sliders.push(slider);
+        }
+
+        risingPanel.addKnob = function(knob, gridCoord) {
+            // gridCoord is [row, col]
+            if (!risingPanel.controls.knobNode) {
+                risingPanel.controls.knobNode = BF.MakeTransformNode(name.concat('KnobNode'), scene);
+                risingPanel.controls.knobNode.parent = risingPanel.controls.node;
+                risingPanel.controls.knobNode.position.y = -knob.height + .02;
+                risingPanel.controls.knobNode.interpMultFunc = function(i) { return i * .01 }
+                risingPanel.controls.knobNode.moveOut = IF.MakeInterpFunc(risingPanel.controls.knobNode.position, 'y', 0, risingPanel.controls.knobNode.interpMultFunc);
+                risingPanel.controls.knobNode.moveIn = IF.MakeInterpFunc(risingPanel.controls.knobNode.position, 'y', -knob.height + .02, risingPanel.controls.knobNode.interpMultFunc);
+            }
+
+            knob.node.parent = risingPanel.controls.knobNode;
+            knob.node.position = risingPanel.grid[gridCoord[0]][gridCoord[1]];
+            knob.addToPointerManager(pointerManagerMode);
+        }
+
+        risingPanel.makeGrid(gridDimensions);
+        risingPanel.addToPointerManager(pointerManagerMode);
 
         return risingPanel;
     }
@@ -2243,6 +2356,7 @@ class UI3D {
         knob.sensitivity = sensitivityMult;
         knob.backgroundMesh = backgroundMesh;
         knob.onValChange = onValChange;
+        knob.height = depth;
 
         knob.mesh = BF.MakeCylinder(name.concat('Mesh'), scene, depth, diameter);
         knob.mesh.position.y = depth/2;
