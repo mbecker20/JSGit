@@ -2181,31 +2181,31 @@ class UI3D {
         return slider;
     }
 
-    static MakeRisingBox(name, scene, width, height, depth, downHeight) {
+    static MakeRisingPanel(name, scene, width, height, depth, downHeight) {
         var risingBox = {};
-        risingBox.node = BF.MakeTransformNode(name.concat('Node'), scene);
-        risingBox.box = BF.MakeBox(name.concat('Box'), scene, width, height, depth);
-        risingBox.upTarget = height/2;
-        risingBox.downTarget = -height/2 + downHeight
-        risingBox.box.position.y = risingBox.downTarget;
-        risingBox.box.parent = risingBox.node;
-        risingBox.isDown = true;
+        risingPanel.node = BF.MakeTransformNode(name.concat('Node'), scene);
+        risingPanel.box = BF.MakeBox(name.concat('Box'), scene, width, height, depth);
+        risingPanel.upTarget = height/2;
+        risingPanel.downTarget = -height/2 + downHeight
+        risingPanel.box.position.y = risingPanel.downTarget;
+        risingPanel.box.parent = risingPanel.node;
+        risingPanel.isDown = true;
 
-        risingBox.pointerDown = function(pointerInfo) {
-            if (pointerInfo.pickInfo.pickedMesh == risingBox.box) {
-                risingBox.isDown = !risingBox.isDown;
+        risingPanel.pointerDown = function(pointerInfo) {
+            if (pointerInfo.pickInfo.pickedMesh == risingPanel.box) {
+                risingPanel.isDown = !risingPanel.isDown;
                 if (window.funcBuffer[name]) {
                     window.funcBuffer.removeFunc(name);
-                    if (risingBox.isDown) {
-                        window.funcBuffer.addFunc(name, risingBox.moveDown, 0, 100, GF.DoNothing);
+                    if (risingPanel.isDown) {
+                        window.funcBuffer.addFunc(name, risingPanel.moveDown, 0, 100, GF.DoNothing);
                     } else {
-                        window.funcBuffer.addFunc(name, risingBox.moveUp, 0, 100, GF.DoNothing);
+                        window.funcBuffer.addFunc(name, risingPanel.moveUp, 0, 100, GF.DoNothing);
                     }
                 } else {
-                    if (risingBox.isDown) {
-                        window.funcBuffer.addFunc(name, risingBox.moveDown, 0, 100, GF.DoNothing);
+                    if (risingPanel.isDown) {
+                        window.funcBuffer.addFunc(name, risingPanel.moveDown, 0, 100, GF.DoNothing);
                     } else {
-                        window.funcBuffer.addFunc(name, risingBox.moveUp, 0, 100, GF.DoNothing);
+                        window.funcBuffer.addFunc(name, risingPanel.moveUp, 0, 100, GF.DoNothing);
                     }
                 }
                 return true;
@@ -2213,21 +2213,21 @@ class UI3D {
             return false;
         }
 
-        risingBox.pointerUp = GF.DoNothing;
+        risingPanel.pointerUp = GF.DoNothing;
 
-        risingBox.pointerMove = GF.DoNothing;
+        risingPanel.pointerMove = GF.DoNothing;
 
-        risingBox.interpMultFunc = function(i) { return .01 * i }
+        risingPanel.interpMultFunc = function(i) { return .01 * i }
 
-        risingBox.moveUp = IF.MakeInterpFunc(risingBox.box.position, 'y', risingBox.upTarget, risingBox.interpMultFunc);
+        risingPanel.moveUp = IF.MakeInterpFunc(risingPanel.box.position, 'y', risingPanel.upTarget, risingPanel.interpMultFunc);
 
-        risingBox.moveDown = IF.MakeInterpFunc(risingBox.box.position, 'y', risingBox.downTarget, risingBox.interpMultFunc);
+        risingPanel.moveDown = IF.MakeInterpFunc(risingPanel.box.position, 'y', risingPanel.downTarget, risingPanel.interpMultFunc);
 
-        risingBox.addToPointerManager = function(mode) {
-            window.pointerManager.addInteractCallbacksToMode(risingBox.name, risingBox, mode);
+        risingPanel.addToPointerManager = function(mode) {
+            window.pointerManager.addInteractCallbacksToMode(risingPanel.name, risingPanel, mode);
         }
 
-        return risingBox;
+        return risingPanel;
     }
 
     static MakeTwistKnob(name, scene, diameter, depth, backgroundMesh, range, initVal, sensitivityMult, fontSize, onValChange) {
