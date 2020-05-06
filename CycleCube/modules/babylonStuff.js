@@ -2014,6 +2014,8 @@ class UI3D {
     static SLIDERTEXTFONTSIZE() { return 130 }
 
     static RISINGPANELDEPTH() { return 1 }
+    static RISINGPANELANIMKEYS() { return 40 }
+    static RISINGPANELCONTROLANIMKEYS() { return 20 }
 
     static PUCKDEPTH() { return .9 }
 
@@ -2232,28 +2234,28 @@ class UI3D {
         }
 
         risingPanel.onPanelDown = function() {
-            window.funcBuffer.addFunc(name, risingPanel.moveDown, 40, 40, GF.DoNothing);
+            window.funcBuffer.addFunc(name, risingPanel.moveDown, UI3D.RISINGPANELCONTROLANIMKEYS(), UI3D.RISINGPANELANIMKEYS(), GF.DoNothing);
             if (risingPanel.controls.sliders) {
                 for (var i = 0; i < risingPanel.controls.sliders.length; i++) {
-                    window.funcBuffer.addFunc(name.concat('Slider') + i, risingPanel.controls.sliders[i].moveIn, 0, 40, GF.DoNothing);
-                    window.funcBuffer.addFunc(name.concat('SliderLine') + i, risingPanel.controls.sliders[i].moveLineIn, 0, 40, GF.DoNothing);
+                    window.funcBuffer.addFunc(name.concat('Slider') + i, risingPanel.controls.sliders[i].moveIn, 0, UI3D.RISINGPANELCONTROLANIMKEYS(), GF.DoNothing);
+                    window.funcBuffer.addFunc(name.concat('SliderLine') + i, risingPanel.controls.sliders[i].moveLineIn, 0, UI3D.RISINGPANELCONTROLANIMKEYS(), GF.DoNothing);
                 }
             }
             if (risingPanel.controls.knobNode) {
-                window.funcBuffer.addFunc(name.concat('KnobNode'), risingPanel.controls.knobNode.moveIn, 0, 40, GF.DoNothing);
+                window.funcBuffer.addFunc(name.concat('KnobNode'), risingPanel.controls.knobNode.moveIn, 0, UI3D.RISINGPANELCONTROLANIMKEYS(), GF.DoNothing);
             }
         }
 
         risingPanel.onPanelUp = function() {
-            window.funcBuffer.addFunc(name, risingPanel.moveUp, 0, 40, GF.DoNothing);
+            window.funcBuffer.addFunc(name, risingPanel.moveUp, 0, UI3D.RISINGPANELANIMKEYS(), GF.DoNothing);
             if (risingPanel.controls.sliders) {
                 for (var i = 0; i < risingPanel.controls.sliders.length; i++) {
-                    window.funcBuffer.addFunc(name.concat('Slider') + i, risingPanel.controls.sliders[i].moveOut, 40, 40, GF.DoNothing);
-                    window.funcBuffer.addFunc(name.concat('SliderLine') + i, risingPanel.controls.sliders[i].moveLineOut, 40, 40, GF.DoNothing);
+                    window.funcBuffer.addFunc(name.concat('Slider') + i, risingPanel.controls.sliders[i].moveOut, UI3D.RISINGPANELANIMKEYS(), UI3D.RISINGPANELCONTROLANIMKEYS(), GF.DoNothing);
+                    window.funcBuffer.addFunc(name.concat('SliderLine') + i, risingPanel.controls.sliders[i].moveLineOut, UI3D.RISINGPANELANIMKEYS(), UI3D.RISINGPANELCONTROLANIMKEYS(), GF.DoNothing);
                 }
             }
             if (risingPanel.controls.knobNode) {
-                window.funcBuffer.addFunc(name.concat('KnobNode'), risingPanel.controls.knobNode.moveOut, 40, 40, GF.DoNothing);
+                window.funcBuffer.addFunc(name.concat('KnobNode'), risingPanel.controls.knobNode.moveOut, UI3D.RISINGPANELANIMKEYS(), UI3D.RISINGPANELCONTROLANIMKEYS(), GF.DoNothing);
             }
         }
 
@@ -2312,7 +2314,7 @@ class UI3D {
             slider.mesh.position.y = -slider.height + .02;
             slider.line.position.y = -slider.lineHeight + .01;
 
-            slider.interpMultFunc = function(i) { return i * .01 }
+            slider.interpMultFunc = function(i) { return i * .05 }
             slider.moveOut = IF.MakeInterpFunc(slider.mesh.position, 'y', 0, slider.interpMultFunc);
             slider.moveIn = IF.MakeInterpFunc(slider.mesh.position, 'y', -slider.height + .02, slider.interpMultFunc);
             slider.moveLineOut = IF.MakeInterpFunc(slider.line.position, 'y', 0, slider.interpMultFunc);
@@ -2327,7 +2329,7 @@ class UI3D {
                 risingPanel.controls.knobNode = BF.MakeTransformNode(name.concat('KnobNode'), scene);
                 risingPanel.controls.knobNode.parent = risingPanel.controls.node;
                 risingPanel.controls.knobNode.position.y = -knob.height + .02;
-                risingPanel.controls.knobNode.interpMultFunc = function(i) { return i * .01 }
+                risingPanel.controls.knobNode.interpMultFunc = function(i) { return i * .05 }
                 risingPanel.controls.knobNode.moveOut = IF.MakeInterpFunc(risingPanel.controls.knobNode.position, 'y', 0, risingPanel.controls.knobNode.interpMultFunc);
                 risingPanel.controls.knobNode.moveIn = IF.MakeInterpFunc(risingPanel.controls.knobNode.position, 'y', -knob.height + .02, risingPanel.controls.knobNode.interpMultFunc);
             }
