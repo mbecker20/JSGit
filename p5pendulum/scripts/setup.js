@@ -14,7 +14,7 @@ function setup() {
     window.TEAL=color('hsl(160, 100%, 50%)')
     window.LIGHTBLUE=color(50,150,255)
 
-    createCanvas(1200,800);
+    createCanvas(windowWidth, windowHeight);
     window.anim=new PendSystem(m1,m2,l0,ldot0,theta0,thetadot0,Ltot,alfa,dt,grav);
 }
 
